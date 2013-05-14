@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # **************************************************************************
 # *
 # * Authors:     J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
@@ -24,29 +25,28 @@
 # *
 # **************************************************************************
 """
-This module is responsible for launching protocol executions.
+This script will generate the pw.bashrc file to include
 """
 import sys
 from os.path import abspath, dirname
-FULLPATH = abspath(__file__)
-sys.path.append(dirname(dirname(dirname(FULLPATH))))
-from pyworkflow.utils import runProtocol
-
-
+FULLPATH = dirname(abspath(__file__))
+BASHRC = 'pw.bashrc'
 
 if __name__ == '__main__':
-    if len(sys.argv) > 2:
-        projName = sys.argv[1]
-        protId = int(sys.argv[2])
-        
-        print "="*100
-        print "projName: ", projName
-        print "protId: ", protId
-        
-        runProtocol(projName, protId)
-        
+    print "Installing Scipion in : ", FULLPATH
+    print " - Creating file: ", BASHRC
+    f = open(BASHRC, 'w+')
+    
+    template = """
+export PW_HOME=%(FULLPATH)s
 
-        #protocol.run()
-        #protocol.printAll()
-    else:
-        print "usage: %s projectName protocolID" % sys.argv[0]
+export PYTHONPATH=$PW_HOME/..:$PYTHONPATH
+export PATH=$PW_HOME/apps:$PATH
+
+# For XMIPP
+export PYTHONPATH=$XMIPP_HOME/lib:$XMIPP_HOME/protocols:$PYTHONPATH
+"""
+    f.write(template % locals())
+    f.close()
+    
+    print " - Include: \n      source %s \n   in your .bashrc file" % BASHRC

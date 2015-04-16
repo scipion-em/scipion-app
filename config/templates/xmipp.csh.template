@@ -1,45 +1,49 @@
-export SCIPION_HOME=%(SCIPION_HOME)s
-export XMIPP_HOME=$SCIPION_HOME/software/em/xmipp
+setenv SCIPION_HOME %(SCIPION_HOME)s
+setenv XMIPP_HOME ${SCIPION_HOME}/software/em/xmipp
 
-export PATH=$SCIPION_HOME/software/bin:$XMIPP_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$SCIPION_HOME/software/lib:$LD_LIBRARY_PATH
-export PYTHONPATH=$XMIPP_HOME/protocols:$SCIPION_HOME/software/lib:$PYTHONPATH
+setenv PATH ${SCIPION_HOME}/software/bin:${XMIPP_HOME}/bin:${PATH}
 
-if [ "$BASH" != "" ]; then
-# Load global autocomplete file 
-test -s $XMIPP_HOME/.xmipp.autocomplete && . $XMIPP_HOME/.xmipp.autocomplete || true
-# Load programs autocomplete file 
-test -s $XMIPP_HOME/.xmipp_programs.autocomplete && . $XMIPP_HOME/.xmipp_programs.autocomplete || true
-fi
+if($?LD_LIBRARY_PATH) then
+  setenv LD_LIBRARY_PATH ${SCIPION_HOME}/software/lib:${LD_LIBRARY_PATH}
+else
+  setenv LD_LIBRARY_PATH ${SCIPION_HOME}/software/lib
+endif
+
+if($?PYTHONPATH) then
+  setenv PYTHONPATH ${XMIPP_HOME}/protocols:${SCIPION_HOME}:${SCIPION_HOME}/software/lib:${PYTHONPATH}
+else
+  setenv PYTHONPATH ${XMIPP_HOME}/protocols:${SCIPION_HOME}:${SCIPION_HOME}/software/lib
+endif
+
+test -s ${XMIPP_HOME}/.xmipp.alias && source ${XMIPP_HOME}/.xmipp.alias || true
  
  
 # Xmipp Aliases 						 
-## Setup ## 
-alias xcompile='${SCIPION_HOME}/scipion install xmipp ' 
+## Setup ##  
+alias xcompile '${SCIPION_HOME}/scipion install xmipp '
 ## Interface ##                        
-alias xa='xmipp_apropos'               
-alias xb='xmipp_browser'               
-alias xp='xmipp_protocols'             
-alias xmipp='xmipp_protocols'          
-alias xs='xmipp_showj'                 
-alias xmipp_show='xmipp_showj'         
-alias xsj='xmipp_showj'                
-alias xij='xmipp_imagej'               
+alias xa 'xmipp_apropos'               
+alias xb 'xmipp_browser'               
+alias xp 'xmipp_protocols'             
+alias xmipp 'xmipp_protocols'          
+alias xs 'scipion viewer'                 
+alias xmipp_show 'scipion viewer'         
+alias xsj 'scipion viewer'                
 ## Image ##                            
-alias xic='xmipp_image_convert'        
-alias xih='xmipp_image_header'         
-alias xio='xmipp_image_operate'        
-alias xis='xmipp_image_statistics'     
+alias xic 'xmipp_image_convert'        
+alias xih 'xmipp_image_header'         
+alias xio 'xmipp_image_operate'        
+alias xis 'xmipp_image_statistics'     
 ## Metadata ##                         
-alias xmu='xmipp_metadata_utilities'   
-alias xmp='xmipp_metadata_plot'        
+alias xmu 'xmipp_metadata_utilities'   
+alias xmp 'xmipp_metadata_plot'        
 ## Transformation ##                   
-alias xtg='xmipp_transform_geometry'   
-alias xtf='xmipp_transform_filter'     
-alias xtn='xmipp_transform_normalize'  
+alias xtg 'xmipp_transform_geometry'   
+alias xtf 'xmipp_transform_filter'     
+alias xtn 'xmipp_transform_normalize'  
 ## Other ##                            
-alias xrf='xmipp_resolution_fsc'       
-alias xrs='xmipp_resolution_ssnr'      
+alias xrf 'xmipp_resolution_fsc'       
+alias xrs 'xmipp_resolution_ssnr'      
                                                                              
                                                                              
 ## Configuration ##                                                          
@@ -50,23 +54,23 @@ alias xrs='xmipp_resolution_ssnr'
 #---------- GUI ----------                                                   
 # If you set to 1 the value of this variable, by default the programs        
 # will launch the gui when call without argments, default is print the help  
-export XMIPP_GUI_DEFAULT=0                                                   
+setenv XMIPP_GUI_DEFAULT 0                                                   
                                                                              
 # If you set to 0 the value of this variable the script generated            
 # by programs gui will not be erased and you can use the same parameters     
-export XMIPP_GUI_CLEAN=1                                                     
+setenv XMIPP_GUI_CLEAN 1                                                     
                                                                              
 #---------- Parallel ----------                                              
 # This variable will point to your job submition template file               
-export XMIPP_PARALLEL_LAUNCH=config_launch.py                                
+setenv XMIPP_PARALLEL_LAUNCH config_launch.py                                
                                                                              
 #---------- Font ----------                                                  
 # These variables set your personal font configuration                       
-export XMIPP_FONT_NAME=Verdana                                               
-export XMIPP_FONT_SIZE=10                                                    
+setenv XMIPP_FONT_NAME Verdana                                               
+setenv XMIPP_FONT_SIZE 10                                                    
                                                                              
 # If you have .xmipp.cfg in your home folder it will override                
 # this configurations                                                        
                                                                              
-test -s ~/.xmipp.cfg && . ~/.xmipp.cfg || true                               
+test -s ~/.xmipp.cfg && source ~/.xmipp.cfg || true                          
                                                                              

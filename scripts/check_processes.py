@@ -1,8 +1,9 @@
+#!/usr/bin/env python
 # **************************************************************************
 # *
 # * Authors:     J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
 # *
-# * Unidad de  Bioinformatica of Centro Nacional de Biotecnologia , CSIC
+# * Unidad de Bioinformatica of Centro Nacional de Biotecnologia, CSIC
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -23,7 +24,23 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-"""
-Configuration sub-package
-"""
+
+import time
+import psutil
+import sys
+
+# By default check xmipp programs
+prefix = sys.argv[1] if len(sys.argv) > 1 else 'xmipp'
+wait = int(sys.argv[2]) if len(sys.argv) > 2 else 24 * 60 * 60 # one day
+
+print "Check program starting with: %s" % prefix
+print "Check during %s seconds" % wait
+
+for i in range(wait):
+    c = 0
+    for proc in psutil.process_iter():
+        if proc.name().startswith(prefix):
+            c += 1
+    print "count: ", c
+    time.sleep(1)
 

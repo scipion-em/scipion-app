@@ -2,15 +2,14 @@ import requests
 import os
 import re
 import sys
-from importlib import import_module
 import json
 import pkg_resources
 from pkg_resources import parse_version
 
+from install import Environment
 from pyworkflow.plugin import Domain
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
-from pyworkflow.install import Environment
 
 REPOSITORY_URL = Config.SCIPION_PLUGIN_JSON
 
@@ -18,13 +17,11 @@ if REPOSITORY_URL is None:
     REPOSITORY_URL = Config.SCIPION_PLUGIN_REPO_URL
 
 PIP_BASE_URL = 'https://pypi.python.org/pypi'
-PIP_CMD = '{0} {1}/pip install %(installSrc)s'.format(
-    Environment.getBin('python'),
-    Environment.getPythonPackagesFolder())
+PIP_CMD = '{0} -m pip install %(installSrc)s'.format(
+    Environment.getPython())
 
-PIP_UNINSTALL_CMD = '{0} {1}/pip uninstall -y %s'.format(
-    Environment.getBin('python'),
-    Environment.getPythonPackagesFolder())
+PIP_UNINSTALL_CMD = '{0} -m pip uninstall -y %s'.format(
+    Environment.getPython())
 
 versions = list(OLD_VERSIONS) + [LAST_VERSION]
 

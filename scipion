@@ -193,8 +193,16 @@ def getPythonPackagesFolder():
     return site.getsitepackages()[0]
 
 
+def getModuleFolder(moduleName):
+    """ Returns the path of a module without importing it"""
+
+    import imp
+    return imp.find_module(moduleName)[1]
+
+
 def getPwemFolder():
-    return join(getPythonPackagesFolder(), 'pwem')
+
+    return getModuleFolder('pwem')
 
 # VARS will contain all the relevant environment variables, including
 # directories and packages.

@@ -163,10 +163,23 @@ def getPyworkflowPath():
     return dirname(pyworkflow.__file__)
 
 
-def getModulePath(moduleName):
+def getPythonPackagesFolder():
+
+    import site
+    return site.getsitepackages()[0]
+
+
+def getModuleFolder(moduleName):
+    """ Returns the path of a module without importing it"""
+
     import importlib
     spec = importlib.util.find_spec(moduleName)
     return dirname(spec.origin)
+
+
+def getPwemFolder():
+
+    return getModuleFolder(SCIPION_DOMAIN)
 
 # VARS will contain all the relevant environment variables, including
 # directories and packages.
@@ -240,7 +253,7 @@ try:
     PYTHONPATH_LIST = [SCIPION_HOME,
                        XMIPP_BINDINGS,
                        os.environ.get('PYTHONPATH', '') if not ignorePythonpath else "",
-                       join(getModulePath(SCIPION_DOMAIN), 'xmipp-ghost')]  # To be able to open scipion without xmipp
+                       join(getPwemFolder(), 'xmipp-ghost')]  # To be able to open scipion without xmipp
 
     if 'SCIPION_NOGUI' in os.environ:
         PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))

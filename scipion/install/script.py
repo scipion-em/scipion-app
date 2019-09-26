@@ -295,7 +295,7 @@ def defineBinaries(args=None):
         deps=[fftw3],
         default=False)
 
-    # All pip modules can no be defined in it's correspondent requirements.txt
+    # All pip modules can now be defined in it's correspondent requirements.txt
     # #  ************************************************************************
     # #  *                                                                      *
     # #  *                           Python Modules                             *

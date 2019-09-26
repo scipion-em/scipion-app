@@ -204,7 +204,7 @@ class PluginInfo(object):
         releases = {}
         latestCompRelease = "0.0.0"
 
-        for release, releaseData in pipJsonData['releases'].iteritems():
+        for release, releaseData in pipJsonData['releases'].items():
             releaseData = releaseData[0]
             scipionVersions = [parse_version(v)
                                for v in re.findall(reg,

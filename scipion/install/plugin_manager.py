@@ -28,6 +28,7 @@ from tkinter import *
 import webbrowser
 import threading
 
+from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
 from pyworkflow.utils.log import ScipionLogger
 from pyworkflow.gui.text import TextFileViewer
@@ -603,8 +604,8 @@ class PluginBrowser(tk.Frame):
         self.file_errors_path = os.path.join(os.environ['SCIPION_LOGS'],
                                              PLUGIN_ERRORS_LOG_NAME)
 
-        self.fileLog = open(self.file_log_path, 'w', 0)
-        self.fileLogErr = open(self.file_errors_path, 'w', 0)
+        self.fileLog = open(self.file_log_path, 'w')
+        self.fileLogErr = open(self.file_errors_path, 'w')
         self.plug_log = ScipionLogger(self.file_log_path)
         self.plug_errors_log = ScipionLogger(self.file_errors_path)
 
@@ -973,7 +974,7 @@ class PluginManagerWindow(gui.Window):
 
     def onUser(self):
         import pyworkflow as pw
-        self.parent._openConfigFile(pw.Config.SCIPION_LOCAL_CONFIG)
+        ProjectManagerWindow._openConfigFile(pw.Config.SCIPION_LOCAL_CONFIG)
 
     def onVariables(self):
         if pluginDict is not None:

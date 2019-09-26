@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # **************************************************************************
 # *
-# * Authors:     J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
-# *              I. Foche Perez (ifoche@cnb.csic.es)
+# * Authors:    J. M. De la Rosa Trevin (delarosatrevin@scilifelab.se) [1]
+# *             I. Foche Perez (ifoche@cnb.csic.es) [2]
+# *             P. Conesa (pconesa@cnb.csic.es) [2]
 # *
-# * Unidad de Bioinformatica of Centro Nacional de Biotecnologia, CSIC
+# *  [1] SciLifeLab, Stockholm University
+# *  [2] Unidad de Bioinformatica of Centro Nacional de Biotecnologia, CSIC
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -31,65 +33,36 @@ Main entry point to scipion. It launches the gui, tests, etc.
 import sys
 import os
 from os.path import join, exists, dirname, expanduser
+from .constants import *
 import subprocess
 import pyworkflow
-
-#
-# Modes (first argument given to scipion).
-#
-
-MODE_MANAGER = 'manager'
-MODE_PROJECT = 'project'
-MODE_LAST = 'last' # shortcut to 'project last'
-MODE_HERE = 'here' # shortcut to 'project here'
-MODE_COLLECTSTATIC = 'collectstatic'
-MODE_TESTS = 'tests' # keep tests for compatibility
-MODE_TEST = 'test' # also allow 'test', in singular
-MODE_TEST_DATA = 'testdata'
-MODE_HELP = 'help'
-MODE_VIEWER = ['viewer', 'view', 'show']
-
-# Installation modes
-MODE_INSTALL = 'install'
-MODE_PLUGINS = 'plugins'
-MODE_INSTALL_PLUGIN = 'installp'
-MODE_UNINSTALL_PLUGIN = 'uninstallp'
-MODE_INSTALL_BINS = 'installb'
-MODE_UNINSTALL_BINS = 'uninstallb'
-MODE_CONFIG = 'config'
-MODE_APACHE_VARS = 'apache_vars'
-MODE_VERSION = 'version'
-MODE_RUNPROTOCOL = 'runprotocol'
-MODE_PROTOCOLS = 'protocols'
-MODE_STATS = 'stats'
-MODE_ENV = 'printenv'
-MODE_RUN = 'run'
-MODE_PYTHON = 'python'
-MODE_TUTORIAL = 'tutorial'
-MODE_DEMO = ['demo', 'template']
-PLUGIN_MODES = [MODE_UNINSTALL_PLUGIN, MODE_INSTALL_PLUGIN,
-                MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
+from configparser import ConfigParser, ParsingError  # Python 3
 
 
-DEVEL = 'devel'
-
-try:
-    from ConfigParser import ConfigParser, ParsingError
-except ImportError:
-    from configparser import ConfigParser, ParsingError  # Python 3
+__version__ = 'v3.0'
+__nickname__ = DEVEL
+__releasedate__ = ''
 
 
-__version__ = 'v2.0'
-__nickname__ = 'Diocletian'
-__releasedate__ = '2019-04-23'
+def getScipionHome():
+
+    home = os.environ.get("SCIPION_HOME", None)
+
+    if not home:
+        sys.exit("SCIPION_HOME environment variable must be set")
+
+    if not os.path.exists(home):
+        sys.exit("SCIPION_HOME value (%s) does not exists." % home)
+
+    if not os.path.isdir(home):
+        sys.exit("SCIPION_HOME value (%s) is not a folder." % home)
+
+    return home
 
 
-# This script tries to run ok with any python version. So we cannot
-# use some of the cool syntax of modern Python (no "with" statement,
-# no inline "if ... else ...", etc.), and we better avoid things like
-# "print" (we use sys.stdout.write()) and be careful with exceptions.
+SCIPION_HOME = getScipionHome()
 
-SCIPION_HOME = dirname(os.path.realpath(__file__))
+SCIPION_APP = dirname(__file__)
 
 # Some pw_*.py scripts under 'apps' folder change the current working
 # directory to the SCIPION_HOME, so let's keep the current working
@@ -97,7 +70,9 @@ SCIPION_HOME = dirname(os.path.realpath(__file__))
 SCIPION_CWD = os.path.abspath(os.getcwd())
 
 # Scipion path to its own scripts
-SCIPION_SCRIPTS = join(SCIPION_HOME, "scripts")
+SCIPION_SCRIPTS = join(SCIPION_APP, "scripts")
+# Scipion path to install
+SCIPION_INSTALL = join(SCIPION_APP, "install")
 #
 # If we don't have a local user installation, create it.
 #
@@ -125,7 +100,7 @@ SCIPION_PROTOCOLS = join(dirname(SCIPION_CONFIG), 'protocols.conf')
 # This is useful for having the same central installation that
 # could be used from different environments (cluster vs workstations)
 SCIPION_HOSTS = join(dirname(SCIPION_CONFIG), 'hosts.conf')
-
+SCIPION_DOMAIN = "pwem"
 
 # Check for old configuration files and tell the user to update.
 if SCIPION_LOCAL_CONFIG != SCIPION_CONFIG and exists(SCIPION_LOCAL_CONFIG):
@@ -179,18 +154,25 @@ def printVersion():
 for confFile in [SCIPION_CONFIG, SCIPION_LOCAL_CONFIG,
                  SCIPION_PROTOCOLS, SCIPION_HOSTS]:
     if not exists(confFile) and (len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG):
-        sys.exit('Missing file %s\nPlease run\n  %s config\nto fix your '
-                 'configuration' % (confFile, sys.argv[0]))
+        sys.exit('Missing file:  %s\nPlease run scipion in config mode to fix '
+                 'your configuation:\n  "scipion config"  to fix your '
+                 'configuration' % confFile)
 
 
 def getPyworkflowPath():
     return dirname(pyworkflow.__file__)
 
+
+def getModulePath(moduleName):
+    import importlib
+    spec = importlib.util.find_spec(moduleName)
+    return dirname(spec.origin)
+
 # VARS will contain all the relevant environment variables, including
 # directories and packages.
 VARS = {
     'PW_APPS': join(getPyworkflowPath(), 'apps'),
-    'SCIPION_INSTALL': "install",
+    'SCIPION_INSTALL': SCIPION_INSTALL,
     'SCIPION_HOME': SCIPION_HOME,
     'SCIPION_CWD': SCIPION_CWD,
     'SCIPION_VERSION': getVersion(),
@@ -200,7 +182,8 @@ VARS = {
     'SCIPION_PROTOCOLS': SCIPION_PROTOCOLS,
     'SCIPION_HOSTS': SCIPION_HOSTS,
     'SCIPION_SCRIPTS': SCIPION_SCRIPTS,
-    'SCIPION_TEMPLATES': join(SCIPION_HOME, "templates"),
+    'SCIPION_TEMPLATES': join(SCIPION_APP, "templates"),
+    'SCIPION_DOMAIN': SCIPION_DOMAIN
 }
 
 try:
@@ -257,7 +240,7 @@ try:
     PYTHONPATH_LIST = [SCIPION_HOME,
                        XMIPP_BINDINGS,
                        os.environ.get('PYTHONPATH', '') if not ignorePythonpath else "",
-                       join(SCIPION_HOME, 'pyworkflow', 'em', 'xmipp-ghost')]  # To be able to open scipion without xmipp
+                       join(getModulePath(SCIPION_DOMAIN), 'xmipp-ghost')]  # To be able to open scipion without xmipp
 
     if 'SCIPION_NOGUI' in os.environ:
         PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))
@@ -572,7 +555,6 @@ Valid modes are:
   help install installp uninstallp installb uninstallb manager project tests testdata viewer printenv run
 Run "%s help" for a full description.\n""" % (sys.argv[1], sys.argv[0]))
     sys.exit(1)
-
 
 
 if __name__ == '__main__':

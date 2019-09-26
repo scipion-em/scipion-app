@@ -6,11 +6,11 @@ import json
 import pkg_resources
 from pkg_resources import parse_version
 
-from install import Environment
+from funcs import Environment
 from pyworkflow.plugin import Domain
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
-
+from importlib import reload
 REPOSITORY_URL = Config.SCIPION_PLUGIN_JSON
 
 if REPOSITORY_URL is None:
@@ -303,8 +303,8 @@ class PluginInfo(object):
         Environment object with the plugin's binaries."""
         if envArgs is None:
             envArgs = []
-        import script
-        env = script.defineBinaries(envArgs)
+        from .script import defineBinaries
+        env = defineBinaries(envArgs)
         env.setDefault(False)
 
         plugin = self.getPluginClass()
@@ -319,8 +319,8 @@ class PluginInfo(object):
 
     def getBinVersions(self):
         """Get list with names of binaries of this plugin"""
-        import script
-        env = script.defineBinaries()
+        from .script import defineBinaries
+        env = defineBinaries()
         env.setDefault(False)
         defaultTargets = [target.getName() for target in env.getTargetList()]
         plugin = self.getPluginClass()

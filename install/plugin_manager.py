@@ -24,7 +24,7 @@
 # *
 # **************************************************************************
 
-from Tkinter import *
+from tkinter import *
 import webbrowser
 import threading
 

@@ -295,60 +295,61 @@ def defineBinaries(args=None):
         deps=[fftw3],
         default=False)
 
-    #  ************************************************************************
-    #  *                                                                      *
-    #  *                           Python Modules                             *
-    #  *                                                                      *
-    #  ************************************************************************
-
-    # The flag '--old-and-unmanageable' used in some modules avoids
-    # creating a single Python egg. That way the modules create a full
-    # directory with the name of package, and we use that as a target.
-
-    # Add pip to our python
-    pip = env.addTarget('pip')
-    # we will install a certain version of setuptools
-    pip.addCommand('python pyworkflow/install/get-pip.py -I --no-setuptools',
-                   targets=SW_PYT_PACK + '/pip', default=True, final=True)
-
-    # Required python modules
-    env.addPipModule('setuptools', '39.0.1')
-    # numpy = env.addPipModule('numpy', '1.14.1')
-    # matplotlib = env.addPipModule('matplotlib', '1.5.3', target='matplotlib-1.5.3*')
-
-
-    env.addPipModule('poster', '0.8.1', target='poster-0.8.1*')
-    env.addPipModule('psutil', '2.1.1', target='psutil-2.1.1*')
-    env.addPipModule('biopython', '1.71', target='biopython-1.71*')
-    env.addPipModule('mpi4py', '3.0.0')
-    # scipy = env.addPipModule('scipy', '0.14.0',
-    #                          default=not noScipy, deps=[lapack, matplotlib])
-
-    # env.addPipModule('bibtexparser', '0.6.2')
-    env.addPipModule('django', '1.5.5')
-    env.addPipModule('Pillow', '5.4.1', target='Pillow-5.4.1*',
-                     deps=[jpeg, tiff])
-    env.addPipModule('future', '0.17.1', target='future-0.17.1*')
-
-    # Optional python modules
-    env.addPipModule('paramiko', '1.14.0', default=False)
-    # 1.4.8 could not be found ! Using latest available
-    env.addPipModule('winpdb', '1.3.6', default=False)
-
-    env.addPipModule('lxml', '3.4.1', target='lxml-3.4.1*', default=False)
-    # env.addPipModule('requests', '2.18.4', default=True)
-
-    # These were dependencies of iPython
-    env.addPipModule('pyzmq', '2.2.0.1', target='pyzmq*', default=False)
-    env.addPipModule('jinja2', '2.7.3', default=False)
-    env.addPipModule('tornado', '4.0.2', default=False)
-    env.addPipModule('ipython', '2.1.0', target='IPython', default=False)
-    cython = env.addPipModule('cython', '0.22', target='Cython-0.22*', default=False)
-    cythongsl = env.addPipModule('cythongsl', '0.2.1',
-                                 target='CythonGSL-0.2.1*',
-                                 default=False, deps=[cython])
-    env.addPipModule('scikit-learn', '0.17', target='scikit_learn*',
-                     default=False, deps=[cython])
+    # All pip modules can no be defined in it's correspondent requirements.txt
+    # #  ************************************************************************
+    # #  *                                                                      *
+    # #  *                           Python Modules                             *
+    # #  *                                                                      *
+    # #  ************************************************************************
+    #
+    # # The flag '--old-and-unmanageable' used in some modules avoids
+    # # creating a single Python egg. That way the modules create a full
+    # # directory with the name of package, and we use that as a target.
+    #
+    # # Add pip to our python
+    # pip = env.addTarget('pip')
+    # # we will install a certain version of setuptools
+    # pip.addCommand('python pyworkflow/install/get-pip.py -I --no-setuptools',
+    #                targets=SW_PYT_PACK + '/pip', default=True, final=True)
+    #
+    # # Required python modules
+    # env.addPipModule('setuptools', '39.0.1')
+    # # numpy = env.addPipModule('numpy', '1.14.1')
+    # # matplotlib = env.addPipModule('matplotlib', '1.5.3', target='matplotlib-1.5.3*')
+    #
+    #
+    # env.addPipModule('poster', '0.8.1', target='poster-0.8.1*')
+    # env.addPipModule('psutil', '2.1.1', target='psutil-2.1.1*')
+    # env.addPipModule('biopython', '1.71', target='biopython-1.71*')
+    # env.addPipModule('mpi4py', '3.0.0')
+    # # scipy = env.addPipModule('scipy', '0.14.0',
+    # #                          default=not noScipy, deps=[lapack, matplotlib])
+    #
+    # # env.addPipModule('bibtexparser', '0.6.2')
+    # env.addPipModule('django', '1.5.5')
+    # env.addPipModule('Pillow', '5.4.1', target='Pillow-5.4.1*',
+    #                  deps=[jpeg, tiff])
+    # env.addPipModule('future', '0.17.1', target='future-0.17.1*')
+    #
+    # # Optional python modules
+    # env.addPipModule('paramiko', '1.14.0', default=False)
+    # # 1.4.8 could not be found ! Using latest available
+    # env.addPipModule('winpdb', '1.3.6', default=False)
+    #
+    # env.addPipModule('lxml', '3.4.1', target='lxml-3.4.1*', default=False)
+    # # env.addPipModule('requests', '2.18.4', default=True)
+    #
+    # # These were dependencies of iPython
+    # env.addPipModule('pyzmq', '2.2.0.1', target='pyzmq*', default=False)
+    # env.addPipModule('jinja2', '2.7.3', default=False)
+    # env.addPipModule('tornado', '4.0.2', default=False)
+    # env.addPipModule('ipython', '2.1.0', target='IPython', default=False)
+    # cython = env.addPipModule('cython', '0.22', target='Cython-0.22*', default=False)
+    # cythongsl = env.addPipModule('cythongsl', '0.2.1',
+    #                              target='CythonGSL-0.2.1*',
+    #                              default=False, deps=[cython])
+    # env.addPipModule('scikit-learn', '0.17', target='scikit_learn*',
+    #                  default=False, deps=[cython])
 
 
 

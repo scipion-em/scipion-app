@@ -17,6 +17,9 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
 
@@ -31,7 +34,7 @@ setup(
     author_email='scipion@cnb.csic.es',  # Optional
     keywords='scipion cryoem imageprocessing scipion-3.0',  # Optional
     packages=find_packages(),
-    install_requires=['scipion-pyworkflow', 'scipion-em'],
+    install_requires=[requirements],
     # package_data={  # Optional
     # #    '': [''],
     # }

@@ -66,6 +66,7 @@ CHIMERA_HEADLESS_HOME = %(EM_ROOT)s/chimera_headless
 VMD_HOME = %(EM_ROOT)s/vmd
 
 [VARIABLES]
+SCIPION_DOMAIN = pwem
 #editor
 SCIPION_NOTES_PROGRAM = 
 SCIPION_NOTES_ARGS =
@@ -74,6 +75,9 @@ SCIPION_NOTES_FILE =  notes.txt
 SCIPION_NOTIFY = False
 # Default viewer for volumes
 VIEWERS={"Volume":["pyworkflow.em.viewers.viewers_data.DataViewer"]}
+
+#SCIPION_FONT_NAME = Helvetica  # for missing fonts issues this has worked: https://stackoverflow.com/q/47769187/3157958
+#SCIPION_FONT_SIZE = 10
 
 # This section of the configuration file is used to setup variables to
 # compile from sources. Most of them you won't want to change.

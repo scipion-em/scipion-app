@@ -66,7 +66,7 @@ def main():
             if not args.packages:
                 libFull = '%s/%s' % (libPath, lib)
                 if libFull not in shown:
-                    print (libFull)
+                    print(libFull)
                     shown.add(libFull)
             elif 'software/lib' not in libPath:
                 command = '%s %s/%s' % (args.pkg_command, libPath, lib)

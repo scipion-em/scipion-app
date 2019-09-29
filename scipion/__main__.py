@@ -33,7 +33,7 @@ Main entry point to scipion. It launches the gui, tests, etc.
 import sys
 import os
 from os.path import join, exists, dirname, expanduser
-from .constants import *
+from scipion.constants import *
 import subprocess
 import pyworkflow
 from configparser import ConfigParser, ParsingError  # Python 3

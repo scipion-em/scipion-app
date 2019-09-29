@@ -66,20 +66,20 @@ def main():
             if not args.packages:
                 libFull = '%s/%s' % (libPath, lib)
                 if libFull not in shown:
-                    print libFull
+                    print (libFull)
                     shown.add(libFull)
             elif 'software/lib' not in libPath:
                 command = '%s %s/%s' % (args.pkg_command, libPath, lib)
                 try:
                     pkg = check_output(command.split()).split(':')[0].strip()
                     if pkg not in shown:
-                        print pkg
+                        print(pkg)
                         shown.add(pkg)
                 except CalledProcessError:
-                    print '%s/%s -> no package found' % (libPath, lib)
+                    print('%s/%s -> no package found' % (libPath, lib))
             break
         else:
-            print '%s -> not found in any path' % lib
+            print('%s -> not found in any path' % lib)
 
 
 def libDeps(fpath):

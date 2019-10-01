@@ -427,7 +427,15 @@ class PluginBrowser(tk.Frame):
         Fill the left Panel with the plugins list
         """
         gui.configureWeigths(leftFrame)
-        self.tree = PluginTree(leftFrame, show="tree")
+
+        # This 5! lines are only to set the row height!! Should be centralized
+        font = getDefaultFont()
+        font.metrics()
+        fontheight = font.metrics()['linespace']
+        style = ttk.Style()
+        style.configure('Plugins.Treeview',rowheight=fontheight)
+
+        self.tree = PluginTree(leftFrame, show="tree", style="Plugins.Treeview")
         self.tree.grid(row=0, column=0, sticky='news')
 
         self.yscrollbar = ttk.Scrollbar(leftFrame, orient='vertical',
@@ -596,7 +604,7 @@ class PluginBrowser(tk.Frame):
         self.terminal.grid(row=0, column=0, sticky='news')
         gui.configureWeigths(self.terminal)
 
-        self.Textlog = TextFileViewer(self.terminal, font='black')
+        self.Textlog = TextFileViewer(self.terminal, font=getDefaultFont())
         self.Textlog.grid(row=0, column=0, sticky='news')
 
         self.file_log_path = os.path.join(os.environ['SCIPION_LOGS'],

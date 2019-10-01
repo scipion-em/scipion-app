@@ -30,6 +30,8 @@
 """
 Main entry point to scipion. It launches the gui, tests, etc.
 """
+import importlib
+import site
 import sys
 import os
 from os.path import join, exists, dirname, expanduser
@@ -165,14 +167,13 @@ def getPyworkflowPath():
 
 def getPythonPackagesFolder():
 
-    import site
     return site.getsitepackages()[0]
 
 
 def getModuleFolder(moduleName):
     """ Returns the path of a module without importing it"""
 
-    import importlib
+
     spec = importlib.util.find_spec(moduleName)
     return dirname(spec.origin)
 
@@ -492,7 +493,7 @@ Example: scipion install -j 4
           mode.startswith('e2') or 
           mode.startswith('sx') or
           mode.startswith('b')):
-        runApp('pw_program.py',  sys.argv[1:], chdir=False)
+        runApp(join(SCIPION_SCRIPTS,'pw_program.py'),  sys.argv[1:], chdir=False)
     
     elif mode == MODE_HELP:
         sys.stdout.write("""\

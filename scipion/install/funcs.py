@@ -150,8 +150,6 @@ class Command:
             # Return to working directory, useful when we change dir
             # before executing the command.
             os.chdir(cwd)
-            import time
-            time.sleep(10)
             if not self._env.showOnly:
                 for t in self._targets:
                     assert glob(t), ("target '%s' not built (after "

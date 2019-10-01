@@ -295,208 +295,63 @@ def defineBinaries(args=None):
         deps=[fftw3],
         default=False)
 
-    #  ************************************************************************
-    #  *                                                                      *
-    #  *                           Python Modules                             *
-    #  *                                                                      *
-    #  ************************************************************************
+    # All pip modules can no be defined in it's correspondent requirements.txt
+    # #  ************************************************************************
+    # #  *                                                                      *
+    # #  *                           Python Modules                             *
+    # #  *                                                                      *
+    # #  ************************************************************************
+    #
+    # # The flag '--old-and-unmanageable' used in some modules avoids
+    # # creating a single Python egg. That way the modules create a full
+    # # directory with the name of package, and we use that as a target.
+    #
+    # # Add pip to our python
+    # pip = env.addTarget('pip')
+    # # we will install a certain version of setuptools
+    # pip.addCommand('python pyworkflow/install/get-pip.py -I --no-setuptools',
+    #                targets=SW_PYT_PACK + '/pip', default=True, final=True)
+    #
+    # # Required python modules
+    # env.addPipModule('setuptools', '39.0.1')
+    # # numpy = env.addPipModule('numpy', '1.14.1')
+    # # matplotlib = env.addPipModule('matplotlib', '1.5.3', target='matplotlib-1.5.3*')
+    #
+    #
+    # env.addPipModule('poster', '0.8.1', target='poster-0.8.1*')
+    # env.addPipModule('psutil', '2.1.1', target='psutil-2.1.1*')
+    # env.addPipModule('biopython', '1.71', target='biopython-1.71*')
+    # env.addPipModule('mpi4py', '3.0.0')
+    # # scipy = env.addPipModule('scipy', '0.14.0',
+    # #                          default=not noScipy, deps=[lapack, matplotlib])
+    #
+    # # env.addPipModule('bibtexparser', '0.6.2')
+    # env.addPipModule('django', '1.5.5')
+    # env.addPipModule('Pillow', '5.4.1', target='Pillow-5.4.1*',
+    #                  deps=[jpeg, tiff])
+    # env.addPipModule('future', '0.17.1', target='future-0.17.1*')
+    #
+    # # Optional python modules
+    # env.addPipModule('paramiko', '1.14.0', default=False)
+    # # 1.4.8 could not be found ! Using latest available
+    # env.addPipModule('winpdb', '1.3.6', default=False)
+    #
+    # env.addPipModule('lxml', '3.4.1', target='lxml-3.4.1*', default=False)
+    # # env.addPipModule('requests', '2.18.4', default=True)
+    #
+    # # These were dependencies of iPython
+    # env.addPipModule('pyzmq', '2.2.0.1', target='pyzmq*', default=False)
+    # env.addPipModule('jinja2', '2.7.3', default=False)
+    # env.addPipModule('tornado', '4.0.2', default=False)
+    # env.addPipModule('ipython', '2.1.0', target='IPython', default=False)
+    # cython = env.addPipModule('cython', '0.22', target='Cython-0.22*', default=False)
+    # cythongsl = env.addPipModule('cythongsl', '0.2.1',
+    #                              target='CythonGSL-0.2.1*',
+    #                              default=False, deps=[cython])
+    # env.addPipModule('scikit-learn', '0.17', target='scikit_learn*',
+    #                  default=False, deps=[cython])
 
-    # The flag '--old-and-unmanageable' used in some modules avoids
-    # creating a single Python egg. That way the modules create a full
-    # directory with the name of package, and we use that as a target.
 
-    # Add pip to our python
-    pip = env.addTarget('pip')
-    # we will install a certain version of setuptools
-    pip.addCommand('python pyworkflow/install/get-pip.py -I --no-setuptools',
-                   targets=SW_PYT_PACK + '/pip', default=True, final=True)
-
-    # Required python modules
-    env.addPipModule('setuptools', '39.0.1')
-    numpy = env.addPipModule('numpy', '1.14.1')
-    matplotlib = env.addPipModule('matplotlib', '1.5.3', target='matplotlib-1.5.3*')
-
-
-    env.addPipModule('poster', '0.8.1', target='poster-0.8.1*')
-    env.addPipModule('psutil', '2.1.1', target='psutil-2.1.1*')
-    env.addPipModule('biopython', '1.71', target='biopython-1.71*')
-    env.addPipModule('mpi4py', '3.0.0')
-    scipy = env.addPipModule('scipy', '0.14.0',
-                             default=not noScipy, deps=[lapack, matplotlib])
-    env.addPipModule('bibtexparser', '0.6.2')
-    env.addPipModule('django', '1.5.5')
-    env.addPipModule('Pillow', '5.4.1', target='Pillow-5.4.1*',
-                     deps=[jpeg, tiff])
-    env.addPipModule('future', '0.17.1', target='future-0.17.1*')
-
-    # Optional python modules
-    env.addPipModule('paramiko', '1.14.0', default=False)
-    # 1.4.8 could not be found ! Using latest available
-    env.addPipModule('winpdb', '1.3.6', default=False)
-
-    env.addPipModule('lxml', '3.4.1', target='lxml-3.4.1*', default=False)
-    env.addPipModule('requests', '2.18.4', default=True)
-
-    # These were dependencies of iPython
-    env.addPipModule('pyzmq', '2.2.0.1', target='pyzmq*', default=False)
-    env.addPipModule('jinja2', '2.7.3', default=False)
-    env.addPipModule('tornado', '4.0.2', default=False)
-    env.addPipModule('ipython', '2.1.0', target='IPython', default=False)
-    cython = env.addPipModule('cython', '0.22', target='Cython-0.22*', default=False)
-    cythongsl = env.addPipModule('cythongsl', '0.2.1',
-                                 target='CythonGSL-0.2.1*',
-                                 default=False, deps=[cython])
-    env.addPipModule('scikit-learn', '0.17', target='scikit_learn*',
-                     default=False, deps=[scipy, cython])
-
-
-    #  ************************************************************************
-    #  *                                                                      *
-    #  *                       External (EM) Packages                         *
-    #  *                                                                      *
-    #  ************************************************************************
-
-    # 'commands' is a list of (command, [targets]) to run after installation.
-
-    """
-    
-    relion_commands = [('./INSTALL.sh -j %d' % env.getProcessors(),
-                              ['relion_build.log',
-                               'bin/relion_refine'])]
-    
-    env.addPackage('relion', version='1.4',
-                   tar='relion-1.4.tgz',
-                   commands=relion_commands)
-    
-    env.addPackage('relion', version='1.4f',
-                   tar='relion-1.4_float.tgz',
-                   commands=relion_commands)
-    
-    # Define FFTW3 path variables
-    relion_vars = [('FFTW_LIB', SW_LIB),
-                   ('FFTW_INCLUDE', SW_INC)]
-    
-    relion2_commands = [('cmake -DGUI=OFF -DCMAKE_INSTALL_PREFIX=./ .', []),
-                        ('make -j %d' % env.getProcessors(), ['bin/relion_refine'])]
-    
-    env.addPackage('relion', version='2.0',
-                   tar='relion-2.0.4.tgz',
-                   commands=relion2_commands,
-                   updateCuda=True,
-                   vars=relion_vars)
-    
-    env.addPackage('relion', version='2.1',
-                  tar='relion-2.1.tgz',
-                  commands=relion2_commands,
-                  updateCuda=True,
-                  vars=relion_vars)
-    
-    eman2_commands = [('./eman2-installer',
-                       'eman2.*rc')]
-    
-    env.addPackage('eman', version='2.11',
-                   tar='eman2.11.linux64.tgz',
-                   commands=eman2_commands)
-    
-    env.addPackage('eman', version='2.12',
-                   tar='eman2.12.linux64.tgz',
-                   commands=eman2_commands)
-    
-    SW_EM = env.getEmFolder()
-    
-    eman22_commands = [('./eman2.21.linux64.centos7.sh -b -p "%s/eman-2.21"' %
-                        SW_EM, '%s/eman-2.21/bin/python' % SW_EM)]
-    
-    env.addPackage('eman', version='2.21',
-                   tar='eman2.21.linux64.centos7.tgz',
-                   commands=eman22_commands)
-    
-    env.addPackage('localrec', version='1.1.0',
-                   tar='localrec-1.1.0.tgz')
-    
-    env.addPackage('localrec', version='1.2.0',
-                   tar='localrec-1.2.0.tgz')
-    
-    env.addPackage('locscale', version='0.1',
-                   tar='locscale-0.1.tgz')
-    
-    env.addPackage('resmap', version='1.1.5s2',
-                   tar='resmap-1.1.5-s2.tgz',
-                   deps=['scipy'])
-    
-    env.addPackage('spider', version='21.13',
-                   tar='spider-web-21.13.tgz',
-                   neededProgs=['csh'])
-    
-    env.addPackage('motioncorr', version='2.1',
-                   tar='motioncorr_v2.1.tgz')
-    
-    env.addPackage('motioncor2', version='17.01.30',
-                   tar='motioncor2_01302017.tgz')
-    
-    env.addPackage('motioncor2', version='1.0.2',
-                   tar='motioncor2-1.0.2.tgz')
-    
-    env.addPackage('motioncor2', version='1.0.5',
-                   tar='motioncor2-1.0.5.tgz')
-    
-    env.addPackage('motioncor2', version='1.1.0',
-                   tar='motioncor2-1.1.0.tgz')
-    
-    env.addPackage('simple', version='2.1',
-                   tar='simple2.tgz')
-    
-    env.addPackage('chimera', version='1.10.1',
-                   tar='chimera-1.10.1-linux_x86_64.tgz',
-                   targetDir='chimera-1.10.1',
-                   commands=[('./scipion_installer','bin/chimera')])
-    
-    env.addPackage('nma',
-                   tar='nma.tgz',
-                   commands=[('cd ElNemo; make; mv nma_* ..', 'nma_elnemo_pdbmat'),
-                             ('cd NMA_cart; LDFLAGS=-L%s make; mv nma_* ..' %
-                              Environment.getLibFolder(), 'nma_diag_arpack')],
-                   deps=['arpack'])
-    
-    env.addPackage('cryoem', version='1.0',
-                    tar='cryoem-1.0.tgz',
-                    pythonMod=True, default=False,
-                    deps=[scipy, matplotlib, cythongsl])
-    
-    env.addPackage('powerfit', version='2.0',
-                    tar='powerfit.tgz',
-                    targets=['powerfit-2.0*'],
-                    pythonMod=True, default=False,
-                    deps=[numpy, scipy, fftw3])
-    
-    env.addPackage('gEMpicker', version='1.1',
-                   tar='gEMpicker_v1.1.tgz')
-    
-    env.addPackage('gctf', version='0.50',
-                   tar='Gctf_v0.50.tgz')
-    
-    env.addPackage('gctf', version='1.06',
-                   tar='Gctf_v1.06.tgz')
-    
-    env.addPackage('gautomatch', version='0.53',
-                   tar='Gautomatch_v0.53.tgz')
-    
-    env.addPackage('ethan', version='1.2',
-                   tar='ethan-1.2.tgz',
-                   commands=[('make', 'ethan')])
-    
-    fsc_commands = [('conda env create -f environment.yml && touch IS_INSTALLED',
-                     'IS_INSTALLED')]
-    
-    env.addPackage('nysbc-3DFSC', version='2.5',
-                   tar='nysbc-3DFSC_2.5.tgz',
-                   commands=fsc_commands,
-                   neededProgs=['conda'])
-    
-    env.addPackage('cryoEF', version='1.1.0',
-                   tar='cryoEF_v1.1.0.tgz')
-                   
-    """
 
     return env
 

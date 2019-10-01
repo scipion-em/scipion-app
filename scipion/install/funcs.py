@@ -150,6 +150,8 @@ class Command:
             # Return to working directory, useful when we change dir
             # before executing the command.
             os.chdir(cwd)
+            import time
+            time.sleep(10)
             if not self._env.showOnly:
                 for t in self._targets:
                     assert glob(t), ("target '%s' not built (after "
@@ -268,12 +270,18 @@ class Environment:
         return '%s/lib' % (Environment.getSoftware())
 
     @staticmethod
+    def getPython():
+        return sys.executable
+
+    @staticmethod
     def getPythonFolder():
         return Environment.getLibFolder() + '/python2.7'
 
     @staticmethod
     def getPythonPackagesFolder():
-        return Environment.getPythonFolder() + '/site-packages'
+
+        import site
+        return site.getsitepackages()[0]
 
     @staticmethod
     def getIncludeFolder():

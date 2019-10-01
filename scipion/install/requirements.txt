@@ -1,0 +1,5 @@
+numpy
+bibtexparser
+matplotlib
+requests
+Pillow

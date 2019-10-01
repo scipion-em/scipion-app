@@ -2,29 +2,26 @@ import requests
 import os
 import re
 import sys
-from importlib import import_module
 import json
 import pkg_resources
 from pkg_resources import parse_version
 
+from funcs import Environment
 from pyworkflow.plugin import Domain
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
-from pyworkflow.install import Environment
-
+from importlib import reload
 REPOSITORY_URL = Config.SCIPION_PLUGIN_JSON
 
 if REPOSITORY_URL is None:
     REPOSITORY_URL = Config.SCIPION_PLUGIN_REPO_URL
 
 PIP_BASE_URL = 'https://pypi.python.org/pypi'
-PIP_CMD = '{0} {1}/pip install %(installSrc)s'.format(
-    Environment.getBin('python'),
-    Environment.getPythonPackagesFolder())
+PIP_CMD = '{0} -m pip install %(installSrc)s'.format(
+    Environment.getPython())
 
-PIP_UNINSTALL_CMD = '{0} {1}/pip uninstall -y %s'.format(
-    Environment.getBin('python'),
-    Environment.getPythonPackagesFolder())
+PIP_UNINSTALL_CMD = '{0} -m pip uninstall -y %s'.format(
+    Environment.getPython())
 
 versions = list(OLD_VERSIONS) + [LAST_VERSION]
 
@@ -306,8 +303,8 @@ class PluginInfo(object):
         Environment object with the plugin's binaries."""
         if envArgs is None:
             envArgs = []
-        import script
-        env = script.defineBinaries(envArgs)
+        from .script import defineBinaries
+        env = defineBinaries(envArgs)
         env.setDefault(False)
 
         plugin = self.getPluginClass()
@@ -322,8 +319,8 @@ class PluginInfo(object):
 
     def getBinVersions(self):
         """Get list with names of binaries of this plugin"""
-        import script
-        env = script.defineBinaries()
+        from .script import defineBinaries
+        env = defineBinaries()
         env.setDefault(False)
         defaultTargets = [target.getName() for target in env.getTargetList()]
         plugin = self.getPluginClass()

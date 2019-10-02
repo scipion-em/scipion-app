@@ -28,12 +28,13 @@ from tkinter import *
 import webbrowser
 import threading
 
+from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
 from pyworkflow.utils.log import ScipionLogger
 from pyworkflow.gui.text import TextFileViewer
 from pyworkflow.gui import *
 import pyworkflow.gui.dialog as pwgui
-from plugin_funcs import PluginRepository, PluginInfo
+from scipion.install.plugin_funcs import PluginRepository, PluginInfo
 
 from pyworkflow.utils.properties import *
 from pyworkflow.utils import redStr
@@ -426,7 +427,15 @@ class PluginBrowser(tk.Frame):
         Fill the left Panel with the plugins list
         """
         gui.configureWeigths(leftFrame)
-        self.tree = PluginTree(leftFrame, show="tree")
+
+        # This 5! lines are only to set the row height!! Should be centralized
+        font = getDefaultFont()
+        font.metrics()
+        fontheight = font.metrics()['linespace']
+        style = ttk.Style()
+        style.configure('Plugins.Treeview',rowheight=fontheight)
+
+        self.tree = PluginTree(leftFrame, show="tree", style="Plugins.Treeview")
         self.tree.grid(row=0, column=0, sticky='news')
 
         self.yscrollbar = ttk.Scrollbar(leftFrame, orient='vertical',
@@ -595,7 +604,7 @@ class PluginBrowser(tk.Frame):
         self.terminal.grid(row=0, column=0, sticky='news')
         gui.configureWeigths(self.terminal)
 
-        self.Textlog = TextFileViewer(self.terminal, font='black')
+        self.Textlog = TextFileViewer(self.terminal, font=getDefaultFont())
         self.Textlog.grid(row=0, column=0, sticky='news')
 
         self.file_log_path = os.path.join(os.environ['SCIPION_LOGS'],
@@ -603,8 +612,8 @@ class PluginBrowser(tk.Frame):
         self.file_errors_path = os.path.join(os.environ['SCIPION_LOGS'],
                                              PLUGIN_ERRORS_LOG_NAME)
 
-        self.fileLog = open(self.file_log_path, 'w', 0)
-        self.fileLogErr = open(self.file_errors_path, 'w', 0)
+        self.fileLog = open(self.file_log_path, 'w')
+        self.fileLogErr = open(self.file_errors_path, 'w')
         self.plug_log = ScipionLogger(self.file_log_path)
         self.plug_errors_log = ScipionLogger(self.file_errors_path)
 
@@ -973,7 +982,7 @@ class PluginManagerWindow(gui.Window):
 
     def onUser(self):
         import pyworkflow as pw
-        self.parent._openConfigFile(pw.Config.SCIPION_LOCAL_CONFIG)
+        ProjectManagerWindow._openConfigFile(pw.Config.SCIPION_LOCAL_CONFIG)
 
     def onVariables(self):
         if pluginDict is not None:

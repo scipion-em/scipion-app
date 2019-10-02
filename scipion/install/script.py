@@ -1,8 +1,8 @@
 # **************************************************************************
 # *
-# * Authors:     J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
+# * Authors:     J.M. De la Rosa Trevin (delarosatrevin@scilifelab.se) [1]
 # *
-# * Unidad de  Bioinformatica of Centro Nacional de Biotecnologia , CSIC
+# * [1] SciLifeLab, Stockholm University
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -295,7 +295,7 @@ def defineBinaries(args=None):
         deps=[fftw3],
         default=False)
 
-    # All pip modules can no be defined in it's correspondent requirements.txt
+    # All pip modules can now be defined in it's correspondent requirements.txt
     # #  ************************************************************************
     # #  *                                                                      *
     # #  *                           Python Modules                             *

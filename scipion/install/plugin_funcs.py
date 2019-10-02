@@ -204,7 +204,7 @@ class PluginInfo(object):
         releases = {}
         latestCompRelease = "0.0.0"
 
-        for release, releaseData in pipJsonData['releases'].iteritems():
+        for release, releaseData in pipJsonData['releases'].items():
             releaseData = releaseData[0]
             scipionVersions = [parse_version(v)
                                for v in re.findall(reg,
@@ -312,7 +312,7 @@ class PluginInfo(object):
             try:
                 plugin.defineBinaries(env)
             except Exception as e:
-                print ("Couldn't get binaries definition of %s plugin: %s" % (self.name, e.message))
+                print("Couldn't get binaries definition of %s plugin: %s" % (self.name, e.message))
             return env
         else:
             return None

@@ -1,8 +1,8 @@
 # **************************************************************************
 # *
-# * Authors: J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
+# * Authors: J.M. De la Rosa Trevin (delarosatrevin@scilifelab.se) [1]
 # *
-# * Unidad de Bioinformatica of Centro Nacional de Biotecnologia, CSIC
+# * [1] SciLifeLab, Stockholm University
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -150,8 +150,6 @@ class Command:
             # Return to working directory, useful when we change dir
             # before executing the command.
             os.chdir(cwd)
-            import time
-            time.sleep(10)
             if not self._env.showOnly:
                 for t in self._targets:
                     assert glob(t), ("target '%s' not built (after "

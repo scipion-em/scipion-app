@@ -9,13 +9,13 @@ SCIPION_HOME = dirname(dirname(dirname(realpath(__file__))))
 
 
 def usage(error):
-    print """
+    print("""
     ERROR: %s
 
     Usage: scripts/tar.py TARNAME
         TARNAME: the type of tar that is going to be generated from 
         the scipion folder. Must be 'source' or 'linux64'.
-    """ % error
+    """ % error)
     sys.exit(1)
 
 
@@ -67,7 +67,7 @@ cmdStr = """ tar czf scipion_%(version)s_%(date)s_%(label)s.tgz \\
 
 cmd = cmdStr % args
 
-print cmd
+print(cmd)
 os.system(cmd)
 
 # Restore current working dir

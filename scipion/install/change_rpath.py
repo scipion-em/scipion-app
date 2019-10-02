@@ -49,16 +49,16 @@ def main():
 
     replacements = 0
     for subdir in sys.argv[1:]:
-        print 'Replacing RPATH in elf files under %s ...' % subdir
+        print('Replacing RPATH in elf files under %s ...' % subdir)
         for dirpath, dirnames, filenames in os.walk(subdir):
             for fname in filenames:
                 fpath = os.path.join(dirpath, fname)
                 if isElf(fpath):
                     replacements += replace(fpath)
 
-    print 'Total replacements: %d' % replacements
+    print('Total replacements: %d' % replacements)
     if replacements == 0:
-        print 'Warning: You probably did not really compile. Clean and repeat.'
+        print('Warning: You probably did not really compile. Clean and repeat.')
 
 
 def isElf(fname):
@@ -73,7 +73,7 @@ def replace(fname,
 
     # First add write permission to the file if it does not have it.
     if os.stat(fname).st_mode & 0o200 == 0:  # mode has no write permission
-        print 'Adding write permission to %s ...' % fname
+        print('Adding write permission to %s ...' % fname)
         os.chmod(fname,  os.stat(fname).st_mode + 0o200)
 
     changed = 0
@@ -81,7 +81,7 @@ def replace(fname,
         with open(fname, 'rb') as fin:
             for line in fin:
                 if txt_from in line:
-                    print 'Replacing in %s' % fname
+                    print('Replacing in %s' % fname)
                     line = line.replace(txt_from, txt_to)
                     changed += 1
                 fout.write(line)

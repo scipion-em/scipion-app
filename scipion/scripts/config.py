@@ -134,11 +134,11 @@ def checkNotify(config, notify=False):
         return
     notifyOn = config.get('VARIABLES', 'SCIPION_NOTIFY')
     if notifyOn=='False':
-        # This works for  Python 2.x. and Python 3
+        # This works for Python 3
         if sys.version_info[0] >= 3:
             get_input = input
-        else:
-            get_input = raw_input
+        # else:
+        #     get_input = raw_input
         print("""--------------------------------------------------------------
 -----------------------------------------------------------------
 It would be very helpful if you allow Scipion

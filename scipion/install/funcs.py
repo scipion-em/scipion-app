@@ -81,7 +81,7 @@ def checkLib(lib, target=None):
   ************************************************************************
 
 Continue anyway? (y/n)""" % lib)
-            if raw_input().upper() != 'Y':
+            if input().upper() != 'Y':
                 sys.exit(2)
     # TODO: maybe write the result of the check in
     # software/log/lib_...log so we don't check again if we already said "no"

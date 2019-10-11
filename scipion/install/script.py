@@ -160,7 +160,7 @@ def defineBinaries(args=None):
         targets=[env.getLib('z')],
         tar='zlib-1.2.8.tgz',
         configTarget='zlib.pc',
-        default=True)
+        default=False)
 
     osBuildDir = 'tk8.6.1/unix'
     osFlags = ['--enable-threads']
@@ -190,20 +190,20 @@ def defineBinaries(args=None):
         'png',
         tar='libpng-1.6.16.tgz',
         deps=[zlib],
-        default=True)
+        default=False)
 
     tiff = env.addLibrary(
          'tiff',
          tar='tiff-4.0.10.tgz',
          deps=[zlib, jpeg],
-         default=True)
+         default=False)
 
     sqlite = env.addLibrary(
         'sqlite3',
         tar='SQLite-1a584e49.tgz',
         flags=['CPPFLAGS=-w',
                'CFLAGS=-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT=1'],
-        default=True)
+        default=False)
 
     hdf5 = env.addLibrary(
          'hdf5',
@@ -211,7 +211,7 @@ def defineBinaries(args=None):
          flags=['--enable-cxx', '--enable-shared'],
          targets=[env.getLib('hdf5'), env.getLib('hdf5_cpp')],
          configAlways=True,
-         default=True,
+         default=False,
          deps=[zlib])
 
     python = env.addLibrary(

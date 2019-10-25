@@ -1,6 +1,6 @@
 [PROTOCOLS]
 Protocols SPA = [
-	{"tag": "section", "text": "Imports", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Imports", "icon": "bookmark.gif", "children": [
 	{"tag": "protocol", "value": "ProtImportMovies",      "text": "import movies"},
 	{"tag": "protocol", "value": "ProtImportMicrographs", "text": "import micrographs"},
 	{"tag": "protocol", "value": "ProtImportParticles",   "text": "import particles"},

@@ -1,6 +1,6 @@
 [PROTOCOLS]
 Protocols SPA = [
-	{"tag": "section", "text": "Imports", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Imports", "icon": "bookmark.gif", "children": [
 	{"tag": "protocol", "value": "ProtImportMovies",      "text": "import movies"},
 	{"tag": "protocol", "value": "ProtImportMicrographs", "text": "import micrographs"},
 	{"tag": "protocol", "value": "ProtImportParticles",   "text": "import particles"},
@@ -67,29 +67,29 @@ Protocols SPA = [
 	  {"tag": "protocol", "value": "ProtExportEMDB", "text": "export to EMDB"}]
 	}]
 Random Conical Tilt = [
-        {"tag": "protocol", "value": "ProtImportMicrographsTiltPairs", "text": "Import micrograph pairs", "icon": "bookmark.png"},
-        {"tag": "protocol", "value": "ProtImportCoordinatesPairs", "text": "Import coordinate pairs", "icon": "bookmark.png"}]
+        {"tag": "protocol", "value": "ProtImportMicrographsTiltPairs", "text": "Import micrograph pairs", "icon": "bookmark.gif"},
+        {"tag": "protocol", "value": "ProtImportCoordinatesPairs", "text": "Import coordinate pairs", "icon": "bookmark.gif"}]
 Model building = [
-	{"tag": "section", "text": "Imports", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Imports", "icon": "bookmark.gif", "children": [
 	{"tag": "protocol", "value": "ProtImportVolumes",     "text": "import volumes"},
 	{"tag": "protocol", "value": "ProtImportPdb",   "text": "import atomic structure"},
 	{"tag": "protocol", "value": "ProtImportSequence",   "text": "import sequence"}
 	]},
-	{"tag": "section", "text": "Preprocess map", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Preprocess map", "icon": "bookmark.gif", "children": [
 	]},
-	{"tag": "section", "text": "Initial model", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Initial model", "icon": "bookmark.gif", "children": [
 	]},
-	{"tag": "section", "text": "Rigid fitting", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Rigid fitting", "icon": "bookmark.gif", "children": [
 	]},
-	{"tag": "section", "text": "Flexible fitting", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Flexible fitting", "icon": "bookmark.gif", "children": [
 	]},
-	{"tag": "section", "text": "Validation", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Validation", "icon": "bookmark.gif", "children": [
 	]},
-	{"tag": "section", "text": "Tools-Calculators", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Tools-Calculators", "icon": "bookmark.gif", "children": [
 	]},
-	{"tag": "section", "text": "Others", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Others", "icon": "bookmark.gif", "children": [
 	]},
-	{"tag": "section", "text": "Exports", "icon": "bookmark.png", "children": [
+	{"tag": "section", "text": "Exports", "icon": "bookmark.gif", "children": [
 	{"tag": "protocol", "value": "ProtExportEMDB", "text": "export to EMDB"}
 	]}
 	]

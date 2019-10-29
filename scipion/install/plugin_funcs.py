@@ -303,7 +303,7 @@ class PluginInfo(object):
         Environment object with the plugin's binaries."""
         if envArgs is None:
             envArgs = []
-        from .script import defineBinaries
+        from scipion.install.script import defineBinaries
         env = defineBinaries(envArgs)
         env.setDefault(False)
 
@@ -319,7 +319,7 @@ class PluginInfo(object):
 
     def getBinVersions(self):
         """Get list with names of binaries of this plugin"""
-        from .script import defineBinaries
+        from scipion.install.script import defineBinaries
         env = defineBinaries()
         env.setDefault(False)
         defaultTargets = [target.getName() for target in env.getTargetList()]

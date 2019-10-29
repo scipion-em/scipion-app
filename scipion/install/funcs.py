@@ -277,10 +277,12 @@ class Environment:
 
     @staticmethod
     def getPythonPackagesFolder():
+        # This does not work on MAC virtual envs
+        # import site
+        # return site.getsitepackages()[0]
 
-        import site
-        return site.getsitepackages()[0]
-
+        from distutils.sysconfig import get_python_lib
+        return get_python_lib()
     @staticmethod
     def getIncludeFolder():
         return '%s/include' % (Environment.getSoftware())

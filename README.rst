@@ -12,7 +12,7 @@ all steps are tracked and can be reproduced later on.
 Want to learn more? [Go to our web site.](http://scipion.i2pc.es)
 
 
-.. figure:: https://travis-ci.org/I2PC/scipion.svg?branch=devel-pluginization
+.. figure:: https://travis-ci.org/I2PC/scipion.svg?branch=devel
    :align: left
    :alt: Build Status
 

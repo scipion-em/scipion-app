@@ -118,183 +118,183 @@ def defineBinaries(args=None):
     #  *                                                                      *
     #  ************************************************************************
 
-    cmake = env.addLibrary(
-        'cmake',
-        tar='cmake-3.2.2.tgz',
-        targets=[env.getBin('cmake')],
-        commands=[('cd ' + SW_TMP + '/cmake-3.2.2; '
-                   './bootstrap --prefix=../.. --parallel=%d' % env.getProcessors(),
-                   SW_TMP + '/cmake-3.2.2/Makefile'),
-                  ('cd ' + SW_TMP + '/cmake-3.2.2; make install -j %d'
-                   % env.getProcessors(), SW_BIN + '/cmake')],
-        default=False)
-
-    # In order to get both the float and double libraries of fftw
-    # we need to execute ./configure; make; make install twice
-    # see: http://www.fftw.org/fftw2_doc/fftw_6.html
-    fftw3 = env.addLibrary(
-        'fftw3',
-        tar='fftw-3.3.4.tgz',
-        flags=['--enable-threads', '--enable-shared'],
-        clean=True,
-        default=False) # We need to clean to configure again with --enable-float
-
-    fftw3f = env.addLibrary(
-        'fftw3f',
-        tar='fftw-3.3.4.tgz',
-        flags=['--enable-threads', '--enable-shared', '--enable-float'],
-        default=False)
-
-    osBuildDir = 'tcl8.6.1/unix'
-    osFlags = ['--enable-threads']
-
-    tcl = env.addLibrary(
-        'tcl',
-        tar='tcl8.6.1-src.tgz',
-        buildDir=osBuildDir,
-        targets=[env.getLib('tcl8.6')],
-        flags=osFlags)
-
-    zlib = env.addLibrary(
-        'zlib',
-        targets=[env.getLib('z')],
-        tar='zlib-1.2.8.tgz',
-        configTarget='zlib.pc',
-        default=True)
-
-    osBuildDir = 'tk8.6.1/unix'
-    osFlags = ['--enable-threads']
-
-    tk = env.addLibrary(
-        'tk',
-        tar='tk8.6.1-src.tgz',
-        buildDir=osBuildDir,
-        targets=[env.getLib('tk8.6')],
-        libChecks=['xft'],
-        flags=osFlags,
-        deps=[tcl, zlib])
-
-    # Special case: tk does not make the link automatically, go figure.
-    tk_wish = env.addTarget('tk_wish')
-    tk_wish.addCommand('ln -v -s wish8.6 wish',
-                       targets=SW_BIN + '/wish',
-                       cwd= SW_BIN)
-
-    jpeg = env.addLibrary(
-        'jpeg',
-        tar='libjpeg-turbo-1.3.1.tgz',
-        flags=['--without-simd'],
-        default=False)
-
-    png = env.addLibrary(
-        'png',
-        tar='libpng-1.6.16.tgz',
-        deps=[zlib],
-        default=True)
-
-    tiff = env.addLibrary(
-         'tiff',
-         tar='tiff-4.0.10.tgz',
-         deps=[zlib, jpeg],
-         default=True)
-
-    sqlite = env.addLibrary(
-        'sqlite3',
-        tar='SQLite-1a584e49.tgz',
-        flags=['CPPFLAGS=-w',
-               'CFLAGS=-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT=1'],
-        default=True)
-
-    hdf5 = env.addLibrary(
-         'hdf5',
-         tar='hdf5-1.8.14.tgz',
-         flags=['--enable-cxx', '--enable-shared'],
-         targets=[env.getLib('hdf5'), env.getLib('hdf5_cpp')],
-         configAlways=True,
-         default=True,
-         deps=[zlib])
-
-    python = env.addLibrary(
-        'python',
-        tar='Python-2.7.15.tgz',
-        targets=[env.getLib('python2.7'), env.getBin('python')],
-        flags=['--enable-shared', '--enable-unicode=ucs4'],
-        deps=[sqlite, tk, zlib])
-
-    pcre = env.addLibrary(
-        'pcre',
-        tar='pcre-8.36.tgz',
-        targets=[env.getBin('pcretest')],
-        default=False)
-
-    swig = env.addLibrary(
-        'swig',
-        tar='swig-3.0.2.tgz',
-        targets=[env.getBin('swig')],
-        makeTargets=['Source/Swig/tree.o'],
-        deps=[pcre],
-        default=False)
-
-    lapack = env.addLibrary(
-        'lapack',
-        tar='lapack-3.5.0.tgz',
-        flags=['-DBUILD_SHARED_LIBS:BOOL=ON',
-               '-DLAPACKE:BOOL=ON'],
-        cmake=True,
-        neededProgs=['gfortran'],
-        default=False)
-
-    arpack = env.addLibrary(
-        'arpack',
-        tar='arpack-96.tgz',
-        neededProgs=['gfortran'],
-        commands=[('cd ' + SW_BIN + '; ln -s $(which gfortran) f77',
-                   SW_BIN + '/f77'),
-                  ('cd ' + SW_TMP + '/arpack-96; make all',
-                   SW_LIB +'/libarpack.a')],
-        default=False)
-    # See http://modb.oce.ulg.ac.be/mediawiki/index.php/How_to_compile_ARPACK
-
-    cudaStr = 'ON' if get('CUDA') else 'OFF'
-    opencvFlags = ['-DWITH_FFMPEG=OFF -DWITH_CUDA:BOOL=' + cudaStr + '-DWITH_LIBV4L=ON-DWITH_V4L=OFF']
-
-    if os.environ.get('OPENCV_VER') == '3.4.1':
-        opencvFlags.append('-DCMAKE_INSTALL_PREFIX=' + env.getSoftware())
-        opencv = env.addLibrary(
-            'opencv',
-            tar='opencv-3.4.1.tgz',
-            targets=[env.getLib('opencv_core')],
-            flags=opencvFlags,
-            # cmake=True,  # the instalation protocol have changed (e.g. mkdir build)
-            commands=[('cd ' + SW_TMP + '/opencv-3.4.1; mkdir build; cd build; '
-                       'cmake ' + ' '.join(opencvFlags) + ' .. ; '
-                       'make -j ' + str(env.getProcessors()) + '; '
-                       'make install', SW_LIB +'/libopencv_core.so')],
-            default=False)
-    else:
-        opencv = env.addLibrary(
-            'opencv',
-            tar='opencv-2.4.13.tgz',
-            targets=[env.getLib('opencv_core')],
-            flags=opencvFlags,
-            cmake=True,
-            default=False)
-
-    # ---------- Libraries required by PyTom
-
-    boost = env.addLibrary(
-        'boost',
-        tar='boost_1_56_0.tgz',
-        commands=[('cp -rf ' + SW_TMP + '/boost_1_56_0/boost ' + SW_INC + '/',
-                   SW_INC + '/boost')],
-        default=False)
-
-    nfft3 = env.addLibrary(
-        'nfft3',
-        tar='nfft-3.2.3.tgz',
-        deps=[fftw3],
-        default=False)
-
+    # cmake = env.addLibrary(
+    #     'cmake',
+    #     tar='cmake-3.2.2.tgz',
+    #     targets=[env.getBin('cmake')],
+    #     commands=[('cd ' + SW_TMP + '/cmake-3.2.2; '
+    #                './bootstrap --prefix=../.. --parallel=%d' % env.getProcessors(),
+    #                SW_TMP + '/cmake-3.2.2/Makefile'),
+    #               ('cd ' + SW_TMP + '/cmake-3.2.2; make install -j %d'
+    #                % env.getProcessors(), SW_BIN + '/cmake')],
+    #     default=False)
+    #
+    # # In order to get both the float and double libraries of fftw
+    # # we need to execute ./configure; make; make install twice
+    # # see: http://www.fftw.org/fftw2_doc/fftw_6.html
+    # fftw3 = env.addLibrary(
+    #     'fftw3',
+    #     tar='fftw-3.3.4.tgz',
+    #     flags=['--enable-threads', '--enable-shared'],
+    #     clean=True,
+    #     default=False) # We need to clean to configure again with --enable-float
+    #
+    # fftw3f = env.addLibrary(
+    #     'fftw3f',
+    #     tar='fftw-3.3.4.tgz',
+    #     flags=['--enable-threads', '--enable-shared', '--enable-float'],
+    #     default=False)
+    #
+    # osBuildDir = 'tcl8.6.1/unix'
+    # osFlags = ['--enable-threads']
+    #
+    # tcl = env.addLibrary(
+    #     'tcl',
+    #     tar='tcl8.6.1-src.tgz',
+    #     buildDir=osBuildDir,
+    #     targets=[env.getLib('tcl8.6')],
+    #     flags=osFlags)
+    #
+    # zlib = env.addLibrary(
+    #     'zlib',
+    #     targets=[env.getLib('z')],
+    #     tar='zlib-1.2.8.tgz',
+    #     configTarget='zlib.pc',
+    #     default=True)
+    #
+    # osBuildDir = 'tk8.6.1/unix'
+    # osFlags = ['--enable-threads']
+    #
+    # tk = env.addLibrary(
+    #     'tk',
+    #     tar='tk8.6.1-src.tgz',
+    #     buildDir=osBuildDir,
+    #     targets=[env.getLib('tk8.6')],
+    #     libChecks=['xft'],
+    #     flags=osFlags,
+    #     deps=[tcl, zlib])
+    #
+    # # Special case: tk does not make the link automatically, go figure.
+    # tk_wish = env.addTarget('tk_wish')
+    # tk_wish.addCommand('ln -v -s wish8.6 wish',
+    #                    targets=SW_BIN + '/wish',
+    #                    cwd= SW_BIN)
+    #
+    # jpeg = env.addLibrary(
+    #     'jpeg',
+    #     tar='libjpeg-turbo-1.3.1.tgz',
+    #     flags=['--without-simd'],
+    #     default=False)
+    #
+    # png = env.addLibrary(
+    #     'png',
+    #     tar='libpng-1.6.16.tgz',
+    #     deps=[zlib],
+    #     default=True)
+    #
+    # tiff = env.addLibrary(
+    #      'tiff',
+    #      tar='tiff-4.0.10.tgz',
+    #      deps=[zlib, jpeg],
+    #      default=True)
+    #
+    # sqlite = env.addLibrary(
+    #     'sqlite3',
+    #     tar='SQLite-1a584e49.tgz',
+    #     flags=['CPPFLAGS=-w',
+    #            'CFLAGS=-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT=1'],
+    #     default=True)
+    #
+    # hdf5 = env.addLibrary(
+    #      'hdf5',
+    #      tar='hdf5-1.8.14.tgz',
+    #      flags=['--enable-cxx', '--enable-shared'],
+    #      targets=[env.getLib('hdf5'), env.getLib('hdf5_cpp')],
+    #      configAlways=True,
+    #      default=True,
+    #      deps=[zlib])
+    #
+    # python = env.addLibrary(
+    #     'python',
+    #     tar='Python-2.7.15.tgz',
+    #     targets=[env.getLib('python2.7'), env.getBin('python')],
+    #     flags=['--enable-shared', '--enable-unicode=ucs4'],
+    #     deps=[sqlite, tk, zlib])
+    #
+    # pcre = env.addLibrary(
+    #     'pcre',
+    #     tar='pcre-8.36.tgz',
+    #     targets=[env.getBin('pcretest')],
+    #     default=False)
+    #
+    # swig = env.addLibrary(
+    #     'swig',
+    #     tar='swig-3.0.2.tgz',
+    #     targets=[env.getBin('swig')],
+    #     makeTargets=['Source/Swig/tree.o'],
+    #     deps=[pcre],
+    #     default=False)
+    #
+    # lapack = env.addLibrary(
+    #     'lapack',
+    #     tar='lapack-3.5.0.tgz',
+    #     flags=['-DBUILD_SHARED_LIBS:BOOL=ON',
+    #            '-DLAPACKE:BOOL=ON'],
+    #     cmake=True,
+    #     neededProgs=['gfortran'],
+    #     default=False)
+    #
+    # arpack = env.addLibrary(
+    #     'arpack',
+    #     tar='arpack-96.tgz',
+    #     neededProgs=['gfortran'],
+    #     commands=[('cd ' + SW_BIN + '; ln -s $(which gfortran) f77',
+    #                SW_BIN + '/f77'),
+    #               ('cd ' + SW_TMP + '/arpack-96; make all',
+    #                SW_LIB +'/libarpack.a')],
+    #     default=False)
+    # # See http://modb.oce.ulg.ac.be/mediawiki/index.php/How_to_compile_ARPACK
+    #
+    # cudaStr = 'ON' if get('CUDA') else 'OFF'
+    # opencvFlags = ['-DWITH_FFMPEG=OFF -DWITH_CUDA:BOOL=' + cudaStr + '-DWITH_LIBV4L=ON-DWITH_V4L=OFF']
+    #
+    # if os.environ.get('OPENCV_VER') == '3.4.1':
+    #     opencvFlags.append('-DCMAKE_INSTALL_PREFIX=' + env.getSoftware())
+    #     opencv = env.addLibrary(
+    #         'opencv',
+    #         tar='opencv-3.4.1.tgz',
+    #         targets=[env.getLib('opencv_core')],
+    #         flags=opencvFlags,
+    #         # cmake=True,  # the instalation protocol have changed (e.g. mkdir build)
+    #         commands=[('cd ' + SW_TMP + '/opencv-3.4.1; mkdir build; cd build; '
+    #                    'cmake ' + ' '.join(opencvFlags) + ' .. ; '
+    #                    'make -j ' + str(env.getProcessors()) + '; '
+    #                    'make install', SW_LIB +'/libopencv_core.so')],
+    #         default=False)
+    # else:
+    #     opencv = env.addLibrary(
+    #         'opencv',
+    #         tar='opencv-2.4.13.tgz',
+    #         targets=[env.getLib('opencv_core')],
+    #         flags=opencvFlags,
+    #         cmake=True,
+    #         default=False)
+    #
+    # # ---------- Libraries required by PyTom
+    #
+    # boost = env.addLibrary(
+    #     'boost',
+    #     tar='boost_1_56_0.tgz',
+    #     commands=[('cp -rf ' + SW_TMP + '/boost_1_56_0/boost ' + SW_INC + '/',
+    #                SW_INC + '/boost')],
+    #     default=False)
+    #
+    # nfft3 = env.addLibrary(
+    #     'nfft3',
+    #     tar='nfft-3.2.3.tgz',
+    #     deps=[fftw3],
+    #     default=False)
+    #
     # All pip modules can now be defined in it's correspondent requirements.txt
     # #  ************************************************************************
     # #  *                                                                      *

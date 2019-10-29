@@ -81,7 +81,7 @@ def checkLib(lib, target=None):
   ************************************************************************
 
 Continue anyway? (y/n)""" % lib)
-            if raw_input().upper() != 'Y':
+            if input().upper() != 'Y':
                 sys.exit(2)
     # TODO: maybe write the result of the check in
     # software/log/lib_...log so we don't check again if we already said "no"
@@ -277,10 +277,12 @@ class Environment:
 
     @staticmethod
     def getPythonPackagesFolder():
+        # This does not work on MAC virtual envs
+        # import site
+        # return site.getsitepackages()[0]
 
-        import site
-        return site.getsitepackages()[0]
-
+        from distutils.sysconfig import get_python_lib
+        return get_python_lib()
     @staticmethod
     def getIncludeFolder():
         return '%s/include' % (Environment.getSoftware())

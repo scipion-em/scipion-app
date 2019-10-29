@@ -74,7 +74,7 @@ SCIPION_NOTES_FILE =  notes.txt
 #protocol usage statistics
 SCIPION_NOTIFY = False
 # Default viewer for volumes
-VIEWERS={"Volume":["pyworkflow.em.viewers.viewers_data.DataViewer"]}
+VIEWERS={"Volume":["pwem.viewers.viewers_data.DataViewer"]}
 
 #SCIPION_FONT_NAME = Helvetica  # for missing fonts issues this has worked: https://stackoverflow.com/q/47769187/3157958
 #SCIPION_FONT_SIZE = 10

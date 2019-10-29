@@ -19,3 +19,4 @@
 scipion_app.egg-info/*
 
 *.snap
+config/*

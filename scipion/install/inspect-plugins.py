@@ -33,10 +33,10 @@ import inspect
 import traceback
 from collections import OrderedDict
 from future.utils import iteritems
-
-from pyworkflow.em import Domain
+from pwem.protocols import (Prot3D, Prot2D, ProtParticles,
+                            ProtMicrographs, ProtImport)
+from pyworkflow.plugin import Domain
 from pyworkflow.protocol import Protocol
-import pyworkflow.em as em
 import pyworkflow.utils as pwutils
 
 from plugin_funcs import PluginInfo
@@ -136,11 +136,11 @@ elif n > 2:
         pluginName = sys.argv[1]
         showBase = True if (n == 4 and sys.argv[3] == '--showBase') else False
         subclasses = {}
-        emCategories = [('Imports', em.ProtImport),
-                        ('Micrographs', em.ProtMicrographs),
-                        ('Particles', em.ProtParticles),
-                        ('2D', em.Prot2D),
-                        ('3D', em.Prot3D)]
+        emCategories = [('Imports', ProtImport),
+                        ('Micrographs', ProtMicrographs),
+                        ('Particles', ProtParticles),
+                        ('2D', Prot2D),
+                        ('3D', Prot3D)]
 
         plugin = Domain.getPlugin(pluginName)
         version = PluginInfo('scipion-em-%s' % pluginName).pipVersion

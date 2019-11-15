@@ -250,8 +250,7 @@ class Environment:
         self._downloadCmd = ('wget -nv -c -O %(tar)s.part %(url)s\n'
                              'mv -v %(tar)s.part %(tar)s')
         self._tarCmd = 'tar -xzf %s'
-        self._pipCmd = kwargs.get('pipCmd', '{0} {1}/pip install %s==%s'.format(self.getBin('python'),
-                                                                              self.getPythonPackagesFolder()))
+        self._pipCmd = kwargs.get('pipCmd', 'pip install %s==%s')
 
     def getLibSuffix(self):
         return self._libSuffix
@@ -518,7 +517,7 @@ class Environment:
         return t
 
     def addPipModule(self, name, version="", pipCmd=None,
-                     target=None, default=True, deps=[], ignoreDefaultDeps=False):
+                     target=None, default=True, deps=[]):
         """Add a new module to our built Python .
         Params in kwargs:
             name: pip module name
@@ -531,10 +530,8 @@ class Environment:
         t = self.addTarget(name, default=default, always=True)  # we set always=True to let pip decide if updating
 
         # Add the dependencies
-        if ignoreDefaultDeps:
-            defaultDeps = []
-        else:
-            defaultDeps = ['pip', 'python']
+        defaultDeps = []
+
         self._addTargetDeps(t, defaultDeps + deps)
 
         t.addCommand(pipCmd,

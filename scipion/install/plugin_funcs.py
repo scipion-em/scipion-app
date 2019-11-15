@@ -7,7 +7,6 @@ import pkg_resources
 from pkg_resources import parse_version
 
 from funcs import Environment
-from pyworkflow.plugin import Domain
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
 from importlib import reload
@@ -78,7 +77,7 @@ class PluginInfo(object):
 
             try:
                 dirname = self.getDirName()
-                self._plugin = Domain.getPlugin(dirname)
+                self._plugin = Config.getDomain().getPlugin(dirname)
             except:
                 pass
         return self._plugin
@@ -131,8 +130,7 @@ class PluginInfo(object):
 
         pipModule = environment.addPipModule(self.pipName,
                                              target=target,
-                                             pipCmd=cmd,
-                                             ignoreDefaultDeps=True)
+                                             pipCmd=cmd)
 
         # check if we're doing a version change of an already installed plugin
         reloadPkgRes = self.isInstalled()

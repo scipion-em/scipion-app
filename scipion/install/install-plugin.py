@@ -30,7 +30,6 @@ import os
 import re
 from future.utils import iteritems
 
-from pyworkflow.plugin import Domain
 from plugin_funcs import PluginRepository, PluginInfo
 import script
 
@@ -39,6 +38,7 @@ import script
 #  *                       External (EM) Plugins                          *
 #  *                                                                      *
 #  ************************************************************************
+from pyworkflow import Config
 
 MODE_INSTALL_PLUGIN = 'installp'
 MODE_UNINSTALL_PLUGIN = 'uninstallp'
@@ -174,7 +174,7 @@ if parsedArgs.help or (mode in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
     else:
         env = script.defineBinaries([])
         env.setDefault(False)
-        installedPlugins = Domain.getPlugins()
+        installedPlugins = Config.getDomain().getPlugins()
         for p, pobj in iteritems(installedPlugins):
             pobj.Plugin.defineBinaries(env)
         parserUsed.epilog += env.printHelp()
@@ -246,7 +246,7 @@ elif parsedArgs.mode == MODE_INSTALL_BINS:
         if pluginTargetName is None:
             print('ERROR: Could not find target %s' % binTarget)
             continue
-        pmodule = Domain.getPlugin(pluginTargetName)
+        pmodule = Config.getDomain().getPlugin(pluginTargetName)
         numberProcessor = parsedArgs.j
         pinfo = PluginInfo(name=pluginTargetName, plugin=pmodule, remote=False)
         pinfo.installBin([binTarget, '-j', numberProcessor])
@@ -261,7 +261,7 @@ elif parsedArgs.mode == MODE_UNINSTALL_BINS:
         if pluginTargetName is None:
             print('ERROR: Could not find target %s' % binTarget)
             continue
-        pmodule = Domain.getPlugin(pluginTargetName)
+        pmodule = Config.getDomain().getPlugin(pluginTargetName)
         pinfo = PluginInfo(name=pluginTargetName, plugin=pmodule, remote=False)
         pinfo.uninstallBins([binTarget])
 

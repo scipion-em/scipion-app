@@ -35,7 +35,7 @@ from collections import OrderedDict
 from future.utils import iteritems
 from pwem.protocols import (Prot3D, Prot2D, ProtParticles,
                             ProtMicrographs, ProtImport)
-from pyworkflow.plugin import Domain
+from pwem import Domain
 from pyworkflow.protocol import Protocol
 import pyworkflow.utils as pwutils
 

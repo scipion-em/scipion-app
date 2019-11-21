@@ -7,6 +7,7 @@ import pkg_resources
 from pkg_resources import parse_version
 
 from funcs import Environment
+from pwem import Domain
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
 from importlib import reload

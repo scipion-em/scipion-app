@@ -65,11 +65,12 @@ def getSubmodule(plugin, name, subname):
         2) if error is not None, it is an Exception raised when
         importing the submodule
     """
+
     try:
         m = importlib.import_module('%s.%s' % (name, subname))
         r = (m, None)
     except Exception as e:
-        noModuleMsg = 'No module named %s' % subname
+        noModuleMsg = 'No module named \'%s.%s\'' % (name, subname)
         msg = str(e)
         moduleExists = (exists(join(dirname(plugin.__file__), "%s.py" % subName)) or
                         exists(join(dirname(plugin.__file__), subName)))

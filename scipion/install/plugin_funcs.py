@@ -396,7 +396,7 @@ class PluginRepository(object):
     def getBinToPluginDict():
         localPlugins = Domain.getPlugins()
         binToPluginDict = {}
-        for p, pobj in localPlugins.iteritems():
+        for p, pobj in localPlugins.items():
             pinfo = PluginInfo(name=p, plugin=pobj, remote=False)
             pbins = pinfo.getBinVersions()
             binToPluginDict.update({k: p for k in pbins})

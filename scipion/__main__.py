@@ -80,7 +80,7 @@ SCIPION_INSTALL = join(SCIPION_APP, "install")
 #
 
 # Default values for configuration files.
-SCIPION_CONFIG = join(SCIPION_HOME, 'config', 'scipion.conf')
+SCIPION_CONFIG = join(SCIPION_HOME, 'config', 'myconf.conf')
 SCIPION_LOCAL_CONFIG = expanduser(os.environ.get('SCIPION_LOCAL_CONFIG',
                                                  '~/.config/scipion/scipion.conf'))
 

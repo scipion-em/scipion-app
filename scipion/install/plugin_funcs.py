@@ -312,7 +312,7 @@ class PluginInfo(object):
             try:
                 plugin.defineBinaries(env)
             except Exception as e:
-                print("Couldn't get binaries definition of %s plugin: %s" % (self.name, e.message))
+                print("Couldn't get binaries definition of %s plugin: %s" % (self.name, e))
             return env
         else:
             return None

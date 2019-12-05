@@ -8,6 +8,7 @@ from pkg_resources import parse_version
 
 from funcs import Environment
 from pwem import Domain
+from pyworkflow.utils import redStr
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
 from importlib import reload
@@ -324,7 +325,11 @@ class PluginInfo(object):
         defaultTargets = [target.getName() for target in env.getTargetList()]
         plugin = self.getPluginClass()
         if plugin is not None:
-            plugin.defineBinaries(env)
+            try:
+                plugin.defineBinaries(env)
+            except Exception as e:
+                print(
+                    redStr("Error retrieving plugin %s binaries: "% plugin.name), e )
         binVersions = [target.getName() for target in env.getTargetList() if target.getName() not in defaultTargets]
         return binVersions
 

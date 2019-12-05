@@ -32,6 +32,7 @@ from future.utils import iteritems
 
 from plugin_funcs import PluginRepository, PluginInfo
 import script
+from pyworkflow.utils import redStr 
 
 #  ************************************************************************
 #  *                                                                      *
@@ -176,7 +177,11 @@ if parsedArgs.help or (mode in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
         env.setDefault(False)
         installedPlugins = Config.getDomain().getPlugins()
         for p, pobj in iteritems(installedPlugins):
-            pobj.Plugin.defineBinaries(env)
+            try:
+                pobj.Plugin.defineBinaries(env)
+            except Exception as e:
+                print(
+                    redStr("Error retrieving plugin %s binaries: "% str(p)), e )
         parserUsed.epilog += env.printHelp()
     parserUsed.print_help()
     parserUsed.exit(0)

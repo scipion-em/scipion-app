@@ -35,6 +35,10 @@ setup(
     keywords='scipion cryoem imageprocessing scipion-3.0',  # Optional
     packages=find_packages(),
     install_requires=[requirements],
+    entry_points={
+        'console_scripts': [
+            'scipion = scipion.__main__:main',
+        ]}
     # package_data={  # Optional
     # #    '': [''],
     # }

@@ -38,9 +38,9 @@ import sys
 import os
 import re
 import glob
-import Tkinter as tk
+import tkinter as tk
+import tkinter.font as tkFont
 import tempfile
-import tkFont
 from datetime import datetime
 import traceback
 import collections
@@ -397,7 +397,7 @@ def getFields(template):
 
     # fill each field in the template in order to prevent spreading in the form
     fields = collections.OrderedDict()
-    for index in xrange(1, len(template), 2):
+    for index in range(1, len(template), 2):
         field = fieldStr2Field(index, template[index])
         fields[field.getTitle()] = field
 

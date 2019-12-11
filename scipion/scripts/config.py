@@ -24,21 +24,21 @@
 Check the local configuration files, and/or create them if requested
 or if they do not exist.
 """
-
+import glob
 import sys
 import os
-from os.path import join, exists, basename
+from os.path import join, exists, basename, dirname
 import time
 import optparse
 # We use optparse instead of argparse because we want this script to
 # be compatible with python >= 2.3
 import collections
+from shutil import copyfile
 
 try:
     from ConfigParser import ConfigParser, Error
 except ImportError:
     from configparser import ConfigParser, Error  # Python 3
-
 
 UPDATE_PARAM = '--update'
 COMPARE_PARAM = '--compare'
@@ -82,14 +82,20 @@ def main():
         localSections = ['DIRS_LOCAL', 'PACKAGES', 'VARIABLES']
 
     try:
-        #FIXME: Here we are still assuming that SCIPION_HOME is at the same place
+        # FIXME: Here we are still assuming that SCIPION_HOME is at the same place
         # where pyworkflow is
         templatesDir = join(os.environ['SCIPION_TEMPLATES'])
+        dest_dir = dirname(os.environ['SCIPION_CONFIG'])
+        scipion_path = os.environ['SCIPION_CONFIG']
+        protocols_path = os.environ['SCIPION_PROTOCOLS']
+        scipion_hosts_path = os.environ['SCIPION_HOSTS']
+        exclusion_list = [scipion_path, protocols_path, scipion_hosts_path]
+
         # Global installation configuration files.
         for fpath, tmplt in [
-            (os.environ['SCIPION_CONFIG'], 'scipion'),
-            (os.environ['SCIPION_PROTOCOLS'], 'protocols'),
-            (os.environ['SCIPION_HOSTS'], 'hosts')]:
+            (protocols_path, 'scipion'),
+            (protocols_path, 'protocols'),
+            (scipion_hosts_path, 'hosts')]:
             if not exists(fpath) or options.overwrite:
                 createConf(fpath, join(templatesDir, tmplt + '.template'),
                            remove=localSections, notify=options.notify)
@@ -121,10 +127,19 @@ def main():
                       "\nthat would override %s -- Not checking it." %
                       (os.environ['SCIPION_LOCAL_CONFIG'],
                        os.environ['SCIPION_CONFIG'])))
+
+        # Copy the rest of the files contained in templates dir into an external location
+        copyTemplatesAndJsonsOut(templatesDir, dest_dir, exclusion_list)
+
     except Exception:
         # This way of catching exceptions works with Python 2 & 3
         sys.stderr.write('Error: %s\n' % sys.exc_info()[1])
         sys.exit(1)
+
+
+def copyTemplatesAndJsonsOut(templates_dir, dest_dir, exclusion_list):
+    file_list = glob.glob1(join(templates_dir, "*"))
+    [copyfile(f, join(dest_dir, basename(f))) for f in file_list if f not in exclusion_list]
 
 
 def checkNotify(config, notify=False):
@@ -133,7 +148,7 @@ def checkNotify(config, notify=False):
         config.set('VARIABLES', 'SCIPION_NOTIFY', 'True')
         return
     notifyOn = config.get('VARIABLES', 'SCIPION_NOTIFY')
-    if notifyOn=='False':
+    if notifyOn == 'False':
         # This works for Python 3
         if sys.version_info[0] >= 3:
             get_input = input
@@ -210,7 +225,7 @@ def createConf(fpath, ftemplate, remove=[], keep=[], notify=False):
 
     # Create the actual configuration file.
     cf.write(open(fpath, 'w'))
-    #print("Please edit it to reflect the configuration of your system.\n")
+    # print("Please edit it to reflect the configuration of your system.\n")
 
 
 def checkPaths(conf):
@@ -254,7 +269,7 @@ def checkPaths(conf):
               "can run: scipion config --overwrite")
 
 
-def checkConf(fpath, ftemplate, remove=[], keep=[], update=False,notify=False, compare=False):
+def checkConf(fpath, ftemplate, remove=[], keep=[], update=False, notify=False, compare=False):
     """Check that all the variables in the template are in the config file too"""
     # Remove from the checks the sections in "remove", and if "keep"
     # is used only check those sections.
@@ -320,7 +335,7 @@ def checkConf(fpath, ftemplate, remove=[], keep=[], update=False,notify=False, c
                       "parameter to update local config files." % (yellow(s), yellow(o), UPDATE_PARAM))
 
                 if update:
-                    if s=='VARIABLES' and o=='SCIPION_NOTIFY':
+                    if s == 'VARIABLES' and o == 'SCIPION_NOTIFY':
                         checkNotify(ct, notify=notify)
                     # Update config file with missing variable
                     value = ct.get(s, o)
@@ -337,7 +352,7 @@ def checkConf(fpath, ftemplate, remove=[], keep=[], update=False,notify=False, c
 
         if 'PACKAGES' in cf._sections:
             # Order the content of packages section alphabetically
-            print("Sorting packages section for %s." %(fpath))
+            print("Sorting packages section for %s." % (fpath))
             cf._sections['PACKAGES'] = collections.OrderedDict(
                 sorted(cf._sections['PACKAGES'].items(), key=lambda t: t[0]))
 
@@ -372,7 +387,6 @@ def getConfigVariable(config, section, variableName):
 
 
 def compareConfigVariable(section, variableName, valueInConfig, valueInTemplate):
-
     if valueInTemplate is None:
         return
 
@@ -456,13 +470,13 @@ def guessMPI():
     # directories and files exist. If they do, that'd be our best guess.
     for mpiHome in candidates:
         if (exists(join(mpiHome, 'include', 'mpi.h')) and
-                    'MPI_INCLUDE' not in options):
+                'MPI_INCLUDE' not in options):
             options['MPI_INCLUDE'] = join(mpiHome, 'include')
         if (exists(join(mpiHome, 'lib', 'libmpi.so')) and
-                    'MPI_LIBDIR' not in options):
+                'MPI_LIBDIR' not in options):
             options['MPI_LIBDIR'] = join(mpiHome, 'lib')
         if (exists(join(mpiHome, 'bin', 'mpicc')) and
-                    'MPI_BINDIR' not in options):
+                'MPI_BINDIR' not in options):
             options['MPI_BINDIR'] = join(mpiHome, 'bin')
 
     return options

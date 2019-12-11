@@ -20,5 +20,5 @@ scipion_app.egg-info/*
 
 *.snap
 config/*
-/data/
 /software/
+/data/

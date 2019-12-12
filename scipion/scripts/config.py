@@ -35,6 +35,9 @@ import optparse
 import collections
 from shutil import copyfile
 
+from scipion import utils
+from scipion.utils import getExternalJsonTemplates, getTemplatesPath
+
 try:
     from ConfigParser import ConfigParser, Error
 except ImportError:
@@ -84,23 +87,18 @@ def main():
     try:
         # FIXME: Here we are still assuming that SCIPION_HOME is at the same place
         # where pyworkflow is
-        templatesDir = join(os.environ['SCIPION_TEMPLATES'])
-        dest_dir = dirname(os.environ['SCIPION_CONFIG'])
-        scipion_path = os.environ['SCIPION_CONFIG']
-        protocols_path = os.environ['SCIPION_PROTOCOLS']
-        scipion_hosts_path = os.environ['SCIPION_HOSTS']
-        exclusion_list = [scipion_path, protocols_path, scipion_hosts_path]
+        templates_dir = getTemplatesPath()
 
         # Global installation configuration files.
         for fpath, tmplt in [
-            (protocols_path, 'scipion'),
-            (protocols_path, 'protocols'),
-            (scipion_hosts_path, 'hosts')]:
+            (os.environ['SCIPION_CONFIG'], 'scipion'),
+            (os.environ['SCIPION_PROTOCOLS'], 'protocols'),
+            (os.environ['SCIPION_HOSTS'], 'hosts')]:
             if not exists(fpath) or options.overwrite:
-                createConf(fpath, join(templatesDir, tmplt + '.template'),
+                createConf(fpath, join(templates_dir, tmplt + '.template'),
                            remove=localSections, notify=options.notify)
             else:
-                checkConf(fpath, join(templatesDir, tmplt + '.template'),
+                checkConf(fpath, join(templates_dir, tmplt + '.template'),
                           remove=localSections, update=options.update,
                           notify=options.notify)
 
@@ -109,12 +107,12 @@ def main():
             if not exists(os.environ['SCIPION_LOCAL_CONFIG']):
                 #  It might make sense to add   "or options.overwrite" ...
                 createConf(os.environ['SCIPION_LOCAL_CONFIG'],
-                           join(templatesDir, 'scipion.template'),
+                           join(templates_dir, 'scipion.template'),
                            keep=localSections,
                            notify=options.notify)
             else:
                 checkConf(os.environ['SCIPION_LOCAL_CONFIG'],
-                          join(templatesDir, 'scipion.template'),
+                          join(templates_dir, 'scipion.template'),
                           keep=localSections, update=options.update,
                           notify=options.notify,
                           compare=options.compare)
@@ -128,18 +126,19 @@ def main():
                       (os.environ['SCIPION_LOCAL_CONFIG'],
                        os.environ['SCIPION_CONFIG'])))
 
-        # Copy the rest of the files contained in templates dir into an external location
-        copyTemplatesAndJsonsOut(templatesDir, dest_dir, exclusion_list)
+        # Copy file demo.json.template, contained in templates dir, into an external location
+        demo_json_file = utils.getDemoTemplateBasename()
+        demo_json_file_orig = join(templates_dir, demo_json_file)
+        if not exists(demo_json_file_orig):
+            sys.stdout.write('Warning: file {} was not found\n'.format(demo_json_file_orig))
+        else:
+            copyfile(demo_json_file_orig,
+                     join(getExternalJsonTemplates, demo_json_file))
 
     except Exception:
         # This way of catching exceptions works with Python 2 & 3
         sys.stderr.write('Error: %s\n' % sys.exc_info()[1])
         sys.exit(1)
-
-
-def copyTemplatesAndJsonsOut(templates_dir, dest_dir, exclusion_list):
-    file_list = glob.glob1(join(templates_dir, "*"))
-    [copyfile(f, join(dest_dir, basename(f))) for f in file_list if f not in exclusion_list]
 
 
 def checkNotify(config, notify=False):

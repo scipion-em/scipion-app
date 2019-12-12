@@ -25,12 +25,47 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-from os.path import join, dirname
+import sys
+from os.path import join, dirname, exists, isdir
+from os import environ
+
+def getScipionHome():
+
+    home = environ.get("SCIPION_HOME", None)
+
+    if not home:
+        sys.exit("SCIPION_HOME environment variable must be set")
+
+    if not exists(home):
+        sys.exit("SCIPION_HOME value (%s) does not exists." % home)
+
+    if not isdir(home):
+        sys.exit("SCIPION_HOME value (%s) is not a folder." % home)
+
+    return home
 
 
-def getAppPath(*paths):
-    return join(dirname(__file__), *paths)
+def getScipionAppPath():
+    return dirname(__file__)
 
 
-def getTemplatePath(*paths):
-    return join(getAppPath('templates'), *paths)
+def getInstallPath():
+    return join(getScipionAppPath(), 'install')
+
+
+def getScriptsPath():
+    return join(getScipionAppPath(), 'scripts')
+
+
+def getTemplatesPath():
+    return join(getScipionAppPath(), 'templates')
+
+
+def getDemoTemplateBasename():
+    return "demo.json.template"
+
+
+def getExternalJsonTemplates():
+    # SCIPION_CONFIG can be overridden by the user, so that variable needs to be read
+    # each time this method is invoked
+    return join(dirname(environ['SCIPION_CONFIG']))

@@ -34,14 +34,14 @@ import pyworkflow.tests as tests
 from pyworkflow.project import Manager
 import pyworkflow.utils as pwutils
 from pyworkflow.gui.project import ProjectWindow
-from scipion.utils import getTemplatePath
+from scipion.utils import getTemplatesPath
 
 
 def getWorkflow(workflow):
     """ Return the full workflow path from
     the Scipion folder + templates/workflow
     """
-    return getTemplatePath(workflow)
+    return getTemplatesPath(workflow)
     
 
 class Tutorial():

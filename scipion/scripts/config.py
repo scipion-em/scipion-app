@@ -85,7 +85,6 @@ def main():
         localSections = ['DIRS_LOCAL', 'PACKAGES', 'VARIABLES']
 
     try:
-        #FIXME: Here we are still assuming that SCIPION_HOME is at the same place
         # where pyworkflow is
         templates_dir = getTemplatesPath()
 

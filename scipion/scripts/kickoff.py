@@ -38,9 +38,9 @@ import sys
 import os
 import re
 import glob
-import Tkinter as tk
+import tkinter as tk
+import tkinter.font as tkFont
 import tempfile
-import tkFont
 from datetime import datetime
 import traceback
 import collections
@@ -56,6 +56,8 @@ from pyworkflow.gui.widgets import HotButton, Button
 
 
 # Custom labels
+from scipion.utils import getExternalJsonTemplates
+
 START_BUTTON = "Start demo"
 PROJECT_TEMPLATE = os.environ.get("SCIPION_PROJECT_NAME",
                             "demo_" + datetime.now().strftime("%y%m%d_%H%M%S"))
@@ -395,7 +397,7 @@ def getFields(template):
 
     # fill each field in the template in order to prevent spreading in the form
     fields = collections.OrderedDict()
-    for index in xrange(1, len(template), 2):
+    for index in range(1, len(template), 2):
         field = fieldStr2Field(index, template[index])
         fields[field.getTitle()] = field
 
@@ -423,7 +425,7 @@ def getTemplate(root):
         to choose one.
     """
     templates = []
-    templateFolder = pw.getTemplatePath()
+    templateFolder = getExternalJsonTemplates()
     customTemplates = len(sys.argv) > 1
     if customTemplates:
         candidates = sys.argv[1:]

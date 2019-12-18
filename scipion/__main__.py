@@ -39,32 +39,13 @@ from scipion.constants import *
 import subprocess
 import pyworkflow
 from configparser import ConfigParser, ParsingError  # Python 3
-
+import scipion.utils as utils
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
 __releasedate__ = ''
 
-
-def getScipionHome():
-
-    home = os.environ.get("SCIPION_HOME", None)
-
-    if not home:
-        sys.exit("SCIPION_HOME environment variable must be set")
-
-    if not os.path.exists(home):
-        sys.exit("SCIPION_HOME value (%s) does not exists." % home)
-
-    if not os.path.isdir(home):
-        sys.exit("SCIPION_HOME value (%s) is not a folder." % home)
-
-    return home
-
-
-SCIPION_HOME = getScipionHome()
-
-SCIPION_APP = dirname(__file__)
+SCIPION_HOME = utils.getScipionHome()
 
 # Some pw_*.py scripts under 'apps' folder change the current working
 # directory to the SCIPION_HOME, so let's keep the current working
@@ -72,9 +53,9 @@ SCIPION_APP = dirname(__file__)
 SCIPION_CWD = os.path.abspath(os.getcwd())
 
 # Scipion path to its own scripts
-SCIPION_SCRIPTS = join(SCIPION_APP, "scripts")
+SCIPION_SCRIPTS = utils.getScriptsPath()
 # Scipion path to install
-SCIPION_INSTALL = join(SCIPION_APP, "install")
+SCIPION_INSTALL = utils.getInstallPath()
 #
 # If we don't have a local user installation, create it.
 #
@@ -196,7 +177,7 @@ VARS = {
     'SCIPION_PROTOCOLS': SCIPION_PROTOCOLS,
     'SCIPION_HOSTS': SCIPION_HOSTS,
     'SCIPION_SCRIPTS': SCIPION_SCRIPTS,
-    'SCIPION_TEMPLATES': join(SCIPION_APP, "templates"),
+    'SCIPION_TEMPLATES': utils.getTemplatesPath(),
     'SCIPION_DOMAIN': SCIPION_DOMAIN
 }
 

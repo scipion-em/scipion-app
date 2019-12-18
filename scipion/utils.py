@@ -26,6 +26,7 @@
 # *
 # **************************************************************************
 import sys
+import pyworkflow as pw
 from os.path import join, dirname, exists, isdir
 from os import environ
 
@@ -66,6 +67,4 @@ def getDemoTemplateBasename():
 
 
 def getExternalJsonTemplates():
-    # SCIPION_CONFIG can be overridden by the user, so that variable needs to be read
-    # each time this method is invoked
-    return join(dirname(environ['SCIPION_CONFIG']))
+    return dirname(pw.Config.SCIPION_CONFIG)

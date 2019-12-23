@@ -253,10 +253,10 @@ try:
     VARS.update(REMOTE)
     VARS.update(BUILD)
     VARS.update(VARIABLES)
-except Exception:
+except Exception as e:
     if len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG:
         # This way of catching exceptions works with Python 2 & 3
-        sys.stderr.write('Error: %s\n' % sys.exc_info()[1])
+        sys.stderr.write('Error at main: %s\n' % e)
         sys.stdout.write('Please check the configuration file %s and '
                          'try again.\n' % SCIPION_CONFIG)
         sys.exit(1)
@@ -555,6 +555,6 @@ Run "%s help" for a full description.\n""" % (sys.argv[1], sys.argv[0]))
 if __name__ == '__main__':
     try:
         main()
-    except Exception:
+    except Exception as e:
         # This way of catching exceptions works with Python 2 & 3
-        sys.exit('Error: %s\n' % sys.exc_info()[1])
+        sys.exit('Error at main: %s\n' % e)

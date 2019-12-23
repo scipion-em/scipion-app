@@ -35,6 +35,7 @@ import site
 import sys
 import os
 from os.path import join, exists, dirname, expanduser
+
 from scipion.constants import *
 import subprocess
 import pyworkflow
@@ -44,6 +45,9 @@ import scipion.utils as utils
 __version__ = 'v3.0'
 __nickname__ = DEVEL
 __releasedate__ = ''
+
+SCIPION_DOMAIN = "pwem"
+
 
 SCIPION_HOME = utils.getScipionHome()
 
@@ -83,7 +87,7 @@ SCIPION_PROTOCOLS = join(dirname(SCIPION_CONFIG), 'protocols.conf')
 # This is useful for having the same central installation that
 # could be used from different environments (cluster vs workstations)
 SCIPION_HOSTS = join(dirname(SCIPION_CONFIG), 'hosts.conf')
-SCIPION_DOMAIN = "pwem"
+
 
 # Check for old configuration files and tell the user to update.
 if SCIPION_LOCAL_CONFIG != SCIPION_CONFIG and exists(SCIPION_LOCAL_CONFIG):
@@ -163,6 +167,11 @@ def getPwemFolder():
 
     return getModuleFolder(SCIPION_DOMAIN)
 
+
+def getXmippGhostFolder():
+
+    return join(getPwemFolder(), "xmipp-ghost")
+
 # VARS will contain all the relevant environment variables, including
 # directories and packages.
 VARS = {
@@ -235,7 +244,8 @@ try:
     PYTHONPATH_LIST = [SCIPION_HOME,
                        XMIPP_BINDINGS,
                        os.environ.get('PYTHONPATH', '') if not ignorePythonpath else "",
-                       join(getPwemFolder(), 'xmipp-ghost')]  # To be able to open scipion without xmipp
+                       getXmippGhostFolder()]  # To be able to open scipion without xmipp
+
 
     if 'SCIPION_NOGUI' in os.environ:
         PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))
@@ -272,8 +282,14 @@ def envOn(varName):
     return value in ['1', 'true', 'on', 'yes']
 
 
-def runCmd(cmd):
-    os.environ.update(VARS)    
+def runCmd(cmd, args=''):
+    """ Runs ANY command with its arguments"""
+    if isinstance(args, list):
+        args = ' '.join('"%s"' % x for x in args)
+
+    cmd = '%s %s' % (cmd, args)
+
+    os.environ.update(VARS)
     sys.stdout.write(">>>>> %s\n" % cmd)
     result = os.system(cmd)
     if not -256 < result < 256:
@@ -282,7 +298,8 @@ def runCmd(cmd):
 
 
 # The following functions require a working SCIPION_PYTHON
-def runScript(scriptCmd, chdir=True):
+def runScript(scriptCmd, args='', chdir=True):
+    """"Runs a PYTHON script appending the profiling prefix if ON"""
     if chdir:
         os.chdir(SCIPION_HOME)
 
@@ -291,14 +308,12 @@ def runScript(scriptCmd, chdir=True):
     else:
         profileStr = ''
     cmd = '%s %s %s' % (VARS['SCIPION_PYTHON'], profileStr, scriptCmd)
-    runCmd(cmd)
+    runCmd(cmd, args)
 
 
 def runApp(app, args='', chdir=True):
-    if isinstance(args, list):
-        args = ' '.join('"%s"' % x for x in args)
-
-    runScript('%s %s' % (join(VARS['PW_APPS'], app), args), chdir)
+    """Runs an app provided by pyworkflow"""
+    runScript(join(VARS['PW_APPS'], app), args=args, chdir=chdir)
 
 
 def main():
@@ -474,7 +489,9 @@ Example: scipion install -j 4
           mode.startswith('e2') or 
           mode.startswith('sx') or
           mode.startswith('b')):
-        runApp(join(SCIPION_SCRIPTS,'pw_program.py'),  sys.argv[1:], chdir=False)
+        # To avoid Ghost activation warning
+        from pwem import EM_PROGRAM_ENTRY_POINT
+        runCmd(EM_PROGRAM_ENTRY_POINT,  sys.argv[1:])
     
     elif mode == MODE_HELP:
         sys.stdout.write("""\

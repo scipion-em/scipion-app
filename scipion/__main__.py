@@ -36,8 +36,6 @@ import sys
 import os
 from os.path import join, exists, dirname, expanduser
 
-from pwem import EM_PROGRAM_ENTRY_POINT
-
 from scipion.constants import *
 import subprocess
 import pyworkflow
@@ -47,6 +45,9 @@ import scipion.utils as utils
 __version__ = 'v3.0'
 __nickname__ = DEVEL
 __releasedate__ = ''
+
+SCIPION_DOMAIN = "pwem"
+
 
 SCIPION_HOME = utils.getScipionHome()
 
@@ -86,7 +87,7 @@ SCIPION_PROTOCOLS = join(dirname(SCIPION_CONFIG), 'protocols.conf')
 # This is useful for having the same central installation that
 # could be used from different environments (cluster vs workstations)
 SCIPION_HOSTS = join(dirname(SCIPION_CONFIG), 'hosts.conf')
-SCIPION_DOMAIN = "pwem"
+
 
 # Check for old configuration files and tell the user to update.
 if SCIPION_LOCAL_CONFIG != SCIPION_CONFIG and exists(SCIPION_LOCAL_CONFIG):
@@ -166,6 +167,11 @@ def getPwemFolder():
 
     return getModuleFolder(SCIPION_DOMAIN)
 
+
+def getXmippGhostFolder():
+
+    return join(getPwemFolder(), "xmipp-ghost")
+
 # VARS will contain all the relevant environment variables, including
 # directories and packages.
 VARS = {
@@ -238,7 +244,8 @@ try:
     PYTHONPATH_LIST = [SCIPION_HOME,
                        XMIPP_BINDINGS,
                        os.environ.get('PYTHONPATH', '') if not ignorePythonpath else "",
-                       join(getPwemFolder(), 'xmipp-ghost')]  # To be able to open scipion without xmipp
+                       getXmippGhostFolder()]  # To be able to open scipion without xmipp
+
 
     if 'SCIPION_NOGUI' in os.environ:
         PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))
@@ -482,6 +489,8 @@ Example: scipion install -j 4
           mode.startswith('e2') or 
           mode.startswith('sx') or
           mode.startswith('b')):
+        # To avoid Ghost activation warning
+        from pwem import EM_PROGRAM_ENTRY_POINT
         runCmd(EM_PROGRAM_ENTRY_POINT,  sys.argv[1:])
     
     elif mode == MODE_HELP:

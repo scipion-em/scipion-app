@@ -298,7 +298,7 @@ class BoxWizardView(tk.Frame):
 
         except Exception as e:
             self.windows.showError(
-                "Couldn't create the template.\n" + e.message)
+                "Couldn't create the template.\n" + str(e))
             traceback.print_exc()
             return None
 

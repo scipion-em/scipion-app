@@ -30,8 +30,8 @@ import os
 import re
 from future.utils import iteritems
 
-from plugin_funcs import PluginRepository, PluginInfo
-import script
+from .plugin_funcs import PluginRepository, PluginInfo
+from .script import defineBinaries
 from pyworkflow.utils import redStr 
 
 #  ************************************************************************
@@ -173,7 +173,7 @@ if parsedArgs.help or (mode in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
     if mode not in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]:
         parserUsed.epilog += pluginRepo.printPluginInfoStr()
     else:
-        env = script.defineBinaries([])
+        env = defineBinaries([])
         env.setDefault(False)
         installedPlugins = Config.getDomain().getPlugins()
         for p, pobj in iteritems(installedPlugins):

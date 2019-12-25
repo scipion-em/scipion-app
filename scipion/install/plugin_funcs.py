@@ -6,7 +6,7 @@ import json
 import pkg_resources
 from pkg_resources import parse_version
 
-from funcs import Environment
+from .funcs import Environment
 from pwem import Domain
 from pyworkflow.utils import redStr
 from pyworkflow.utils.path import cleanPath
@@ -352,7 +352,7 @@ class PluginInfo(object):
             return " ".rjust(14) + "No binaries information defined.\n"
         except Exception as e:
             return " ".rjust(14) + "Error getting binaries info: %s" % \
-                   e.message + "\n"
+                   str(e) + "\n"
 
     def getPluginName(self):
         """Return the plugin name"""

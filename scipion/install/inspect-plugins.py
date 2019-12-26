@@ -33,6 +33,7 @@ import inspect
 import traceback
 from collections import OrderedDict
 from future.utils import iteritems
+
 from pwem.protocols import (Prot3D, Prot2D, ProtParticles,
                             ProtMicrographs, ProtImport)
 from pwem import Domain
@@ -43,6 +44,7 @@ from .plugin_funcs import PluginInfo
 
 
 exitWithErrors = False
+
 
 def usage(error):
     print("""
@@ -86,6 +88,7 @@ def getFirstLine(doc):
             if l:
                 return l
     return ''
+
 
 n = len(sys.argv)
 

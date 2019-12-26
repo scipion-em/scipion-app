@@ -343,13 +343,13 @@ def checkConf(fpath, ftemplate, remove=[], keep=[], update=False, notify=False, 
 
     if update:
         if confChanged:
-            print("Changes detected: writing changes into %s. Please check values." % (fpath))
+            print("Changes detected: writing changes into %s. Please check values." % fpath)
         else:
-            print("Update requested no changes detected for %s." % (fpath))
+            print("Update requested no changes detected for %s." % fpath)
 
         if 'PACKAGES' in cf._sections:
             # Order the content of packages section alphabetically
-            print("Sorting packages section for %s." % (fpath))
+            print("Sorting packages section for %s." % fpath)
             cf._sections['PACKAGES'] = collections.OrderedDict(
                 sorted(cf._sections['PACKAGES'].items(), key=lambda t: t[0]))
 

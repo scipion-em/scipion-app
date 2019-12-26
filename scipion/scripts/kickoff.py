@@ -56,7 +56,7 @@ from pyworkflow.gui.widgets import HotButton, Button
 
 
 # Custom labels
-from scipion.utils import getExternalJsonTemplates
+from ..utils import getExternalJsonTemplates
 
 START_BUTTON = "Start demo"
 PROJECT_TEMPLATE = os.environ.get("SCIPION_PROJECT_NAME",

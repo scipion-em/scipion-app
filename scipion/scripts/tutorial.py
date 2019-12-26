@@ -30,11 +30,12 @@ Launch main project window
 
 import sys
 from collections import OrderedDict
+
 import pyworkflow.tests as tests
 from pyworkflow.project import Manager
 import pyworkflow.utils as pwutils
 from pyworkflow.gui.project import ProjectWindow
-from scipion.utils import getTemplatesPath
+from ..utils import getTemplatesPath
 
 
 def getWorkflow(workflow):
@@ -44,7 +45,7 @@ def getWorkflow(workflow):
     return getTemplatesPath(workflow)
     
 
-class Tutorial():
+class Tutorial:
     """ Base class to implement some common functionalities. """
     def __init__(self):
         projName = self.__class__.__name__

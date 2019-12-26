@@ -40,7 +40,7 @@ from pwem import Domain
 from pyworkflow.protocol import Protocol
 import pyworkflow.utils as pwutils
 
-from .plugin_funcs import PluginInfo
+from scipion.install.plugin_funcs import PluginInfo
 
 
 exitWithErrors = False

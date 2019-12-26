@@ -30,8 +30,8 @@ import os
 import re
 from future.utils import iteritems
 
-from .plugin_funcs import PluginRepository, PluginInfo
-from .script import defineBinaries
+from scipion.install.plugin_funcs import PluginRepository, PluginInfo
+from scipion.install.script import defineBinaries
 from pyworkflow.utils import redStr 
 
 #  ************************************************************************

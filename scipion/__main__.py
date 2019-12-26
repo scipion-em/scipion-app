@@ -40,9 +40,9 @@ from os.path import join, exists, dirname, expanduser
 import subprocess
 import pyworkflow
 from configparser import ConfigParser, ParsingError  # Python 3
-from .constants import *
-from .utils import (getScipionHome, getInstallPath,
-                    getTemplatesPath, getScriptsPath)
+from scipion.constants import *
+from scipion.utils import (getScipionHome, getInstallPath,
+                           getTemplatesPath, getScriptsPath)
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
@@ -131,6 +131,7 @@ def getVersion(long=True):
     else:
         return __version__
 
+
 def printVersion():
     """ Print Scipion version """
     # Print the version and some more info
@@ -139,7 +140,6 @@ def printVersion():
 #
 # Initialize variables from config file.
 #
-
 for confFile in [SCIPION_CONFIG, SCIPION_LOCAL_CONFIG,
                  SCIPION_PROTOCOLS, SCIPION_HOSTS]:
     if not exists(confFile) and (len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG):
@@ -246,7 +246,6 @@ try:
                        XMIPP_BINDINGS,
                        os.environ.get('PYTHONPATH', '') if not ignorePythonpath else "",
                        getXmippGhostFolder()]  # To be able to open scipion without xmipp
-
 
     if 'SCIPION_NOGUI' in os.environ:
         PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))

@@ -822,10 +822,10 @@ class PluginBrowser(tk.Frame):
             self.topPanelTree.delete(*self.topPanelTree.get_children())
             pluginName = plugin.getPipName()
             pluginVersion = plugin.latestRelease
-            if pluginVersion:
+            if pluginVersion and pluginVersion != NULL_VERSION:
                 pluginUploadedDate = plugin.getReleaseDate(pluginVersion)
             else:
-                pluginUploadedDate = ''
+                pluginUploadedDate = 'Not uploaded yet?'
             pluginDescription = plugin.getSummary()
             pluginUrl = plugin.getHomePage()
             pluginAuthor = plugin.getAuthor()
@@ -925,7 +925,8 @@ class PluginBrowser(tk.Frame):
                     # Insert the plugin name in the tree
                     latestRelease = pluginDict.get(pluginName).getLatestRelease()
                     tag = PluginStates.CHECKED
-                    if latestRelease and plugin.pipVersion != latestRelease:
+                    if latestRelease and plugin.pipVersion != latestRelease\
+                            and latestRelease != NULL_VERSION:
                         tag = PluginStates.AVAILABLE_RELEASE
                     self.tree.insert("", 0, pluginName, text=pluginName,
                                      tags=tag, values=PluginStates.PLUGIN)

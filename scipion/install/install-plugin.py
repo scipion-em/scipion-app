@@ -30,8 +30,8 @@ import os
 import re
 from future.utils import iteritems
 
-from .plugin_funcs import PluginRepository, PluginInfo
-from .script import defineBinaries
+from scipion.install import Environment
+from scipion.install.plugin_funcs import PluginRepository, PluginInfo
 from pyworkflow.utils import redStr 
 
 #  ************************************************************************
@@ -173,7 +173,7 @@ if parsedArgs.help or (mode in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
     if mode not in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]:
         parserUsed.epilog += pluginRepo.printPluginInfoStr()
     else:
-        env = defineBinaries([])
+        env = Environment()
         env.setDefault(False)
         installedPlugins = Config.getDomain().getPlugins()
         for p, pobj in iteritems(installedPlugins):
@@ -210,7 +210,7 @@ elif mode == MODE_INSTALL_PLUGIN:
                 processors = parsedArgs.j
                 installed = plugin.installPipModule()
                 if installed and not parsedArgs.noBin:
-                    plugin.installBin(args=['-j', numberProcessor])
+                    plugin.installBin(args={'-j': numberProcessor})
     else:
         pluginsToInstall = list(zip(*parsedArgs.plugin))[0]
         pluginDict = pluginRepo.getPlugins(pluginList=pluginsToInstall,

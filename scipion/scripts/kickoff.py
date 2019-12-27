@@ -56,6 +56,7 @@ from pyworkflow.gui.widgets import HotButton, Button
 
 
 # Custom labels
+from scipion.constants import SCIPION_EP
 from scipion.utils import getExternalJsonTemplates
 
 START_BUTTON = "Start demo"
@@ -261,7 +262,7 @@ class BoxWizardView(tk.Frame):
 
         projectName = self._getValue(PROJECT_NAME)
 
-        scipion = pw.getScipionScript()
+        scipion = SCIPION_EP
         scriptsPath = pw.join('project', 'scripts')
 
         # Download the required data
@@ -291,7 +292,7 @@ class BoxWizardView(tk.Frame):
 
             finalJson = "".join(self._template)
 
-            os.write(fileHandle, finalJson)
+            os.write(fileHandle, finalJson.encode())
             os.close(fileHandle)
 
             print("New workflow saved at " + path)

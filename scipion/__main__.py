@@ -320,25 +320,10 @@ def main():
     printVersion()
     # See in which "mode" the script is called. By default, it's MODE_MANAGER.
     n = len(sys.argv)
-    if n > 1:
-        mode = sys.argv[1]
-    else:
-        mode = MODE_MANAGER
-## Pconesa Commented: we might not need this or do it differently.
+    # Default to MANAGER_MODE
+    mode = sys.argv[1] if n > 1 else MODE_MANAGER
 
-#     # First see if we have a working installation.
-#     if mode not in [MODE_INSTALL, MODE_CONFIG]:
-#         ok = True
-#         for d, path in DIRS_GLOBAL.items():
-#             if not exists(path):
-#                 sys.stderr.write('Missing %s folder: %s\n' % (d, path))
-#                 ok = False
-# #         if not exists(join(VARS['SCIPION_SOFTWARE'], 'log', 'success.log')):
-# #             ok = False
-#         if not ok:
-#             sys.exit("There is a problem with the installation. Please run:\n"
-#                      "  %s install" % sys.argv[0])
-
+    # Check mode
     if mode == MODE_MANAGER:
         runApp('pw_manager.py')
 
@@ -374,74 +359,6 @@ def main():
 
     elif mode == MODE_PLUGINS:
         runScript(join(VARS['SCIPION_INSTALL'], 'plugin_manager.py'))
-
-    elif mode == MODE_INSTALL:
-        # Always move to SCIPION_HOME dir before installing
-        cwd = os.getcwd()
-        os.chdir(SCIPION_HOME)
-        
-        os.environ.update(VARS)
-        args = sys.argv[2:]
-
-        if '--help' in args:
-            print("""Usage: %s [<target>] [--no-scipy] [--no-opencv] [--show]
-
-Installs Scipion. Also used to install only part of it, as specified
-in the <target>.
-
-Arguments:
-  <target>      a library or a python module.
-                Version can be specified after a hyphen (-)
-   -j N         where N is the number of processors to use during installation
-  --help        show this help message
-  --show        just show what would be done, without actually installing
-  --no-opencv   do not install opencv (big) or anything that depends on it
-  --no-scipy    do not install scipy or anything that depends on it
-
-Example: scipion install -j 4
-
-""" % ' '.join(sys.argv[:2]))
-        else:
-            # Create folders if needed.
-            for path in DIRS_GLOBAL.values():
-                if not exists(path):
-                    sys.stdout.write("  Creating folder %s ...\n" % path)
-                    os.makedirs(path)
-
-        def build(args):
-            # Just importing the script will launch the install actions
-            sys.path.insert(1, join(VARS['SCIPION_INSTALL']))
-            import script as installScript
-            env = installScript.defineBinaries()
-            env.execute()
-            return 0
-
-        if args and args[0] == '--binary':
-            assert 'LDFLAGS' not in os.environ, "LDFLAGS already set. Refusing."
-            os.environ['LDFLAGS'] = '-Wl,-rpath,REPLACE_ME_WITH_FUNNY_'
-            # Install external libraries and compile Xmipp
-            ret = build(args[1:]) # ignore the --binary argument
-            if ret == 0:
-                ret = os.system(join(getPyworkflowPath(), 'install',
-                                     'change_rpath.py %(ss)s/bin %(ss)s/lib %(ss)s/em')
-                    % {'ss': SCIPION_SOFTWARE})
-        else:
-            # Install external libraries and compile Xmipp
-            ret = build(args)
-
-        if ret == 0 and not ('--help' in args or '-h' in args or '-H' in args
-                             or'-c' in args):
-            open(join(VARS['SCIPION_SOFTWARE'], 'log',
-                      'success.log'), 'w').write('Yes :)')
-            sys.stdout.write("""
-  ************************************************************************
-  *                                                                      *
-  *         Congratulations, Scipion was installed successfully          *
-  *                                                                      *
-  ************************************************************************
-""")
-        os.chdir(cwd) # Go back to original folder
-        sys.exit(ret)
 
     elif mode == MODE_CONFIG:
         runApp(join(SCIPION_SCRIPTS, 'config.py'), sys.argv[2:])
@@ -492,8 +409,11 @@ Example: scipion install -j 4
         # To avoid Ghost activation warning
         from pwem import EM_PROGRAM_ENTRY_POINT
         runCmd(EM_PROGRAM_ENTRY_POINT,  sys.argv[1:])
-    
-    elif mode == MODE_HELP:
+
+    elif mode == MODE_INSPECT:
+        runScript(join(VARS['SCIPION_INSTALL'], 'inspect-plugins.py'), sys.argv[2:])
+    # Else HELP or wrong argument
+    else:
         sys.stdout.write("""\
 Usage: scipion [MODE] [ARGUMENTS]
 
@@ -510,14 +430,10 @@ MODE can be:
     
     installb               Installs Plugin Binaries. Use with flag --help to see usage.
 
-    install [OPTION]       [ WILL BE DEPRECATED IN NEXT RELEASE]
-                           Downloads and installs all the necessary software to run Scipion.
-                           OPTION can be:
-                             --with-all-packages: download also all external em packages
-                             --help: show all the available options
-
     manager                Opens the manager with a list of all projects.
 
+    inspect                inspect a python module and check if it looks loke a scipion plugin. 
+    
     printenv               Prints the environment variables used by the application.
 
     project NAME           Opens the specified project. The name 'last' opens the last project.
@@ -559,14 +475,11 @@ MODE can be:
                            a dialog is raised to choose one. 
 
 """)
-        sys.exit(0)
-
-    # If we reach this point, bad arguments were passed
-    sys.stdout.write("""Unknown mode: %s
-Valid modes are:
-  help install installp uninstallp installb uninstallb manager project tests testdata viewer printenv run
-Run "%s help" for a full description.\n""" % (sys.argv[1], sys.argv[0]))
-    sys.exit(1)
+        if mode == MODE_HELP:
+            sys.exit(0)
+        else:
+            print("Unknown mode: %s." % mode)
+            sys.exit(1)
 
 
 if __name__ == '__main__':

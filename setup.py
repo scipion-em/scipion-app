@@ -11,6 +11,8 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
+from scipion.constants import SCIPION_EP
+
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -37,7 +39,7 @@ setup(
     install_requires=[requirements],
     entry_points={
         'console_scripts': [
-            'scipion = scipion.__main__:main',
+            '%s = scipion.__main__:main' % SCIPION_EP,
         ]}
     # package_data={  # Optional
     # #    '': [''],

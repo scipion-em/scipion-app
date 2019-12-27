@@ -25,19 +25,19 @@
 # **************************************************************************
 
 from tkinter import *
-import webbrowser
 import threading
 
+from pyworkflow import LAST_VERSION
 from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
 from pyworkflow.utils.log import ScipionLogger
-from pyworkflow.gui.text import TextFileViewer
 from pyworkflow.gui import *
 import pyworkflow.gui.dialog as pwgui
-from scipion.install.plugin_funcs import PluginRepository, PluginInfo
+from scipion.install.plugin_funcs import PluginRepository, PluginInfo, NULL_VERSION
 
 from pyworkflow.utils.properties import *
 from pyworkflow.utils import redStr
+
 PLUGIN_LOG_NAME = 'Plugin.log'
 PLUGIN_ERRORS_LOG_NAME = 'Plugin.err'
 
@@ -948,11 +948,18 @@ class PluginBrowser(tk.Frame):
                                                  values=PluginStates.BINARY)
                 else:
                     latestRelease = pluginDict.get(pluginName).getLatestRelease()
-                    if latestRelease and latestRelease != '0.0.0':
+                    if latestRelease == NULL_VERSION:
+                        print("Plugin %s not available for Scipion %s" % (plugin.getPipName(), LAST_VERSION))
+                    elif latestRelease:
                         self.tree.insert("", 0, pluginName, text=pluginName,
                                          tags=tag, values=PluginStates.PLUGIN)
         self._closeProgressBar()
 
+        if len(self.tree.get_children()) == 0:
+            pwgui.showInfo("No plugins loaded","We haven't found any plugins. "
+                           "Either this is a early stage of a new release or this is a bug. "
+                           "Please, check the terminal output and contact us if you still think"
+                           " this is a bug.",self)
 
 class PluginManagerWindow(gui.Window):
     """

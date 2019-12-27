@@ -30,17 +30,19 @@
 """
 Main entry point to scipion. It launches the gui, tests, etc.
 """
-import importlib
+from importlib import util
 import site
 import sys
 import os
 from os.path import join, exists, dirname, expanduser
 
-from scipion.constants import *
+
 import subprocess
 import pyworkflow
 from configparser import ConfigParser, ParsingError  # Python 3
-import scipion.utils as utils
+from scipion.constants import *
+from scipion.utils import (getScipionHome, getInstallPath,
+                           getTemplatesPath, getScriptsPath)
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
@@ -49,7 +51,7 @@ __releasedate__ = ''
 SCIPION_DOMAIN = "pwem"
 
 
-SCIPION_HOME = utils.getScipionHome()
+SCIPION_HOME = getScipionHome()
 
 # Some pw_*.py scripts under 'apps' folder change the current working
 # directory to the SCIPION_HOME, so let's keep the current working
@@ -57,9 +59,9 @@ SCIPION_HOME = utils.getScipionHome()
 SCIPION_CWD = os.path.abspath(os.getcwd())
 
 # Scipion path to its own scripts
-SCIPION_SCRIPTS = utils.getScriptsPath()
+SCIPION_SCRIPTS = getScriptsPath()
 # Scipion path to install
-SCIPION_INSTALL = utils.getInstallPath()
+SCIPION_INSTALL = getInstallPath()
 #
 # If we don't have a local user installation, create it.
 #
@@ -112,8 +114,8 @@ if not __releasedate__:
             gitBranch = str(subprocess.check_output("git branch | grep \\* ", cwd=SCIPION_HOME, shell=True))
             gitBranch = gitBranch.split("*")[1].strip()
             commitLine = str(subprocess.check_output(['git', 'log', '-1',
-                                                  '--pretty=format:%h %ci'],
-                                                 cwd=SCIPION_HOME))
+                                                      '--pretty=format:%h %ci'],
+                                                     cwd=SCIPION_HOME))
             gitCommit, __releasedate__ = commitLine.split()[:2]
             if gitCommit.startswith("b'"):
                 gitCommit = gitCommit[2:]
@@ -129,6 +131,7 @@ def getVersion(long=True):
     else:
         return __version__
 
+
 def printVersion():
     """ Print Scipion version """
     # Print the version and some more info
@@ -137,12 +140,11 @@ def printVersion():
 #
 # Initialize variables from config file.
 #
-
 for confFile in [SCIPION_CONFIG, SCIPION_LOCAL_CONFIG,
                  SCIPION_PROTOCOLS, SCIPION_HOSTS]:
     if not exists(confFile) and (len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG):
         sys.exit('Missing file:  %s\nPlease run scipion in config mode to fix '
-                 'your configuation:\n  "scipion config"  to fix your '
+                 'your configuration:\n  "scipion config"  to fix your '
                  'configuration' % confFile)
 
 
@@ -158,8 +160,7 @@ def getPythonPackagesFolder():
 def getModuleFolder(moduleName):
     """ Returns the path of a module without importing it"""
 
-
-    spec = importlib.util.find_spec(moduleName)
+    spec = util.find_spec(moduleName)
     return dirname(spec.origin)
 
 
@@ -186,7 +187,7 @@ VARS = {
     'SCIPION_PROTOCOLS': SCIPION_PROTOCOLS,
     'SCIPION_HOSTS': SCIPION_HOSTS,
     'SCIPION_SCRIPTS': SCIPION_SCRIPTS,
-    'SCIPION_TEMPLATES': utils.getTemplatesPath(),
+    'SCIPION_TEMPLATES': getTemplatesPath(),
     'SCIPION_DOMAIN': SCIPION_DOMAIN
 }
 
@@ -245,7 +246,6 @@ try:
                        XMIPP_BINDINGS,
                        os.environ.get('PYTHONPATH', '') if not ignorePythonpath else "",
                        getXmippGhostFolder()]  # To be able to open scipion without xmipp
-
 
     if 'SCIPION_NOGUI' in os.environ:
         PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))

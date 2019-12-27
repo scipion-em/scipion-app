@@ -30,7 +30,6 @@
 Show all the system packages on which scipion depends.
 """
 
-import sys
 import os
 from subprocess import check_output, CalledProcessError
 import argparse

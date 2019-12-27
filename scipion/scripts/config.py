@@ -24,10 +24,9 @@
 Check the local configuration files, and/or create them if requested
 or if they do not exist.
 """
-import glob
 import sys
 import os
-from os.path import join, exists, basename, dirname
+from os.path import join, exists, basename
 import time
 import optparse
 # We use optparse instead of argparse because we want this script to
@@ -35,8 +34,8 @@ import optparse
 import collections
 from shutil import copyfile
 
-from scipion import utils
-from scipion.utils import getExternalJsonTemplates, getTemplatesPath
+from ..utils import (getExternalJsonTemplates, getTemplatesPath,
+                     getDemoTemplateBasename)
 
 try:
     from ConfigParser import ConfigParser, Error
@@ -126,13 +125,13 @@ def main():
                        os.environ['SCIPION_CONFIG'])))
 
         # Copy file demo.json.template, contained in templates dir, into an external location
-        demo_json_file = utils.getDemoTemplateBasename()
+        demo_json_file = getDemoTemplateBasename()
         demo_json_file_orig = join(templates_dir, demo_json_file)
         if not exists(demo_json_file_orig):
             sys.stdout.write('Warning: file {} was not found\n'.format(demo_json_file_orig))
         else:
             copyfile(demo_json_file_orig,
-                     join(getExternalJsonTemplates, demo_json_file))
+                     join(str(getExternalJsonTemplates), demo_json_file))
 
     except Exception:
         # This way of catching exceptions works with Python 2 & 3
@@ -344,13 +343,13 @@ def checkConf(fpath, ftemplate, remove=[], keep=[], update=False, notify=False, 
 
     if update:
         if confChanged:
-            print("Changes detected: writing changes into %s. Please check values." % (fpath))
+            print("Changes detected: writing changes into %s. Please check values." % fpath)
         else:
-            print("Update requested no changes detected for %s." % (fpath))
+            print("Update requested no changes detected for %s." % fpath)
 
         if 'PACKAGES' in cf._sections:
             # Order the content of packages section alphabetically
-            print("Sorting packages section for %s." % (fpath))
+            print("Sorting packages section for %s." % fpath)
             cf._sections['PACKAGES'] = collections.OrderedDict(
                 sorted(cf._sections['PACKAGES'].items(), key=lambda t: t[0]))
 

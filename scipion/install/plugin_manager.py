@@ -691,7 +691,7 @@ class PluginBrowser(tk.Frame):
         Refresh the Plugin Manager log
         """
         import time
-        while self.threadOp.isAlive():
+        while self.threadOp.is_alive():
             time.sleep(wait)
             self.Textlog.refreshAll(goEnd=True)
 

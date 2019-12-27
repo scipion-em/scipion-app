@@ -32,7 +32,7 @@ from future.utils import iteritems
 
 from scipion.install import Environment
 from scipion.install.plugin_funcs import PluginRepository, PluginInfo
-from pyworkflow.utils import redStr 
+from pyworkflow.utils import redStr
 
 #  ************************************************************************
 #  *                                                                      *

@@ -38,10 +38,13 @@ from shutil import copyfile
 from scipion import utils
 from scipion.utils import getExternalJsonTemplates, getTemplatesPath
 
-try:
-    from ConfigParser import ConfigParser, Error
-except ImportError:
-    from configparser import ConfigParser, Error  # Python 3
+PACKAGES = 'PACKAGES'
+VARIABLES = 'VARIABLES'
+SCIPION_NOTIFY = 'SCIPION_NOTIFY'
+SCIPION_CONFIG = 'SCIPION_CONFIG'
+SCIPION_LOCAL_CONFIG = 'SCIPION_LOCAL_CONFIG'
+
+from configparser import ConfigParser, Error  # Python 3
 
 UPDATE_PARAM = '--update'
 COMPARE_PARAM = '--compare'
@@ -77,12 +80,12 @@ def main():
     if args:  # no args which aren't options
         sys.exit(parser.format_help())
 
-    globalIsLocal = (os.environ['SCIPION_CONFIG'] ==
-                     os.environ['SCIPION_LOCAL_CONFIG'])  # if we used --config
+    globalIsLocal = (os.environ[SCIPION_CONFIG] ==
+                     os.environ[SCIPION_LOCAL_CONFIG])  # if we used --config
     if globalIsLocal:
         localSections = []
     else:
-        localSections = ['DIRS_LOCAL', 'PACKAGES', 'VARIABLES']
+        localSections = ['DIRS_LOCAL', PACKAGES, VARIABLES]
 
     try:
         # where pyworkflow is
@@ -90,12 +93,12 @@ def main():
 
         # Global installation configuration files.
         for fpath, tmplt in [
-            (os.environ['SCIPION_CONFIG'], 'scipion'),
+            (os.environ[SCIPION_CONFIG], 'scipion'),
             (os.environ['SCIPION_PROTOCOLS'], 'protocols'),
             (os.environ['SCIPION_HOSTS'], 'hosts')]:
             if not exists(fpath) or options.overwrite:
                 createConf(fpath, join(templates_dir, tmplt + '.template'),
-                           remove=localSections, notify=options.notify)
+                          remove=localSections, notify=options.notify)
             else:
                 checkConf(fpath, join(templates_dir, tmplt + '.template'),
                           remove=localSections, update=options.update,
@@ -103,55 +106,53 @@ def main():
 
         if not globalIsLocal:  # which is normally the case
             # Local user configuration files (well, only "scipion.conf").
-            if not exists(os.environ['SCIPION_LOCAL_CONFIG']):
+            if not exists(os.environ[SCIPION_LOCAL_CONFIG]):
                 #  It might make sense to add   "or options.overwrite" ...
-                createConf(os.environ['SCIPION_LOCAL_CONFIG'],
+                createConf(os.environ[SCIPION_LOCAL_CONFIG],
                            join(templates_dir, 'scipion.template'),
                            keep=localSections,
                            notify=options.notify)
             else:
-                checkConf(os.environ['SCIPION_LOCAL_CONFIG'],
+                checkConf(os.environ[SCIPION_LOCAL_CONFIG],
                           join(templates_dir, 'scipion.template'),
                           keep=localSections, update=options.update,
                           notify=options.notify,
                           compare=options.compare)
 
-        # After all, check some extra things are fine in scipion.conf
-        checkPaths(os.environ['SCIPION_CONFIG'])
-        if (not globalIsLocal and '[BUILD]' in
-            [x.strip() for x in open(os.environ['SCIPION_LOCAL_CONFIG'])]):
-            print(red("Found a BUILD section in the local configuration file %s"
-                      "\nthat would override %s -- Not checking it." %
-                      (os.environ['SCIPION_LOCAL_CONFIG'],
-                       os.environ['SCIPION_CONFIG'])))
+            # After all, check some extra things are fine in scipion.conf
+            checkPaths(os.environ[SCIPION_CONFIG])
+            if (not globalIsLocal and '[BUILD]' in
+                    [x.strip() for x in open(os.environ[SCIPION_LOCAL_CONFIG])]):
+                print(red("Found a BUILD section in the local configuration file %s"
+                          "\nthat would override %s -- Not checking it." %
+                          (os.environ[SCIPION_LOCAL_CONFIG],
+                           os.environ[SCIPION_CONFIG])))
 
-        # Copy file demo.json.template, contained in templates dir, into an external location
-        demo_json_file = utils.getDemoTemplateBasename()
-        demo_json_file_orig = join(templates_dir, demo_json_file)
-        if not exists(demo_json_file_orig):
-            sys.stdout.write('Warning: file {} was not found\n'.format(demo_json_file_orig))
-        else:
-            copyfile(demo_json_file_orig,
-                     join(getExternalJsonTemplates, demo_json_file))
+            # Copy file demo.json.template, contained in templates dir, into an external location
+            demo_json_file = utils.getDemoTemplateBasename()
+            demo_json_file_orig = join(templates_dir, demo_json_file)
+            if not exists(demo_json_file_orig):
+                sys.stdout.write('Warning: file {} was not found\n'.format(demo_json_file_orig))
+            else:
+                copyfile(demo_json_file_orig,
+                         join(getExternalJsonTemplates(), demo_json_file))
 
-    except Exception:
+    except Exception as e:
         # This way of catching exceptions works with Python 2 & 3
-        sys.stderr.write('Error: %s\n' % sys.exc_info()[1])
+        print('Config error: %s\n' % e)
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 
 def checkNotify(config, notify=False):
     """ Check if protocol statistics should be collected. """
     if notify:
-        config.set('VARIABLES', 'SCIPION_NOTIFY', 'True')
+        config.set(VARIABLES, SCIPION_NOTIFY, 'True')
         return
-    notifyOn = config.get('VARIABLES', 'SCIPION_NOTIFY')
-    if notifyOn == 'False':
-        # This works for Python 3
-        if sys.version_info[0] >= 3:
-            get_input = input
-        # else:
-        #     get_input = raw_input
+    notifyOn = config.get(VARIABLES, SCIPION_NOTIFY)
+    if notifyOn=='False':
+
         print("""--------------------------------------------------------------
 -----------------------------------------------------------------
 It would be very helpful if you allow Scipion
@@ -162,25 +163,18 @@ support for them.
 The collected usage information is COMPLETELY ANONYMOUS and does NOT
 include protocol parameters, file names or any data that can be used 
 to identify you or your data. In the URL
-https://github.com/I2PC/scipion/wiki/Collecting-Usage-Statistics-for-Scipion
+https://scipion-em.github.io/docs/docs/developer/collecting-statistics.html
 you may see examples of the transmitted data as well as the
 statistics created with it. You can always deactivate/activate 
-this option by editing the file $HOME/.config/scipion/scipion.conf 
+this option by editing the file %s 
 and setting the variable SCIPION_NOTIFY to False/True respectively.
 
 We understand, of course, that you may not wish to have any 
 information collected from you and we respect your privacy.
 """)
 
-        prompt = get_input("Press <enter> if you don't mind to send USAGE data,"
-                           " otherwise press any key followed by <enter>: ")
-        if prompt == '':
-            config.set('VARIABLES', 'SCIPION_NOTIFY', 'True')
-        print(yellow("Statistics Collection has been set to: %s"
-                     % config.get('VARIABLES', 'SCIPION_NOTIFY')))
-        print("-------------------------------------------------------------\n"
-              "-------------------------------------------------------------")
-
+    input("Press <enter> to continue.")
+    config.set('VARIABLES', 'SCIPION_NOTIFY', 'True')
 
 def createConf(fpath, ftemplate, remove=[], keep=[], notify=False):
     "Create config file in fpath following the template in ftemplate"
@@ -218,7 +212,7 @@ def createConf(fpath, ftemplate, remove=[], keep=[], notify=False):
                 if key in cf.options('BUILD'):
                     cf.set('BUILD', key, options[key])
     # Collecting Protocol Usage Statistics 
-    elif 'VARIABLES' in cf.sections():
+    if 'VARIABLES' in cf.sections():
         checkNotify(cf, notify)
 
     # Create the actual configuration file.
@@ -333,7 +327,7 @@ def checkConf(fpath, ftemplate, remove=[], keep=[], update=False, notify=False, 
                       "parameter to update local config files." % (yellow(s), yellow(o), UPDATE_PARAM))
 
                 if update:
-                    if s == 'VARIABLES' and o == 'SCIPION_NOTIFY':
+                    if s == VARIABLES and o == 'SCIPION_NOTIFY':
                         checkNotify(ct, notify=notify)
                     # Update config file with missing variable
                     value = ct.get(s, o)
@@ -348,11 +342,11 @@ def checkConf(fpath, ftemplate, remove=[], keep=[], update=False, notify=False, 
         else:
             print("Update requested no changes detected for %s." % (fpath))
 
-        if 'PACKAGES' in cf._sections:
+        if PACKAGES in cf._sections:
             # Order the content of packages section alphabetically
             print("Sorting packages section for %s." % (fpath))
-            cf._sections['PACKAGES'] = collections.OrderedDict(
-                sorted(cf._sections['PACKAGES'].items(), key=lambda t: t[0]))
+            cf._sections[PACKAGES] = collections.OrderedDict(
+                sorted(cf._sections[PACKAGES].items(), key=lambda t: t[0]))
 
         try:
             with open(fpath, 'wb') as f:

@@ -26,9 +26,11 @@
 # *
 # **************************************************************************
 import sys
-import pyworkflow as pw
 from os.path import join, dirname, exists, isdir
 from os import environ
+
+import pyworkflow as pw
+
 
 def getScipionHome():
 

@@ -6,12 +6,14 @@ import json
 import pkg_resources
 from pkg_resources import parse_version
 
-from funcs import Environment
+from .funcs import Environment
 from pwem import Domain
 from pyworkflow.utils import redStr
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
 from importlib import reload
+
+NULL_VERSION = "0.0.0"
 REPOSITORY_URL = Config.SCIPION_PLUGIN_JSON
 
 if REPOSITORY_URL is None:
@@ -108,11 +110,14 @@ class PluginInfo(object):
                       'version %s.' % (self.pipName, version, LAST_VERSION))
                 print("Please choose a compatible release: %s" % " ".join(
                     self.compatibleReleases.keys()))
-
             else:
                 print("%s has no compatible versions with current Scipion "
                       "version %s." % (self.pipName, LAST_VERSION))
             return False
+
+        if version == NULL_VERSION:
+                print("Plugin %s is not available for this Scipion %s yet" % (self.pipName, LAST_VERSION))
+                return False
 
         if self.pluginSourceUrl:
             if os.path.exists(self.pluginSourceUrl):
@@ -202,7 +207,7 @@ class PluginInfo(object):
 
         reg = r'scipion-([\d.]*\d)'
         releases = {}
-        latestCompRelease = "0.0.0"
+        latestCompRelease = NULL_VERSION
 
         for release, releaseData in pipJsonData['releases'].items():
             releaseData = releaseData[0]
@@ -220,7 +225,7 @@ class PluginInfo(object):
 
         if releases:
             releases['latest'] = latestCompRelease
-            if (latestCompRelease != "0.0.0" and
+            if (latestCompRelease != NULL_VERSION and
                     releases[latestCompRelease]['comment_text'] == ''):
               print("WARNING: %s's release %s did not specify a compatible "
               "Scipion version" % (self.pipName, latestCompRelease))
@@ -302,9 +307,9 @@ class PluginInfo(object):
         """Reads the defineBinaries function from Plugin class and returns an
         Environment object with the plugin's binaries."""
         if envArgs is None:
-            envArgs = []
-        from scipion.install.script import defineBinaries
-        env = defineBinaries(envArgs)
+            envArgs = dict()
+
+        env = Environment(**envArgs)
         env.setDefault(False)
 
         plugin = self.getPluginClass()
@@ -319,8 +324,7 @@ class PluginInfo(object):
 
     def getBinVersions(self):
         """Get list with names of binaries of this plugin"""
-        from scipion.install.script import defineBinaries
-        env = defineBinaries()
+        env = Environment()
         env.setDefault(False)
         defaultTargets = [target.getName() for target in env.getTargetList()]
         plugin = self.getPluginClass()
@@ -352,7 +356,7 @@ class PluginInfo(object):
             return " ".rjust(14) + "No binaries information defined.\n"
         except Exception as e:
             return " ".rjust(14) + "Error getting binaries info: %s" % \
-                   e.message + "\n"
+                   str(e) + "\n"
 
     def getPluginName(self):
         """Return the plugin name"""

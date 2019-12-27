@@ -24,10 +24,9 @@
 Check the local configuration files, and/or create them if requested
 or if they do not exist.
 """
-import glob
 import sys
 import os
-from os.path import join, exists, basename, dirname
+from os.path import join, exists, basename
 import time
 import optparse
 # We use optparse instead of argparse because we want this script to
@@ -35,8 +34,8 @@ import optparse
 import collections
 from shutil import copyfile
 
-from scipion import utils
-from scipion.utils import getExternalJsonTemplates, getTemplatesPath
+from ..utils import (getExternalJsonTemplates, getTemplatesPath,
+                     getDemoTemplateBasename)
 
 PACKAGES = 'PACKAGES'
 VARIABLES = 'VARIABLES'
@@ -338,9 +337,9 @@ def checkConf(fpath, ftemplate, remove=[], keep=[], update=False, notify=False, 
 
     if update:
         if confChanged:
-            print("Changes detected: writing changes into %s. Please check values." % (fpath))
+            print("Changes detected: writing changes into %s. Please check values." % fpath)
         else:
-            print("Update requested no changes detected for %s." % (fpath))
+            print("Update requested no changes detected for %s." % fpath)
 
         if PACKAGES in cf._sections:
             # Order the content of packages section alphabetically

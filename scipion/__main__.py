@@ -30,17 +30,19 @@
 """
 Main entry point to scipion. It launches the gui, tests, etc.
 """
-import importlib
+from importlib import util
 import site
 import sys
 import os
 from os.path import join, exists, dirname, expanduser
 
-from scipion.constants import *
+
 import subprocess
 import pyworkflow
 from configparser import ConfigParser, ParsingError  # Python 3
-import scipion.utils as utils
+from scipion.constants import *
+from scipion.utils import (getScipionHome, getInstallPath,
+                           getTemplatesPath, getScriptsPath)
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
@@ -49,7 +51,7 @@ __releasedate__ = ''
 SCIPION_DOMAIN = "pwem"
 
 
-SCIPION_HOME = utils.getScipionHome()
+SCIPION_HOME = getScipionHome()
 
 # Some pw_*.py scripts under 'apps' folder change the current working
 # directory to the SCIPION_HOME, so let's keep the current working
@@ -57,9 +59,9 @@ SCIPION_HOME = utils.getScipionHome()
 SCIPION_CWD = os.path.abspath(os.getcwd())
 
 # Scipion path to its own scripts
-SCIPION_SCRIPTS = utils.getScriptsPath()
+SCIPION_SCRIPTS = getScriptsPath()
 # Scipion path to install
-SCIPION_INSTALL = utils.getInstallPath()
+SCIPION_INSTALL = getInstallPath()
 #
 # If we don't have a local user installation, create it.
 #
@@ -112,8 +114,8 @@ if not __releasedate__:
             gitBranch = str(subprocess.check_output("git branch | grep \\* ", cwd=SCIPION_HOME, shell=True))
             gitBranch = gitBranch.split("*")[1].strip()
             commitLine = str(subprocess.check_output(['git', 'log', '-1',
-                                                  '--pretty=format:%h %ci'],
-                                                 cwd=SCIPION_HOME))
+                                                      '--pretty=format:%h %ci'],
+                                                     cwd=SCIPION_HOME))
             gitCommit, __releasedate__ = commitLine.split()[:2]
             if gitCommit.startswith("b'"):
                 gitCommit = gitCommit[2:]
@@ -129,6 +131,7 @@ def getVersion(long=True):
     else:
         return __version__
 
+
 def printVersion():
     """ Print Scipion version """
     # Print the version and some more info
@@ -137,12 +140,11 @@ def printVersion():
 #
 # Initialize variables from config file.
 #
-
 for confFile in [SCIPION_CONFIG, SCIPION_LOCAL_CONFIG,
                  SCIPION_PROTOCOLS, SCIPION_HOSTS]:
     if not exists(confFile) and (len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG):
         sys.exit('Missing file:  %s\nPlease run scipion in config mode to fix '
-                 'your configuation:\n  "scipion config"  to fix your '
+                 'your configuration:\n  "scipion config"  to fix your '
                  'configuration' % confFile)
 
 
@@ -158,8 +160,7 @@ def getPythonPackagesFolder():
 def getModuleFolder(moduleName):
     """ Returns the path of a module without importing it"""
 
-
-    spec = importlib.util.find_spec(moduleName)
+    spec = util.find_spec(moduleName)
     return dirname(spec.origin)
 
 
@@ -186,7 +187,7 @@ VARS = {
     'SCIPION_PROTOCOLS': SCIPION_PROTOCOLS,
     'SCIPION_HOSTS': SCIPION_HOSTS,
     'SCIPION_SCRIPTS': SCIPION_SCRIPTS,
-    'SCIPION_TEMPLATES': utils.getTemplatesPath(),
+    'SCIPION_TEMPLATES': getTemplatesPath(),
     'SCIPION_DOMAIN': SCIPION_DOMAIN
 }
 
@@ -245,7 +246,6 @@ try:
                        XMIPP_BINDINGS,
                        os.environ.get('PYTHONPATH', '') if not ignorePythonpath else "",
                        getXmippGhostFolder()]  # To be able to open scipion without xmipp
-
 
     if 'SCIPION_NOGUI' in os.environ:
         PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))
@@ -320,25 +320,10 @@ def main():
     printVersion()
     # See in which "mode" the script is called. By default, it's MODE_MANAGER.
     n = len(sys.argv)
-    if n > 1:
-        mode = sys.argv[1]
-    else:
-        mode = MODE_MANAGER
-## Pconesa Commented: we might not need this or do it differently.
+    # Default to MANAGER_MODE
+    mode = sys.argv[1] if n > 1 else MODE_MANAGER
 
-#     # First see if we have a working installation.
-#     if mode not in [MODE_INSTALL, MODE_CONFIG]:
-#         ok = True
-#         for d, path in DIRS_GLOBAL.items():
-#             if not exists(path):
-#                 sys.stderr.write('Missing %s folder: %s\n' % (d, path))
-#                 ok = False
-# #         if not exists(join(VARS['SCIPION_SOFTWARE'], 'log', 'success.log')):
-# #             ok = False
-#         if not ok:
-#             sys.exit("There is a problem with the installation. Please run:\n"
-#                      "  %s install" % sys.argv[0])
-
+    # Check mode
     if mode == MODE_MANAGER:
         runApp('pw_manager.py')
 
@@ -374,74 +359,6 @@ def main():
 
     elif mode == MODE_PLUGINS:
         runScript(join(VARS['SCIPION_INSTALL'], 'plugin_manager.py'))
-
-    elif mode == MODE_INSTALL:
-        # Always move to SCIPION_HOME dir before installing
-        cwd = os.getcwd()
-        os.chdir(SCIPION_HOME)
-        
-        os.environ.update(VARS)
-        args = sys.argv[2:]
-
-        if '--help' in args:
-            print("""Usage: %s [<target>] [--no-scipy] [--no-opencv] [--show]
-
-Installs Scipion. Also used to install only part of it, as specified
-in the <target>.
-
-Arguments:
-  <target>      a library or a python module.
-                Version can be specified after a hyphen (-)
-   -j N         where N is the number of processors to use during installation
-  --help        show this help message
-  --show        just show what would be done, without actually installing
-  --no-opencv   do not install opencv (big) or anything that depends on it
-  --no-scipy    do not install scipy or anything that depends on it
-
-Example: scipion install -j 4
-
-""" % ' '.join(sys.argv[:2]))
-        else:
-            # Create folders if needed.
-            for path in DIRS_GLOBAL.values():
-                if not exists(path):
-                    sys.stdout.write("  Creating folder %s ...\n" % path)
-                    os.makedirs(path)
-
-        def build(args):
-            # Just importing the script will launch the install actions
-            sys.path.insert(1, join(VARS['SCIPION_INSTALL']))
-            import script as installScript
-            env = installScript.defineBinaries()
-            env.execute()
-            return 0
-
-        if args and args[0] == '--binary':
-            assert 'LDFLAGS' not in os.environ, "LDFLAGS already set. Refusing."
-            os.environ['LDFLAGS'] = '-Wl,-rpath,REPLACE_ME_WITH_FUNNY_'
-            # Install external libraries and compile Xmipp
-            ret = build(args[1:]) # ignore the --binary argument
-            if ret == 0:
-                ret = os.system(join(getPyworkflowPath(), 'install',
-                                     'change_rpath.py %(ss)s/bin %(ss)s/lib %(ss)s/em')
-                    % {'ss': SCIPION_SOFTWARE})
-        else:
-            # Install external libraries and compile Xmipp
-            ret = build(args)
-
-        if ret == 0 and not ('--help' in args or '-h' in args or '-H' in args
-                             or'-c' in args):
-            open(join(VARS['SCIPION_SOFTWARE'], 'log',
-                      'success.log'), 'w').write('Yes :)')
-            sys.stdout.write("""
-  ************************************************************************
-  *                                                                      *
-  *         Congratulations, Scipion was installed successfully          *
-  *                                                                      *
-  ************************************************************************
-""")
-        os.chdir(cwd) # Go back to original folder
-        sys.exit(ret)
 
     elif mode == MODE_CONFIG:
         runApp(join(SCIPION_SCRIPTS, 'config.py'), sys.argv[2:])
@@ -492,8 +409,11 @@ Example: scipion install -j 4
         # To avoid Ghost activation warning
         from pwem import EM_PROGRAM_ENTRY_POINT
         runCmd(EM_PROGRAM_ENTRY_POINT,  sys.argv[1:])
-    
-    elif mode == MODE_HELP:
+
+    elif mode == MODE_INSPECT:
+        runScript(join(VARS['SCIPION_INSTALL'], 'inspect-plugins.py'), sys.argv[2:])
+    # Else HELP or wrong argument
+    else:
         sys.stdout.write("""\
 Usage: scipion [MODE] [ARGUMENTS]
 
@@ -510,14 +430,10 @@ MODE can be:
     
     installb               Installs Plugin Binaries. Use with flag --help to see usage.
 
-    install [OPTION]       [ WILL BE DEPRECATED IN NEXT RELEASE]
-                           Downloads and installs all the necessary software to run Scipion.
-                           OPTION can be:
-                             --with-all-packages: download also all external em packages
-                             --help: show all the available options
-
     manager                Opens the manager with a list of all projects.
 
+    inspect                inspect a python module and check if it looks loke a scipion plugin. 
+    
     printenv               Prints the environment variables used by the application.
 
     project NAME           Opens the specified project. The name 'last' opens the last project.
@@ -559,14 +475,11 @@ MODE can be:
                            a dialog is raised to choose one. 
 
 """)
-        sys.exit(0)
-
-    # If we reach this point, bad arguments were passed
-    sys.stdout.write("""Unknown mode: %s
-Valid modes are:
-  help install installp uninstallp installb uninstallb manager project tests testdata viewer printenv run
-Run "%s help" for a full description.\n""" % (sys.argv[1], sys.argv[0]))
-    sys.exit(1)
+        if mode == MODE_HELP:
+            sys.exit(0)
+        else:
+            print("Unknown mode: %s." % mode)
+            sys.exit(1)
 
 
 if __name__ == '__main__':

@@ -28,23 +28,25 @@
 Launch main project window 
 """
 
+import os
 import sys
 from collections import OrderedDict
+
 import pyworkflow.tests as tests
 from pyworkflow.project import Manager
 import pyworkflow.utils as pwutils
 from pyworkflow.gui.project import ProjectWindow
-from scipion.utils import getTemplatesPath
+from ..utils import getTemplatesPath
 
 
 def getWorkflow(workflow):
     """ Return the full workflow path from
     the Scipion folder + templates/workflow
     """
-    return getTemplatesPath(workflow)
+    return os.path.join(getTemplatesPath(), workflow)
     
 
-class Tutorial():
+class Tutorial:
     """ Base class to implement some common functionalities. """
     def __init__(self):
         projName = self.__class__.__name__
@@ -55,7 +57,7 @@ class Tutorial():
             self.project = manager.createProject(projName)
             # Use graph view as default
             settings = self.project.getSettings()
-            settings.setRunsView(1) # graph view
+            settings.setRunsView(1)  # graph view
             settings.write()
             self.loadWorkflow()
     

@@ -33,21 +33,25 @@ import inspect
 import traceback
 from collections import OrderedDict
 from future.utils import iteritems
+
 from pwem.protocols import (Prot3D, Prot2D, ProtParticles,
                             ProtMicrographs, ProtImport)
 from pwem import Domain
 from pyworkflow.protocol import Protocol
 import pyworkflow.utils as pwutils
 
-from plugin_funcs import PluginInfo
+from scipion.install.plugin_funcs import PluginInfo
 
 
 exitWithErrors = False
 
-def usage(error):
-    print("""
-    ERROR: %s
 
+def usage(error=""):
+
+    if error:
+        error = "ERROR: %s\n" % error
+
+    print("""%s
     Usage: scipion python scripts/inspect-plugins.py [PLUGIN-NAME] [info] [--showBase]
         This script loads all Scipion plugins found.
         If a PLUGIN-NAME is passed, it will inspect that plugin
@@ -87,6 +91,7 @@ def getFirstLine(doc):
                 return l
     return ''
 
+
 n = len(sys.argv)
 
 if n > 4:
@@ -111,7 +116,7 @@ if n == 1:  # List all plugins
 
 elif n == 2:
     if sys.argv[1] in ['-h', '--help', 'help']:
-        usage("Printing help message")
+        usage()
 
     pluginName = sys.argv[1]
     plugin = Domain.getPlugin(pluginName)

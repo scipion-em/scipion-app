@@ -57,7 +57,7 @@ from pyworkflow.gui.widgets import HotButton, Button
 
 # Custom labels
 from scipion.constants import SCIPION_EP
-from ..utils import getExternalJsonTemplates
+from scipion.utils import getExternalJsonTemplates
 
 START_BUTTON = "Start demo"
 PROJECT_TEMPLATE = os.environ.get("SCIPION_PROJECT_NAME",
@@ -448,6 +448,7 @@ def getTemplate(root):
             provider = pwgui.tree.ListTreeProviderString(templates)
             dlg = dialog.ListDialog(root, "Workflow templates", provider,
                                     "Select one of the templates.")
+
             if dlg.result == dialog.RESULT_CANCEL:
                 sys.exit()
             chosen = dlg.values[0].get()

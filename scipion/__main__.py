@@ -188,7 +188,10 @@ VARS = {
     'SCIPION_HOSTS': SCIPION_HOSTS,
     'SCIPION_SCRIPTS': SCIPION_SCRIPTS,
     'SCIPION_TEMPLATES': getTemplatesPath(),
-    'SCIPION_DOMAIN': SCIPION_DOMAIN
+    'SCIPION_DOMAIN': SCIPION_DOMAIN,
+    pyworkflow.PW_ALT_TESTS_CMD:
+        os.environ.get(pyworkflow.PW_ALT_TESTS_CMD,
+                       '%s %s' % (SCIPION_EP, MODE_TESTS))
 }
 
 try:

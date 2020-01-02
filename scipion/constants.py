@@ -4,11 +4,11 @@
 
 MODE_MANAGER = 'manager'
 MODE_PROJECT = 'project'
-MODE_LAST = 'last' # shortcut to 'project last'
-MODE_HERE = 'here' # shortcut to 'project here'
+MODE_LAST = 'last'  # shortcut to 'project last'
+MODE_HERE = 'here'  # shortcut to 'project here'
 MODE_COLLECTSTATIC = 'collectstatic'
-MODE_TESTS = 'tests' # keep tests for compatibility
-MODE_TEST = 'test' # also allow 'test', in singular
+MODE_TESTS = 'tests'  # keep tests for compatibility
+MODE_TEST = 'test'  # also allow 'test', in singular
 MODE_TEST_DATA = 'testdata'
 MODE_HELP = 'help'
 MODE_VIEWER = ['viewer', 'view', 'show']

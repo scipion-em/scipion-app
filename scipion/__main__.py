@@ -109,7 +109,7 @@ if not __releasedate__:
     if exists(join(SCIPION_HOME, '.git')):
         def call(cmd):
             return subprocess.Popen(cmd, shell=True, cwd=SCIPION_HOME).wait()
-        if call('which git > /dev/null') == 0: # Means git command is found
+        if call('which git > /dev/null') == 0:  # Means git command is found
 
             gitBranch = str(subprocess.check_output("git branch | grep \\* ", cwd=SCIPION_HOME, shell=True))
             gitBranch = gitBranch.split("*")[1].strip()
@@ -120,7 +120,6 @@ if not __releasedate__:
             if gitCommit.startswith("b'"):
                 gitCommit = gitCommit[2:]
             __nickname__ += ' (%s %s)' % (gitBranch, gitCommit)
-
 
     # If in a future we release  a nightly build, we could add the .devel_version
 
@@ -140,6 +139,7 @@ def printVersion():
 #
 # Initialize variables from config file.
 #
+
 for confFile in [SCIPION_CONFIG, SCIPION_LOCAL_CONFIG,
                  SCIPION_PROTOCOLS, SCIPION_HOSTS]:
     if not exists(confFile) and (len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG):
@@ -213,7 +213,7 @@ try:
     PACKAGES = getPaths('PACKAGES')
     if config.has_section('VARIABLES'):
         VARIABLES = getValues('VARIABLES')
-    else: # For now, allow old scipion.conf without the VARIABLES section
+    else:  # For now, allow old scipion.conf without the VARIABLES section
         sys.stdout.write("Warning: Missing section 'VARIABLES' in the "
                          "configuration file ~/.config/scipion/scipion.conf\n")
         VARIABLES = {}
@@ -371,7 +371,7 @@ def main():
         sys.exit(0)
 
     elif mode == MODE_RUNPROTOCOL:
-        assert (n == 6 or n ==7), 'runprotocol takes exactly 5 arguments, not %d' % (n - 1)
+        assert (n == 6 or n == 7), 'runprotocol takes exactly 5 arguments, not %d' % (n - 1)
         # this could be pw_protocol_run.py or pw_protocol_mpirun.py
         protocolApp = sys.argv[2]
         # This should be (projectPath, protocolDb and protocolId)

@@ -88,7 +88,7 @@ class PluginTree(ttk.Treeview):
         """ same method as for standard treeview but add the tag 'unchecked'
             automatically if no tag among ('checked', 'unchecked')
             is given """
-        if not "tags" in kw:
+        if "tags" not in kw:
             kw["tags"] = (PluginStates.UNCHECKED,)
         elif not (PluginStates.UNCHECKED in kw["tags"] or
                   PluginStates.CHECKED in kw["tags"] or
@@ -395,11 +395,11 @@ class PluginBrowser(tk.Frame):
         """ Fill the toolbar frame with some buttons. """
         self._col = 0
         self.executeOpsBtn = self._addButton(frame, '', Icon.TO_INSTALL,
-                                       Message.EXECUTE_PLUGINS_MANAGER_OPERATION,
-                                          'disable', self._applyAllOperations)
+                                             Message.EXECUTE_PLUGINS_MANAGER_OPERATION,
+                                             'disable', self._applyAllOperations)
         self.cancelOpsBtn = self._addButton(frame, '', Icon.DELETE_OPERATION,
-                              Message.CANCEL_SELECTED_OPERATION, 'disable',
-                                         self._deleteSelectedOperation)
+                                            Message.CANCEL_SELECTED_OPERATION, 'disable',
+                                            self._deleteSelectedOperation)
 
         tk.Label(frame, text='Number of processors:').grid(row=0,
                                                            column=self._col,
@@ -433,7 +433,7 @@ class PluginBrowser(tk.Frame):
         font.metrics()
         fontheight = font.metrics()['linespace']
         style = ttk.Style()
-        style.configure('Plugins.Treeview',rowheight=fontheight)
+        style.configure('Plugins.Treeview', rowheight=fontheight)
 
         self.tree = PluginTree(leftFrame, show="tree", style="Plugins.Treeview")
         self.tree.grid(row=0, column=0, sticky='news')
@@ -499,8 +499,6 @@ class PluginBrowser(tk.Frame):
                 self.popup_menu.entryconfigure(1, state=tk.NORMAL)
             else:
                 self.popup_menu.entryconfigure(4, state=tk.NORMAL)
-
-
             self.popup_menu.post(event.x_root, event.y_root)
         finally:
             self.popup_menu.grab_release()
@@ -589,7 +587,7 @@ class PluginBrowser(tk.Frame):
         self.operationTree = PluginTree(opPanel, show="tree")
         self.operationTree.grid(row=1, column=0, sticky='news')
         yscrollbar = ttk.Scrollbar(opPanel, orient='vertical',
-                                        command=self.operationTree.yview)
+                                   command=self.operationTree.yview)
         yscrollbar.grid(row=1, column=1, sticky='news')
         self.operationTree.configure(yscrollcommand=yscrollbar.set)
         yscrollbar.configure(command=self.operationTree.yview)
@@ -783,7 +781,7 @@ class PluginBrowser(tk.Frame):
         x, y, widget = event.x, event.y, event.widget
         item = self.operationTree.selectedItem = self.operationTree.identify_row(y)
         if (len(item) and len(self.operationList.getOperations(None)) and
-                             self.executeOpsBtn["state"] == tk.NORMAL):
+                self.executeOpsBtn["state"] == tk.NORMAL):
             self.cancelOpsBtn.config(state='normal')
 
     def deleteOperation(self, operationName):
@@ -939,7 +937,7 @@ class PluginBrowser(tk.Frame):
                             pVersions = binaryList[k]
                             for binary, version in pVersions:
                                 installed = pluginBinaryList._isInstalled(binary,
-                                                                     version)
+                                                                          version)
                                 tag = PluginStates.UNCHECKED
                                 if installed:
                                     tag = PluginStates.CHECKED
@@ -957,10 +955,11 @@ class PluginBrowser(tk.Frame):
         self._closeProgressBar()
 
         if len(self.tree.get_children()) == 0:
-            pwgui.showInfo("No plugins loaded","We haven't found any plugins. "
+            pwgui.showInfo("No plugins loaded", "We haven't found any plugins. "
                            "Either this is a early stage of a new release or this is a bug. "
                            "Please, check the terminal output and contact us if you still think"
-                           " this is a bug.",self)
+                           " this is a bug.", self)
+
 
 class PluginManagerWindow(gui.Window):
     """
@@ -978,7 +977,6 @@ class PluginManagerWindow(gui.Window):
         configMenu = menu.addSubMenu('Configuration')
         configMenu.addSubMenu('User', 'user')
         configMenu.addSubMenu('Variables', 'variables')
-
 
         helpMenu = menu.addSubMenu('Help')
         helpMenu.addSubMenu('Help', 'help', icon='fa-question-circle.png')
@@ -1074,7 +1072,6 @@ class PluginManager(PluginManagerWindow):
     def __init__(self, title, master=None, **kwargs):
         PluginManagerWindow.__init__(self, title, master, **kwargs)
         browser = PluginBrowser(self.root, **kwargs)
-
 
 
 def main():

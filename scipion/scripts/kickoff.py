@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
+# !/usr/bin/env python
 # **************************************************************************
 # *
 # * Authors:     Pablo Conesa (pconesa@cnb.csic.es)
@@ -61,7 +61,7 @@ from ..utils import getExternalJsonTemplates
 
 START_BUTTON = "Start demo"
 PROJECT_TEMPLATE = os.environ.get("SCIPION_PROJECT_NAME",
-                            "demo_" + datetime.now().strftime("%y%m%d_%H%M%S"))
+                                  "demo_" + datetime.now().strftime("%y%m%d_%H%M%S"))
 
 FIELD_SEP = '~'
 VIEW_WIZARD = 'wizardview'
@@ -355,7 +355,7 @@ def validate(value, fieldType):
         return validString(value)
 
     else:
-        print("Type %s for %snot recognized. Review the template." \
+        print("Type %s for %snot recognized. Review the template."
               % (type, value))
         return
 
@@ -455,7 +455,7 @@ def getTemplate(root):
         if not customTemplates:
             chosen = os.path.join(templateFolder, chosen)
 
-        print ("Template to use: %s" % chosen)
+        print("Template to use: %s" % chosen)
         with open(chosen, 'r') as myfile:
             template = myfile.read()
         # Replace environment variables
@@ -467,6 +467,7 @@ def getTemplate(root):
                         "or pass it/them as argument(s).\n"
                         "\n -> Usage: scipion demo [PATH.json.template]\n"
                         "\n see 'scipion help'\n" % templateFolder)
+
 
 if __name__ == "__main__":
     wizWindow = BoxWizardWindow()

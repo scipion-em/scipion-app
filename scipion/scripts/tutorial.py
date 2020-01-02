@@ -114,7 +114,7 @@ if __name__ == '__main__':
         manager = Manager()
         tutorialName = sys.argv[1]
         
-        if not tutorialName in ALL_TUTORIALS:
+        if tutorialName not in ALL_TUTORIALS:
             printUsage("Invalid tutorial '%s'." % tutorialName)
         else:
             # Instanciate the proper tutorial class

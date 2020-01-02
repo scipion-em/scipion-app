@@ -70,30 +70,30 @@ installParser = subparsers.add_parser("installp", formatter_class=argparse.RawTe
                                       add_help=False)
 installParser.add_argument('-h', '--help', action='store_true', help='show help')
 installParser.add_argument('--noBin', action='store_true',
-                            help='Optional flag to install plugins only as a python module,\n'
-                                 'without installing the plugin binaries. This will affect\n'
-                                 'all plugins specified in the command.')
+                           help='Optional flag to install plugins only as a python module,\n'
+                                'without installing the plugin binaries. This will affect\n'
+                                'all plugins specified in the command.')
 installParser.add_argument('--checkUpdates', action='store_true',
                            help='Optional flag to check which plugins have new releases.\n')
 installParser.add_argument('-p', '--plugin', action='append', nargs='+',
                            metavar=('pluginName', 'pluginVersion'),
                            help='- pluginName:     the name of the plugin to install from the list\n'
-                                 '                 of available plugins shown below.\n'
-                                 '- pluginVersion: (optional) pip version to install. If not specified,\n'
-                                 '                 will install the latest compatible with current Scipion.')
+                                '                 of available plugins shown below.\n'
+                                '- pluginVersion: (optional) pip version to install. If not specified,\n'
+                                '                 will install the latest compatible with current Scipion.')
 
 installParser.add_argument('--devel', action='store_true',
-                            help='Optional flag to indicate that we will pass install sources instead\n'
-                                 'of pip names. Sources might be local paths or git urls. With local\n'
-                                 'paths, will do pip install -e (editable mode). It is expected to find\n'
-                                 'the plugin name in the basename of the path or in the repo name. \n'
-                                 '(i.e. it needs to match the one specified in setup.py). E.g:\n'
-                                 'scipion installp -p path/to/pluginName --devel \n'
-                                 'scipion installp -p https://github.com/someOrg/pluginName.git --devel')
+                           help='Optional flag to indicate that we will pass install sources instead\n'
+                                'of pip names. Sources might be local paths or git urls. With local\n'
+                                'paths, will do pip install -e (editable mode). It is expected to find\n'
+                                'the plugin name in the basename of the path or in the repo name. \n'
+                                '(i.e. it needs to match the one specified in setup.py). E.g:\n'
+                                'scipion installp -p path/to/pluginName --devel \n'
+                                'scipion installp -p https://github.com/someOrg/pluginName.git --devel')
 installParser.add_argument('-j',
-                              default='1',
-                              metavar='j',
-                              help='Number of CPUs to use for compilation \n')
+                           default='1',
+                           metavar='j',
+                           help='Number of CPUs to use for compilation \n')
 
 ############################################################################
 #                             Uninstall parser                             #
@@ -107,9 +107,9 @@ uninstallParser = subparsers.add_parser("uninstallp", formatter_class=argparse.R
                                         add_help=False)
 uninstallParser.add_argument('-h', '--help', action='store_true', help='show help')
 uninstallParser.add_argument('--noBin', action='store_true',
-                            help='Optional flag to uninstall plugins only as a python module,\n'
-                                 'without uninstalling the plugin binaries. This will affect\n'
-                                 'all plugins specified in the command.')
+                             help='Optional flag to uninstall plugins only as a python module,\n'
+                                  'without uninstalling the plugin binaries. This will affect\n'
+                                  'all plugins specified in the command.')
 uninstallParser.add_argument('-p', '--plugin', action='append',
                              metavar='pluginName',
                              help='The name of the plugin to uninstall from the list\n'
@@ -125,7 +125,7 @@ installBinParser = subparsers.add_parser("installb", formatter_class=argparse.Ra
                                          epilog="Example: %s ctffind4 unblur-1.0.15\n\n" %
                                          (' '.join(args[:2])),
                                          add_help=False)
-#installBinParser.add_argument('pluginName', metavar='pluginName',
+# installBinParser.add_argument('pluginName', metavar='pluginName',
 #                              help='The name of the plugin whose bins we want to uninstall.\n')
 installBinParser.add_argument('-h', '--help', action='store_true', help='show help')
 installBinParser.add_argument('binName', nargs='*',
@@ -148,7 +148,7 @@ uninstallBinParser = subparsers.add_parser("uninstallb", formatter_class=argpars
                                            epilog="Example: %s ctffind4 unblur-1.0.15\n\n " %
                                            (' '.join(args[:2])),
                                            add_help=False)
-#uninstallBinParser.add_argument('pluginName', metavar='pluginName',
+# uninstallBinParser.add_argument('pluginName', metavar='pluginName',
 #                                help='The name of the plugin whose bins we want to uninstall.\n')
 uninstallBinParser.add_argument('-h', '--help', action='store_true', help='show help')
 uninstallBinParser.add_argument('binName', nargs='+',
@@ -181,7 +181,7 @@ if parsedArgs.help or (mode in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
                 pobj.Plugin.defineBinaries(env)
             except Exception as e:
                 print(
-                    redStr("Error retrieving plugin %s binaries: "% str(p)), e )
+                    redStr("Error retrieving plugin %s binaries: " % str(p)), e)
         parserUsed.epilog += env.printHelp()
     parserUsed.print_help()
     parserUsed.exit(0)

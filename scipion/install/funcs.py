@@ -24,12 +24,12 @@
 # *
 # **************************************************************************
 
-import platform
 import os
-from os.path import join, exists, islink, abspath
+import platform
 import sys
 import time
 from glob import glob
+from os.path import join, exists, islink, abspath
 from subprocess import STDOUT, call
 
 from pyworkflow import Config
@@ -45,9 +45,11 @@ MACOSX = (platform.system() == 'Darwin')
 WINDOWS = (platform.system() == 'Windows')
 LINUX = (platform.system() == 'Linux')
 
+
 def ansi(n):
-    "Return function that escapes text with ANSI color n."
+    """Return function that escapes text with ANSI color n."""
     return lambda txt: '\x1b[%dm%s\x1b[0m' % (n, txt)
+
 
 black, red, green, yellow, blue, magenta, cyan, white = map(ansi, range(30, 38))
 # We don't take them from pyworkflow.utils because this has to run
@@ -166,8 +168,8 @@ class Target:
         self._default = kwargs.get('default', False)
         self._always = kwargs.get('always', False)  # Adding always here to allow getting to Commands where always=True
         self._commandList = list(commands)  # copy the list/tuple of commands
-        self._finalCommands = [] # their targets will be used to check if we need to re-build
-        self._deps = [] # names of dependency targets
+        self._finalCommands = []  # their targets will be used to check if we need to re-build
+        self._deps = []  # names of dependency targets
 
     def addCommand(self, cmd, **kwargs):
         if isinstance(cmd, Command):
@@ -243,7 +245,7 @@ class Environment:
             self._processors = 1
             
         if LINUX:
-            self._libSuffix = 'so' # Shared libraries extension name
+            self._libSuffix = 'so'  # Shared libraries extension name
         else:
             self._libSuffix = 'dylib'
 
@@ -282,6 +284,7 @@ class Environment:
 
         from distutils.sysconfig import get_python_lib
         return get_python_lib()
+
     @staticmethod
     def getIncludeFolder():
         return '%s/include' % (Environment.getSoftware())
@@ -439,8 +442,8 @@ class Environment:
         configAlways = kwargs.get('configAlways', False)
         flags = kwargs.get('flags', [])
         targets = kwargs.get('targets', [self.getLib(name)])
-        clean = kwargs.get('clean', False) # Execute make clean at the end??
-        cmake = kwargs.get('cmake', False) # Use cmake instead of configure??
+        clean = kwargs.get('clean', False)  # Execute make clean at the end??
+        cmake = kwargs.get('cmake', False)  # Use cmake instead of configure??
         default = kwargs.get('default', True)
         neededProgs = kwargs.get('neededProgs', [])
         libChecks = kwargs.get('libChecks', [])
@@ -573,7 +576,7 @@ class Environment:
 
         modArgs = {'urlSuffix': 'python'}
         modArgs.update(kwargs)
-        t = self._addDownloadUntar(name, **modArgs )
+        t = self._addDownloadUntar(name, **modArgs)
         self._addTargetDeps(t, deps)
 
         def path(x):
@@ -596,9 +599,9 @@ class Environment:
                      '%(root)s/log/%(name)s.log 2>&1' % {
                          'env': envStr, 'root': prefix, 'name': name,
                          'flags': ' '.join(flags)},
-                   targets=[path(tg) for tg in targets],
-                   cwd=t.buildPath,
-                   final=True)
+                     targets=[path(tg) for tg in targets],
+                     cwd=t.buildPath,
+                     final=True)
 
         return t
 
@@ -643,7 +646,6 @@ class Environment:
         if variables:
             environ = {} if environ is None else environ
             environ.update(variables)
-
 
         # We reuse the download and untar from the addLibrary method
         # and pass the createLink as a new command 
@@ -746,8 +748,8 @@ class Environment:
     def printHelp(self):
         printStr = ""
         if self._packages:
-            printStr=("Available binaries: "
-                  "([ ] not installed, [X] seems already installed)\n")
+            printStr = ("Available binaries: "
+                        "([ ] not installed, [X] seems already installed)\n")
 
             keys = sorted(self._packages.keys())
             for k in keys:
@@ -835,6 +837,7 @@ class Environment:
         """Return all plugin packages"""
         return self._packages
 
+
 class Link:
     def __init__(self, packageLink, packageFolder):
         self._packageLink = packageLink
@@ -856,7 +859,7 @@ class Link:
         
         if not exists(packageFolder):
             print(red("Creating link %s, but '%s' does not exist!!!\n"
-                 "INSTALLATION FAILED!!!" % (linkText, packageFolder)))
+                      "INSTALLATION FAILED!!!" % (linkText, packageFolder)))
             sys.exit(1)
     
         if exists(packageLink):
@@ -864,7 +867,7 @@ class Link:
                 os.remove(packageLink)
             else:
                 print(red("Creating link %s, but '%s' exists and is not a link!!!\n"
-                     "INSTALLATION FAILED!!!" % (linkText, packageLink)))
+                          "INSTALLATION FAILED!!!" % (linkText, packageLink)))
                 sys.exit(1)
     
         os.symlink(packageFolder, packageLink)

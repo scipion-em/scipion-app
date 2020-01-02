@@ -43,14 +43,14 @@ SCIPION_NOTIFY = 'SCIPION_NOTIFY'
 SCIPION_CONFIG = 'SCIPION_CONFIG'
 SCIPION_LOCAL_CONFIG = 'SCIPION_LOCAL_CONFIG'
 
-from configparser import ConfigParser, Error  # Python 3
+from configparser import ConfigParser  # Python 3
 
 UPDATE_PARAM = '--update'
 COMPARE_PARAM = '--compare'
 
 
 def ansi(n):
-    "Return function that escapes text with ANSI color n."
+    """Return function that escapes text with ANSI color n."""
     return lambda txt: '\x1b[%dm%s\x1b[0m' % (n, txt)
 
 
@@ -97,7 +97,7 @@ def main():
             (os.environ['SCIPION_HOSTS'], 'hosts')]:
             if not exists(fpath) or options.overwrite:
                 createConf(fpath, join(templates_dir, tmplt + '.template'),
-                          remove=localSections, notify=options.notify)
+                           remove=localSections, notify=options.notify)
             else:
                 checkConf(fpath, join(templates_dir, tmplt + '.template'),
                           remove=localSections, update=options.update,
@@ -128,7 +128,7 @@ def main():
                            os.environ[SCIPION_CONFIG])))
 
             # Copy file demo.json.template, contained in templates dir, into an external location
-            demo_json_file = utils.getDemoTemplateBasename()
+            demo_json_file = getDemoTemplateBasename()
             demo_json_file_orig = join(templates_dir, demo_json_file)
             if not exists(demo_json_file_orig):
                 sys.stdout.write('Warning: file {} was not found\n'.format(demo_json_file_orig))
@@ -150,7 +150,7 @@ def checkNotify(config, notify=False):
         config.set(VARIABLES, SCIPION_NOTIFY, 'True')
         return
     notifyOn = config.get(VARIABLES, SCIPION_NOTIFY)
-    if notifyOn=='False':
+    if notifyOn == 'False':
 
         print("""--------------------------------------------------------------
 -----------------------------------------------------------------
@@ -175,8 +175,9 @@ information collected from you and we respect your privacy.
     input("Press <enter> to continue.")
     config.set('VARIABLES', 'SCIPION_NOTIFY', 'True')
 
+
 def createConf(fpath, ftemplate, remove=[], keep=[], notify=False):
-    "Create config file in fpath following the template in ftemplate"
+    """Create config file in fpath following the template in ftemplate"""
     # Remove from the template the sections in "remove", and if "keep"
     # is used only keep those sections.
 
@@ -220,7 +221,7 @@ def createConf(fpath, ftemplate, remove=[], keep=[], notify=False):
 
 
 def checkPaths(conf):
-    "Check that some paths in the config file actually make sense"
+    """Check that some paths in the config file actually make sense"""
 
     print("Checking paths in %s ..." % conf)
     cf = ConfigParser()
@@ -343,7 +344,7 @@ def checkConf(fpath, ftemplate, remove=[], keep=[], update=False, notify=False, 
 
         if PACKAGES in cf._sections:
             # Order the content of packages section alphabetically
-            print("Sorting packages section for %s." % (fpath))
+            print("Sorting packages section for %s." % fpath)
             cf._sections[PACKAGES] = collections.OrderedDict(
                 sorted(cf._sections[PACKAGES].items(), key=lambda t: t[0]))
 
@@ -388,7 +389,7 @@ def compareConfigVariable(section, variableName, valueInConfig, valueInTemplate)
 
 
 def guessJava():
-    "Guess the system's Java installation, return a dict with the Java keys"
+    """Guess the system's Java installation, return a dict with the Java keys"""
 
     options = {}
     candidates = []
@@ -432,7 +433,7 @@ def guessJava():
 
 
 def guessMPI():
-    "Guess the system's MPI installation, return a dict with MPI keys"
+    """Guess the system's MPI installation, return a dict with MPI keys"""
     # Returns MPI_LIBDIR, MPI_INCLUDE and MPI_BINDIR as a dictionary.
 
     options = {}

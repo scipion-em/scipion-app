@@ -33,7 +33,6 @@ Template may look like this, separator is "~" and within it you can define:
 Template string sits at the end of the file ready for a running streaming demo.
 """
 
-from __future__ import print_function
 import sys
 import os
 import re
@@ -44,6 +43,7 @@ import tempfile
 from datetime import datetime
 import traceback
 import collections
+import subprocess
 
 import pyworkflow as pw
 import pyworkflow.utils as pwutils
@@ -53,15 +53,14 @@ from pyworkflow.project import ProjectSettings
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
-
+from scipion.constants import MODE_PROJECT,  SCIPION_EP
 
 # Custom labels
-from scipion.constants import SCIPION_EP
 from scipion.utils import getExternalJsonTemplates
 
-START_BUTTON = "Start demo"
+START_BUTTON = "Start"
 PROJECT_TEMPLATE = os.environ.get("SCIPION_PROJECT_NAME",
-                            "demo_" + datetime.now().strftime("%y%m%d_%H%M%S"))
+                            "project_" + datetime.now().strftime("%y%m%d_%H%M%S"))
 
 FIELD_SEP = '~'
 VIEW_WIZARD = 'wizardview'
@@ -466,7 +465,7 @@ def getTemplate(root):
         raise Exception("No valid file found (*.json.template).\n"
                         "Please, add (at least one) at %s "
                         "or pass it/them as argument(s).\n"
-                        "\n -> Usage: scipion demo [PATH.json.template]\n"
+                        "\n -> Usage: scipion template [PATH.json.template]\n"
                         "\n see 'scipion help'\n" % templateFolder)
 
 if __name__ == "__main__":

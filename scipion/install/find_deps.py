@@ -82,7 +82,7 @@ def main():
 
 
 def libDeps(fpath):
-    "Return set of libraries that the file at fpath links to"
+    """Return set of libraries that the file at fpath links to"""
     libs = set()
     for line in check_output(['objdump', '-p', fpath]).splitlines():
         fields = line.split()
@@ -92,12 +92,12 @@ def libDeps(fpath):
 
     
 def isElf(fname):
-    "Is fname a file in elf format?"
+    """Is fname a file in elf format?"""
     return os.path.isfile(fname) and open(fname).read(4) == '\x7fELF'
 
 
 def searchPaths():
-    "Return the list of paths were the libraries are searched in the system"
+    """Return the list of paths were the libraries are searched in the system"""
     paths = []
 
     if 'LD_LIBRARY_PATH' in os.environ:
@@ -110,7 +110,6 @@ def searchPaths():
                     paths.append(line.strip())
     paths = [x for x in paths if 'i386' not in x]  # FIXME: something nicer
     return paths
-
 
 
 if __name__ == '__main__':

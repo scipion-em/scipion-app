@@ -2,6 +2,7 @@ import tkinter as Tkinter
 import tkinter.font as tkFont
 from tkinter import ttk
 
+
 class Font_wm(Tkinter.Toplevel):
     def __init__(self, Font=None):
 
@@ -54,8 +55,8 @@ class Font_wm(Tkinter.Toplevel):
 
         def applied():
             self.result = (
-            self.var.get(), self.var1.get(), self.var2.get(), self.var3.get(),
-            self.var4.get(), self.var5.get())
+                self.var.get(), self.var1.get(), self.var2.get(), self.var3.get(),
+                self.var4.get(), self.var5.get())
             self.mainfont['family'] = self.var.get()
             self.mainfont['size'] = self.var1.get()
             self.mainfont['weight'] = self.var2.get()
@@ -65,8 +66,8 @@ class Font_wm(Tkinter.Toplevel):
 
         def out():
             self.result = (
-            self.var.get(), self.var1.get(), self.var2.get(), self.var3.get(),
-            self.var4.get(), self.var5.get())
+                self.var.get(), self.var1.get(), self.var2.get(), self.var3.get(),
+                self.var4.get(), self.var5.get())
             self.mainfont['family'] = self.var.get()
             self.mainfont['size'] = self.var1.get()
             self.mainfont['weight'] = self.var2.get()
@@ -151,7 +152,6 @@ ABCDEabcde12345
 
         self.listbox.bind('<<ListboxSelect>>', checkface)
         self.size.bind('<<ListboxSelect>>', checksize)
-
 
 
 if __name__ == "__main__":

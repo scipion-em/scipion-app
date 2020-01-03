@@ -62,14 +62,14 @@ def main():
 
 
 def isElf(fname):
-    "Is fname a file in elf format?"
+    """Is fname a file in elf format?"""
     return os.path.isfile(fname) and open(fname).read(4) == '\x7fELF'
 
 
 def replace(fname,
             txt_from='REPLACE_ME_WITH_FUNNY_',
             txt_to='$ORIGIN:$ORIGIN/../lib'):
-    "Change txt_from to txt_to in binary file fname. Return 1 if changed."
+    """Change txt_from to txt_to in binary file fname. Return 1 if changed."""
 
     # First add write permission to the file if it does not have it.
     if os.stat(fname).st_mode & 0o200 == 0:  # mode has no write permission
@@ -89,7 +89,6 @@ def replace(fname,
         open(fname, 'wb').writelines(fout)  # overwrite fname
 
     return changed
-
 
 
 if __name__ == '__main__':

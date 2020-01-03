@@ -103,7 +103,6 @@ if n == 1:  # List all plugins
     for k, v in iteritems(plugins):
         print("-", k)
 
-
     print("Objects")
     pwutils.prettyDict(Domain.getObjects())
 

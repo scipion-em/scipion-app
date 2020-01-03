@@ -28,6 +28,7 @@ PIP_UNINSTALL_CMD = '{0} -m pip uninstall -y %s'.format(
 
 versions = list(OLD_VERSIONS) + [LAST_VERSION]
 
+
 class PluginInfo(object):
 
     def __init__(self, pipName="", name="", pluginSourceUrl="", remote=True,
@@ -59,7 +60,7 @@ class PluginInfo(object):
 
         self.setLocalPluginInfo()  # get local info if installed
 
-    ####################### Install funcs ############################
+    # ###################### Install funcs ############################
 
     def install(self):
         """Installs both pip module and default binaries of
@@ -116,8 +117,8 @@ class PluginInfo(object):
             return False
 
         if version == NULL_VERSION:
-                print("Plugin %s is not available for this Scipion %s yet" % (self.pipName, LAST_VERSION))
-                return False
+            print("Plugin %s is not available for this Scipion %s yet" % (self.pipName, LAST_VERSION))
+            return False
 
         if self.pluginSourceUrl:
             if os.path.exists(self.pluginSourceUrl):
@@ -182,10 +183,10 @@ class PluginInfo(object):
         import subprocess
         args = (PIP_UNINSTALL_CMD % self.pipName).split()
         subprocess.call(PIP_UNINSTALL_CMD % self.pipName, shell=True,
-                            stdout=sys.stdout,
-                            stderr=sys.stderr)
+                        stdout=sys.stdout,
+                        stderr=sys.stderr)
 
-    ####################### Remote data funcs ############################
+    # ###################### Remote data funcs ############################
 
     def getPipJsonData(self):
         """"Request json data from pypi, return json content"""
@@ -227,8 +228,8 @@ class PluginInfo(object):
             releases['latest'] = latestCompRelease
             if (latestCompRelease != NULL_VERSION and
                     releases[latestCompRelease]['comment_text'] == ''):
-              print("WARNING: %s's release %s did not specify a compatible "
-              "Scipion version" % (self.pipName, latestCompRelease))
+                print("WARNING: %s's release %s did not specify a compatible "
+                      "Scipion version" % (self.pipName, latestCompRelease))
         else:
             releases['latest'] = ''
         return releases
@@ -249,7 +250,7 @@ class PluginInfo(object):
         self.compatibleReleases = releases
         self.latestRelease = releases['latest']
 
-    ####################### Local data funcs ############################
+    # ###################### Local data funcs ############################
 
     def setLocalPluginInfo(self):
         """Sets value for the attributes that can be obtained locally if the
@@ -284,8 +285,8 @@ class PluginInfo(object):
                 # Case B: code local but not yet a pipmodule.
                 pass
 
-            if not self.remote:  # only do this if we don't already have
-                                 # it from remote
+            if not self.remote:
+                # only do this if we don't already have it from remote
                 self.homePage = metadata.get('Home-page', "")
                 self.summary = metadata.get('Summary', "")
                 self.author = metadata.get('Author', "")
@@ -333,7 +334,7 @@ class PluginInfo(object):
                 plugin.defineBinaries(env)
             except Exception as e:
                 print(
-                    redStr("Error retrieving plugin %s binaries: "% plugin.name), e )
+                    redStr("Error retrieving plugin %s binaries: " % plugin.name), e)
         binVersions = [target.getName() for target in env.getTargetList() if target.getName() not in defaultTargets]
         return binVersions
 

@@ -993,14 +993,18 @@ class PluginManagerWindow(gui.Window):
     def onVariables(self):
         if pluginDict is not None:
             msg = ""
-            pluginsVars = pluginDict.values()[0].getPluginClass().getVars()
+            pluginsVars = dict()
+            for plugin in pluginDict.values():
+                if plugin.isInstalled():
+                    pluginsVars.update (plugin.getPluginClass().getVars())
+
             sortedVars = sorted(pluginsVars)
             for var in sortedVars:
-                msg = msg + var + ': ' + pluginsVars[var] + '\n'
+                msg = msg +  '{} = {}\n'.format(var, pluginsVars[var])
             pwgui.showInfo("Plugin variables", msg, tk.Frame())
 
     def onHelp(self):
-        PluginHelp('Plugin Manager Glossary', self).show()
+        PluginHelp('Plugin manager glossary', self).show()
 
 
 class PluginHelp(gui.Window):
@@ -1075,7 +1079,7 @@ class PluginManager(PluginManagerWindow):
 
 
 def main():
-    PluginManager("Plugin Manager", None).show()
+    PluginManager("Plugin manager", None).show()
 
 
 if __name__ == '__main__':

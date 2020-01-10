@@ -39,3 +39,8 @@ DEVEL = 'devel'
 
 # Entry points
 SCIPION_EP = "scipion"
+
+# python file name: at install or scripts
+PLUGIN_MANAGER_PY = 'plugin_manager.py'
+PYTHON = 'python'
+KICKOFF = 'kickoff.py'

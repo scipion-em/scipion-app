@@ -68,9 +68,9 @@ VMD_HOME = %(EM_ROOT)s/vmd
 [VARIABLES]
 SCIPION_DOMAIN = pwem
 #editor
-SCIPION_NOTES_PROGRAM = 
-SCIPION_NOTES_ARGS =
-SCIPION_NOTES_FILE =  notes.txt
+#SCIPION_NOTES_PROGRAM =
+#SCIPION_NOTES_ARGS =
+#SCIPION_NOTES_FILE =  notes.txt
 #protocol usage statistics
 SCIPION_NOTIFY = False
 # Default viewer for volumes

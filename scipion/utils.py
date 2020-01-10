@@ -26,11 +26,13 @@
 # *
 # **************************************************************************
 import sys
+from importlib import util
 from os.path import join, dirname, exists, isdir
 from os import environ
 
-import pyworkflow as pw
-
+import pyworkflow
+# noinspection PyPackageRequirements
+import pyem
 
 def getScipionHome():
 
@@ -69,4 +71,25 @@ def getDemoTemplateBasename():
 
 
 def getExternalJsonTemplates():
-    return dirname(pw.Config.SCIPION_CONFIG)
+    return dirname(pyworkflow.Config.SCIPION_CONFIG)
+
+
+def getPyworkflowPath():
+    return dirname(pyworkflow.__file__)
+
+
+def getModuleFolder(moduleName):
+    """ Returns the path of a module without importing it"""
+
+    spec = util.find_spec(moduleName)
+    return dirname(spec.origin)
+
+
+def getPwemFolder():
+
+    return dirname(pyem.__file__)
+
+
+def getXmippGhostFolder():
+
+    return join(getPwemFolder(), "xmipp-ghost")

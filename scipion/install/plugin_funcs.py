@@ -343,8 +343,10 @@ class PluginInfo(object):
            itself (e.g. to import the _plugin object.)"""
         # top level file is a file included in all pip packages that contains
         # the name of the package's top level directory
-
-        return pkg_resources.get_distribution(self.pipName).get_metadata('top_level.txt').strip()
+        try:
+            return pkg_resources.get_distribution(self.pipName).get_metadata('top_level.txt').strip()
+        except Exception as e:
+            return None
 
     def printBinInfoStr(self):
         """Returns string with info of binaries installed to print in console

@@ -30,8 +30,6 @@
 """
 Main entry point to scipion. It launches the gui, tests, etc.
 """
-from importlib import util
-import site
 import sys
 import os
 from os.path import join, exists, dirname, expanduser
@@ -41,8 +39,9 @@ import subprocess
 import pyworkflow
 from configparser import ConfigParser, ParsingError  # Python 3
 from scipion.constants import *
+from scipion.constants import PLUGIN_MANAGER_PY, PYTHON, KICKOFF
 from scipion.utils import (getScipionHome, getInstallPath,
-                           getTemplatesPath, getScriptsPath)
+                           getTemplatesPath, getScriptsPath, getPyworkflowPath, getXmippGhostFolder)
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
@@ -139,39 +138,12 @@ def printVersion():
 #
 # Initialize variables from config file.
 #
-
 for confFile in [SCIPION_CONFIG, SCIPION_LOCAL_CONFIG,
                  SCIPION_PROTOCOLS, SCIPION_HOSTS]:
     if not exists(confFile) and (len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG):
         sys.exit('Missing file:  %s\nPlease run scipion in config mode to fix '
                  'your configuration:\n  "scipion config"  to fix your '
                  'configuration' % confFile)
-
-
-def getPyworkflowPath():
-    return dirname(pyworkflow.__file__)
-
-
-def getPythonPackagesFolder():
-
-    return site.getsitepackages()[0]
-
-
-def getModuleFolder(moduleName):
-    """ Returns the path of a module without importing it"""
-
-    spec = util.find_spec(moduleName)
-    return dirname(spec.origin)
-
-
-def getPwemFolder():
-
-    return getModuleFolder(SCIPION_DOMAIN)
-
-
-def getXmippGhostFolder():
-
-    return join(getPwemFolder(), "xmipp-ghost")
 
 # VARS will contain all the relevant environment variables, including
 # directories and packages.
@@ -181,7 +153,7 @@ VARS = {
     'SCIPION_HOME': SCIPION_HOME,
     'SCIPION_CWD': SCIPION_CWD,
     'SCIPION_VERSION': getVersion(),
-    'SCIPION_PYTHON': 'python',
+    'SCIPION_PYTHON': PYTHON,
     'SCIPION_CONFIG': SCIPION_CONFIG,
     'SCIPION_LOCAL_CONFIG': SCIPION_LOCAL_CONFIG,
     'SCIPION_PROTOCOLS': SCIPION_PROTOCOLS,
@@ -361,7 +333,7 @@ def main():
         runScript('%s %s' % (join(VARS['SCIPION_INSTALL'], 'install-plugin.py'), args))
 
     elif mode == MODE_PLUGINS:
-        runScript(join(VARS['SCIPION_INSTALL'], 'plugin_manager.py'))
+        runScript(join(VARS['SCIPION_INSTALL'], PLUGIN_MANAGER_PY))
 
     elif mode == MODE_CONFIG:
         runApp(join(SCIPION_SCRIPTS, 'config.py'), sys.argv[2:])
@@ -399,7 +371,7 @@ def main():
         runApp(join(SCIPION_SCRIPTS, 'tutorial.py'), sys.argv[2:])
 
     elif mode in MODE_DEMO:
-        runScript(join(SCIPION_SCRIPTS, 'kickoff.py')
+        runScript(join(SCIPION_SCRIPTS, KICKOFF)
                   + ' '.join(sys.argv[2:] if len(sys.argv) > 2 else ''))
 
     # Allow to run programs from different packages

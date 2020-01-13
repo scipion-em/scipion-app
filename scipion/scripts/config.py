@@ -34,7 +34,7 @@ import optparse
 import collections
 from shutil import copyfile
 
-from ..utils import (getExternalJsonTemplates, getTemplatesPath,
+from scipion.utils import (getExternalJsonTemplates, getTemplatesPath,
                      getDemoTemplateBasename)
 
 PACKAGES = 'PACKAGES'

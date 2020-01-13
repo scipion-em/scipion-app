@@ -40,7 +40,9 @@ setup(
     entry_points={
         'console_scripts': [
             '%s = scipion.__main__:main' % SCIPION_EP,
-        ]}
+        ],
+        'pyworkflow.guiplugin': 'scipion = scipion'
+    }
     # package_data={  # Optional
     # #    '': [''],
     # }

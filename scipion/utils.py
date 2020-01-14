@@ -32,7 +32,7 @@ from os import environ
 
 import pyworkflow
 # noinspection PyPackageRequirements
-import pyem
+import pwem
 
 def getScipionHome():
 
@@ -87,7 +87,7 @@ def getModuleFolder(moduleName):
 
 def getPwemFolder():
 
-    return dirname(pyem.__file__)
+    return dirname(pwem.__file__)
 
 
 def getXmippGhostFolder():

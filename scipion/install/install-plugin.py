@@ -226,7 +226,7 @@ elif mode == MODE_INSTALL_PLUGIN:
                 if plugin:
                     installed = plugin.installPipModule(version=pluginVersion)
                     if installed and not parsedArgs.noBin:
-                        plugin.installBin(args=['-j', numberProcessor])
+                        plugin.installBin(args={'-j': numberProcessor})
                 else:
                     print("WARNING: Plugin %s does not exist." % pluginName)
                     exitWithErrors = True

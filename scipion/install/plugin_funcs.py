@@ -477,7 +477,6 @@ class PluginRepository(object):
 
         for pluginName in targetPlugins:
             pluginsJson[pluginName].update(remote=getPipData)
-            pluginsJson[pluginName].update(pluginSourceUrl=pluginsJson[pluginName]['pluginSourceUrl'])
             self.plugins[pluginName] = PluginInfo(**pluginsJson[pluginName])
 
         return self.plugins

@@ -41,7 +41,7 @@ from configparser import ConfigParser, ParsingError  # Python 3
 from scipion.constants import *
 from scipion.constants import PLUGIN_MANAGER_PY, PYTHON, KICKOFF
 from scipion.utils import (getScipionHome, getInstallPath,
-                           getTemplatesPath, getScriptsPath, getPyworkflowPath, getXmippGhostFolder)
+                           getTemplatesPath, getScriptsPath, getPyworkflowPath)
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
@@ -220,7 +220,8 @@ try:
     PYTHONPATH_LIST = [SCIPION_HOME,
                        XMIPP_BINDINGS,
                        os.environ.get('PYTHONPATH', '') if not ignorePythonpath else "",
-                       getXmippGhostFolder()]  # To be able to open scipion without xmipp
+                       # getXmippGhostFolder()
+                       ]  # To be able to open scipion without xmipp
 
     if 'SCIPION_NOGUI' in os.environ:
         PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))

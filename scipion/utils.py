@@ -31,8 +31,6 @@ from os.path import join, dirname, exists, isdir
 from os import environ
 
 import pyworkflow
-# noinspection PyPackageRequirements
-import pwem
 
 def getScipionHome():
 
@@ -84,12 +82,3 @@ def getModuleFolder(moduleName):
     spec = util.find_spec(moduleName)
     return dirname(spec.origin)
 
-
-def getPwemFolder():
-
-    return dirname(pwem.__file__)
-
-
-def getXmippGhostFolder():
-
-    return join(getPwemFolder(), "xmipp-ghost")

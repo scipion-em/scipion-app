@@ -14,6 +14,10 @@ from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
 from importlib import reload
 
 NULL_VERSION = "0.0.0"
+# This constant is used in order to install all plugins taking into account a
+# json file
+DEVEL_VERSION = "999.9.9"
+
 REPOSITORY_URL = Config.SCIPION_PLUGIN_JSON
 
 if REPOSITORY_URL is None:
@@ -57,6 +61,8 @@ class PluginInfo(object):
         self._plugin = plugin
         if self.remote:
             self.setRemotePluginInfo()
+        else:
+            self.setFakedRemotePluginInfo()
 
         self.setLocalPluginInfo()  # get local info if installed
 
@@ -250,6 +256,15 @@ class PluginInfo(object):
         self.compatibleReleases = releases
         self.latestRelease = releases['latest']
 
+    def setFakedRemotePluginInfo(self):
+        """Sets value for the attributes that need to be obtained from json file"""
+        import time
+        self.homePage = self.pluginSourceUrl
+        self.summary = self.summary
+        self.compatibleReleases = {DEVEL_VERSION: {'upload_time': '   devel_mode'}}
+        self.latestRelease = DEVEL_VERSION
+        self.author = ' Developer mode'
+
     # ###################### Local data funcs ############################
 
     def setLocalPluginInfo(self):
@@ -430,6 +445,7 @@ class PluginRepository(object):
         if os.path.isfile(self.repoUrl):
             with open(self.repoUrl) as f:
                 pluginsJson = json.load(f)
+            getPipData = False
         else:
             try:
                 r = requests.get(self.repoUrl)
@@ -461,6 +477,7 @@ class PluginRepository(object):
 
         for pluginName in targetPlugins:
             pluginsJson[pluginName].update(remote=getPipData)
+            pluginsJson[pluginName].update(pluginSourceUrl=pluginsJson[pluginName]['pluginSourceUrl'])
             self.plugins[pluginName] = PluginInfo(**pluginsJson[pluginName])
 
         return self.plugins

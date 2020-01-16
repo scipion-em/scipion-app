@@ -43,7 +43,6 @@ import tempfile
 from datetime import datetime
 import traceback
 import collections
-import subprocess
 
 import pyworkflow as pw
 import pyworkflow.utils as pwutils
@@ -270,16 +269,14 @@ class BoxWizardView(tk.Frame):
 
         # Create the project
         createProjectScript = os.path.join(scriptsPath, 'create.py')
-        pwutils.runCommand(scipion + " python " + createProjectScript + " " +
-                           projectName + " " + workflow)
+        os.system("python -m %s  python %s %s %s" % (scipion, createProjectScript, projectName, workflow))
 
         # Schedule the project
         scheduleProjectScript = os.path.join(scriptsPath, 'schedule.py')
-        pwutils.runCommand(scipion + " python " + scheduleProjectScript + " " +
-                           projectName)
+        os.system("python -m %s python %s %s" % (scipion, scheduleProjectScript, projectName))
 
         # Launch scipion
-        pwutils.runCommand(scipion + " project " + projectName)
+        os.system("python -m %s python project %s" % (scipion, projectName))
 
     def _createTemplate(self):
 

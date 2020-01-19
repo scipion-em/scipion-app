@@ -181,6 +181,8 @@ class PluginInfo(object):
                 realPath = os.path.realpath(f)  # in case its a link
                 cleanPath(f, realPath)
                 print('Binary %s has been uninstalled successfully ' % binVersion)
+            else:
+                print('The binary %s does not exist ' % binVersion)
         return
 
     def uninstallPip(self):

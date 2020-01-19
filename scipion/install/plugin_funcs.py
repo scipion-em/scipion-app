@@ -351,7 +351,7 @@ class PluginInfo(object):
                 plugin.defineBinaries(env)
             except Exception as e:
                 print(
-                    redStr("Error retrieving plugin %s binaries: " % plugin.name), e)
+                    redStr("Error retrieving plugin %s binaries: " % self.name), e)
         binVersions = [target.getName() for target in env.getTargetList() if target.getName() not in defaultTargets]
         return binVersions
 

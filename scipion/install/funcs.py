@@ -33,6 +33,8 @@ from os.path import join, exists, islink, abspath
 from subprocess import STDOUT, call
 
 from pyworkflow import Config
+import pwem
+
 
 try:
     unicode = unicode
@@ -307,8 +309,7 @@ class Environment:
 
     @staticmethod
     def getEmFolder():
-        defaultValue = '%s/em' % Environment.getSoftware()
-        return os.environ.get('EM_ROOT', defaultValue)
+        return pwem.Config.EM_ROOT
 
     @staticmethod
     def getEm(name):

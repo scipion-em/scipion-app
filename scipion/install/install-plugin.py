@@ -207,7 +207,7 @@ elif mode == MODE_INSTALL_PLUGIN:
                 exitWithErrors = True
             else:
                 plugin = PluginInfo(pipName=pluginName, pluginSourceUrl=pluginSrc, remote=False)
-                processors = parsedArgs.j
+                numberProcessor = parsedArgs.j
                 installed = plugin.installPipModule()
                 if installed and not parsedArgs.noBin:
                     plugin.installBin({'args': ['-j', numberProcessor]})

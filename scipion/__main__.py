@@ -37,6 +37,7 @@ from os.path import join, exists, dirname, expanduser
 
 import subprocess
 import pyworkflow
+from pwem import Config as emConfig
 from configparser import ConfigParser, ParsingError  # Python 3
 from scipion.constants import *
 from scipion.constants import PLUGIN_MANAGER_PY, PYTHON, KICKOFF
@@ -61,9 +62,6 @@ SCIPION_CWD = os.path.abspath(os.getcwd())
 SCIPION_SCRIPTS = getScriptsPath()
 # Scipion path to install
 SCIPION_INSTALL = getInstallPath()
-#
-# If we don't have a local user installation, create it.
-#
 
 # Default values for configuration files.
 SCIPION_CONFIG = join(SCIPION_HOME, 'config', 'scipion.conf')
@@ -88,16 +86,6 @@ SCIPION_PROTOCOLS = join(dirname(SCIPION_CONFIG), 'protocols.conf')
 # This is useful for having the same central installation that
 # could be used from different environments (cluster vs workstations)
 SCIPION_HOSTS = join(dirname(SCIPION_CONFIG), 'hosts.conf')
-
-
-# Check for old configuration files and tell the user to update.
-if SCIPION_LOCAL_CONFIG != SCIPION_CONFIG and exists(SCIPION_LOCAL_CONFIG):
-    cf = ConfigParser()
-    cf.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
-    try:
-        cf.read(SCIPION_LOCAL_CONFIG)
-    except ParsingError:
-        sys.exit("%s\nPlease fix the configuration file." % sys.exc_info()[1])
 
 #
 # Check the version if in devel mode (i.e no release date yet)
@@ -133,17 +121,20 @@ def getVersion(long=True):
 def printVersion():
     """ Print Scipion version """
     # Print the version and some more info
-    sys.stdout.write('\nScipion %s\n\n' % getVersion())
+    print('\nScipion %s\n\n' % getVersion())
 
 #
-# Initialize variables from config file.
+# Check config files exists.
 #
-for confFile in [SCIPION_CONFIG, SCIPION_LOCAL_CONFIG,
+for confFile in [SCIPION_CONFIG,
                  SCIPION_PROTOCOLS, SCIPION_HOSTS]:
     if not exists(confFile) and (len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG):
         sys.exit('Missing file:  %s\nPlease run scipion in config mode to fix '
                  'your configuration:\n  "scipion config"  to fix your '
                  'configuration' % confFile)
+# Make local config equal to global in case it is missing
+if not exists(SCIPION_LOCAL_CONFIG):
+    SCIPION_LOCAL_CONFIG = SCIPION_CONFIG
 
 # VARS will contain all the relevant environment variables, including
 # directories and packages.
@@ -169,7 +160,12 @@ VARS = {
 try:
     config = ConfigParser()
     config.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
-    config.read([SCIPION_CONFIG, SCIPION_LOCAL_CONFIG])
+    config.read(SCIPION_CONFIG)
+
+    # Load the local config
+    if SCIPION_LOCAL_CONFIG != SCIPION_CONFIG and exists(SCIPION_LOCAL_CONFIG):
+        config.read(SCIPION_LOCAL_CONFIG)
+
 
     def getPaths(section):
         return dict([(key, join(SCIPION_HOME,
@@ -183,13 +179,7 @@ try:
     DIRS_GLOBAL = getPaths('DIRS_GLOBAL')
     DIRS_LOCAL = getPaths('DIRS_LOCAL')
     PACKAGES = getPaths('PACKAGES')
-    if config.has_section('VARIABLES'):
-        VARIABLES = getValues('VARIABLES')
-    else:  # For now, allow old scipion.conf without the VARIABLES section
-        sys.stdout.write("Warning: Missing section 'VARIABLES' in the "
-                         "configuration file ~/.config/scipion/scipion.conf\n")
-        VARIABLES = {}
-
+    VARIABLES = getValues('VARIABLES')
     REMOTE = dict(config.items('REMOTE'))
     BUILD = dict(config.items('BUILD'))
 
@@ -198,27 +188,27 @@ try:
             sys.stdout.write('Creating directory %s ...\n' % d)
             os.makedirs(d)
 
-    SCIPION_SOFTWARE = DIRS_GLOBAL['SCIPION_SOFTWARE']
-    XMIPP_LIB = join(PACKAGES['XMIPP_HOME'], 'lib')
-    XMIPP_BINDINGS = join(PACKAGES['XMIPP_HOME'], 'bindings', 'python')
+    SCIPION_SOFTWARE = DIRS_GLOBAL.get('SCIPION_SOFTWARE', pyworkflow.Config.SCIPION_SOFTWARE)
+    XMIPP_HOME = PACKAGES.get('XMIPP_HOME', emConfig.XMIPP_HOME)
+    XMIPP_LIB = join(XMIPP_HOME, 'lib')
+    XMIPP_BINDINGS = join(XMIPP_HOME, 'bindings', 'python')
 
     PATH = os.pathsep.join(
         [dirname(sys.executable),
-         BUILD['JAVA_BINDIR'],
-         BUILD['MPI_BINDIR'],
-         BUILD['CUDA_BIN'],
+         BUILD.get('JAVA_BINDIR',''),
+         BUILD.get('MPI_BINDIR',''),
+         BUILD.get('CUDA_BIN',''),
          os.environ.get('PATH', '')]
     )
     LD_LIBRARY_PATH = os.pathsep.join(
-        [join(SCIPION_SOFTWARE, 'lib'),
-         BUILD['MPI_LIBDIR'],
-         BUILD['CUDA_LIB'],
+        [
+         BUILD.get('MPI_LIBDIR',''),
+         BUILD.get('CUDA_LIB',''),
          XMIPP_LIB,
          os.environ.get('LD_LIBRARY_PATH', '')]
     )
     ignorePythonpath = os.environ.get('SCIPION_IGNORE_PYTHONPATH', False)
-    PYTHONPATH_LIST = [SCIPION_HOME,
-                       XMIPP_BINDINGS,
+    PYTHONPATH_LIST = [XMIPP_BINDINGS,
                        os.environ.get('PYTHONPATH', '') if not ignorePythonpath else "",
                        # getXmippGhostFolder()
                        ]  # To be able to open scipion without xmipp
@@ -266,7 +256,7 @@ def runCmd(cmd, args=''):
     cmd = '%s %s' % (cmd, args)
 
     os.environ.update(VARS)
-    sys.stdout.write(">>>>> %s\n" % cmd)
+    # sys.stdout.write(">>>>> %s\n" % cmd)
     result = os.system(cmd)
     if not -256 < result < 256:
         result = 1  # because if not, 256 is confused with 0 !

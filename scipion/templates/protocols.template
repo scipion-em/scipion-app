@@ -64,7 +64,7 @@ Protocols SPA = [
 			]}
 	]},
 	{"tag": "section", "text": "Exports", "openItem": "False", "children": [
-	  {"tag": "protocol", "value": "ProtExportEMDB", "text": "export to EMDB"}]
+	  {"tag": "protocol", "value": "ProtExportDataBases", "text": "export to DB"}]
 	}]
 Random Conical Tilt = [
         {"tag": "protocol", "value": "ProtImportMicrographsTiltPairs", "text": "Import micrograph pairs", "icon": "bookmark.gif"},
@@ -90,6 +90,6 @@ Model building = [
 	{"tag": "section", "text": "Others", "icon": "bookmark.gif", "children": [
 	]},
 	{"tag": "section", "text": "Exports", "icon": "bookmark.gif", "children": [
-	{"tag": "protocol", "value": "ProtExportEMDB", "text": "export to EMDB"}
+	{"tag": "protocol", "value": "ProtExportDataBases", "text": "export to DB"}
 	]}
 	]

@@ -181,6 +181,8 @@ class PluginInfo(object):
                 realPath = os.path.realpath(f)  # in case its a link
                 cleanPath(f, realPath)
                 print('Binary %s has been uninstalled successfully ' % binVersion)
+            else:
+                print('The binary %s does not exist ' % binVersion)
         return
 
     def uninstallPip(self):
@@ -349,7 +351,7 @@ class PluginInfo(object):
                 plugin.defineBinaries(env)
             except Exception as e:
                 print(
-                    redStr("Error retrieving plugin %s binaries: " % plugin.name), e)
+                    redStr("Error retrieving plugin %s binaries: " % self.name), e)
         binVersions = [target.getName() for target in env.getTargetList() if target.getName() not in defaultTargets]
         return binVersions
 
@@ -477,7 +479,6 @@ class PluginRepository(object):
 
         for pluginName in targetPlugins:
             pluginsJson[pluginName].update(remote=getPipData)
-            pluginsJson[pluginName].update(pluginSourceUrl=pluginsJson[pluginName]['pluginSourceUrl'])
             self.plugins[pluginName] = PluginInfo(**pluginsJson[pluginName])
 
         return self.plugins

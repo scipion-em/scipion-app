@@ -33,7 +33,8 @@ from os.path import join, exists, islink, abspath
 from subprocess import STDOUT, call
 
 from pyworkflow import Config
-from pwem import Config as emConfig
+import pwem
+
 
 try:
     unicode = unicode
@@ -309,8 +310,7 @@ class Environment:
 
     @staticmethod
     def getEmFolder():
-
-        return emConfig.EM_ROOT
+        return pwem.Config.EM_ROOT
 
     @staticmethod
     def getEm(name):
@@ -801,8 +801,8 @@ class Environment:
         cudaBin = os.environ.get(packUpper + '_CUDA_BIN')
     
         if cudaLib is None:
-            cudaLib = emConfig.CUDA_LIB
-            cudaBin = emConfig.CUDA_BIN
+            cudaLib = pwem.Config.CUDA_LIB
+            cudaBin = pwem.Config.CUDA_BIN
 
         environ = os.environ.copy()
 

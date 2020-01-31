@@ -208,7 +208,7 @@ class Operation:
                 if plugin is not None:
                     installed = plugin.installPipModule()
                     if installed:
-                        plugin.installBin(args=['-j', processors])
+                        plugin.installBin({'args':['-j', processors]})
             elif self.objStatus == PluginStates.UNINSTALL:
                 plugin = PluginInfo(self.objName, self.objName, remote=False)
                 if plugin is not None:
@@ -218,8 +218,7 @@ class Operation:
             plugin = PluginInfo(self.objParent, self.objParent, remote=False)
             if self.objStatus == PluginStates.INSTALL:
                 if plugin is not None:
-                    plugin.installBin(args=[self.getObjName(), '-j',
-                                            processors])
+                    plugin.installBin({'args': [self.getObjName(), '-j', processors]})
             else:
                 plugin.uninstallBins([self.objName])
 

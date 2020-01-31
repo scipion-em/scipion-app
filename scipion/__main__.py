@@ -36,81 +36,17 @@ from os.path import join, exists, dirname, expanduser
 
 
 import subprocess
-import pyworkflow
-from pwem import Config as emConfig
 from configparser import ConfigParser, ParsingError  # Python 3
 from scipion.constants import *
-from scipion.constants import PLUGIN_MANAGER_PY, PYTHON, KICKOFF
 from scipion.utils import (getScipionHome, getInstallPath,
                            getTemplatesPath, getScriptsPath, getPyworkflowPath)
+from .scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
 __releasedate__ = ''
 
-SCIPION_DOMAIN = "pwem"
-
-
-SCIPION_HOME = getScipionHome()
-
-# Some pw_*.py scripts under 'apps' folder change the current working
-# directory to the SCIPION_HOME, so let's keep the current working
-# directory in case we need it
-SCIPION_CWD = os.path.abspath(os.getcwd())
-
-# Scipion path to its own scripts
-SCIPION_SCRIPTS = getScriptsPath()
-# Scipion path to install
-SCIPION_INSTALL = getInstallPath()
-
-# Default values for configuration files.
-SCIPION_CONFIG = join(SCIPION_HOME, 'config', 'scipion.conf')
-SCIPION_LOCAL_CONFIG = expanduser(os.environ.get('SCIPION_LOCAL_CONFIG',
-                                                 '~/.config/scipion/scipion.conf'))
-
-# Allow the user to override them (and remove them from sys.argv).
-while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
-    arg = sys.argv.pop(1)
-    value = sys.argv.pop(1)
-    if arg == '--config':
-        # If we pass the arguments "--config some_path/scipion.conf",
-        # only the config files in that path will be read.
-        SCIPION_CONFIG = os.path.abspath(os.path.expanduser(value))
-        SCIPION_LOCAL_CONFIG = SCIPION_CONFIG  # global and local are the same!
-    else:
-        sys.exit('Unknown argument: %s' % arg)
-
-SCIPION_PROTOCOLS = join(dirname(SCIPION_CONFIG), 'protocols.conf')
-
-# Allow the name of the host configuration to be changed.
-# This is useful for having the same central installation that
-# could be used from different environments (cluster vs workstations)
-SCIPION_HOSTS = join(dirname(SCIPION_CONFIG), 'hosts.conf')
-
-#
-# Check the version if in devel mode (i.e no release date yet)
-#
-
-if not __releasedate__:
-    # Find out if the is a .git directory
-    if exists(join(SCIPION_HOME, '.git')):
-        def call(cmd):
-            return subprocess.Popen(cmd, shell=True, cwd=SCIPION_HOME).wait()
-        if call('which git > /dev/null') == 0:  # Means git command is found
-
-            gitBranch = str(subprocess.check_output("git branch | grep \\* ", cwd=SCIPION_HOME, shell=True))
-            gitBranch = gitBranch.split("*")[1].strip()
-            commitLine = str(subprocess.check_output(['git', 'log', '-1',
-                                                      '--pretty=format:%h %ci'],
-                                                     cwd=SCIPION_HOME))
-            gitCommit, __releasedate__ = commitLine.split()[:2]
-            if gitCommit.startswith("b'"):
-                gitCommit = gitCommit[2:]
-            __nickname__ += ' (%s %s)' % (gitBranch, gitCommit)
-
-    # If in a future we release  a nightly build, we could add the .devel_version
-
-
+# *********************  Helper functions *****************************
 def getVersion(long=True):
     if long:
         return "%s (%s) %s" % (__version__, __releasedate__, __nickname__)
@@ -123,130 +59,153 @@ def printVersion():
     # Print the version and some more info
     print('\nScipion %s\n\n' % getVersion())
 
-#
-# Check config files exists.
-#
-for confFile in [SCIPION_CONFIG,
-                 SCIPION_PROTOCOLS, SCIPION_HOSTS]:
-    if not exists(confFile) and (len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG):
-        sys.exit('Missing file:  %s\nPlease run scipion in config mode to fix '
-                 'your configuration:\n  "scipion config"  to fix your '
-                 'configuration' % confFile)
-# Make local config equal to global in case it is missing
-if not exists(SCIPION_LOCAL_CONFIG):
-    SCIPION_LOCAL_CONFIG = SCIPION_CONFIG
+def config2Dict(configFile, varDict):
+    """ Loads a config file if exists and populates a dictionary overwriting the keys """
 
-# VARS will contain all the relevant environment variables, including
-# directories and packages.
-VARS = {
-    'PW_APPS': join(getPyworkflowPath(), 'apps'),
-    'SCIPION_INSTALL': SCIPION_INSTALL,
-    'SCIPION_HOME': SCIPION_HOME,
-    'SCIPION_CWD': SCIPION_CWD,
-    'SCIPION_VERSION': getVersion(),
-    'SCIPION_PYTHON': PYTHON,
-    'SCIPION_CONFIG': SCIPION_CONFIG,
-    'SCIPION_LOCAL_CONFIG': SCIPION_LOCAL_CONFIG,
-    'SCIPION_PROTOCOLS': SCIPION_PROTOCOLS,
-    'SCIPION_HOSTS': SCIPION_HOSTS,
-    'SCIPION_SCRIPTS': SCIPION_SCRIPTS,
-    'SCIPION_TEMPLATES': getTemplatesPath(),
-    'SCIPION_DOMAIN': SCIPION_DOMAIN,
-    pyworkflow.PW_ALT_TESTS_CMD:
-        os.environ.get(pyworkflow.PW_ALT_TESTS_CMD,
-                       '%s %s' % (SCIPION_EP, MODE_TESTS))
-}
+    # If config file exists
+    if exists(configFile):
 
+        #read the file
+        config = ConfigParser()
+        config.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
+        config.read(configFile)
+
+        # For each section
+        for sectionName, section in config.items():
+            for variable, value in section.items():
+                varDict[variable] = value
+
+    return varDict
+
+def envOn(varName):
+    value = os.environ.get(varName, '').lower()
+    return value in ['1', 'true', 'on', 'yes']
+
+
+# *********************************************************
+
+# Get Scipion home
+scipionHome = getScipionHome()
+
+
+# ***************** CONFIGURATION  FILES RESOLUTION ************************
+# Default values for configuration files.
+scipionConfig = join(scipionHome, 'config', 'scipion.conf')
+scipionLocalConfig = expanduser(os.environ.get('SCIPION_LOCAL_CONFIG',
+                                             '~/.config/scipion/scipion.conf'))
+
+# Allow the user to override them (and remove them from sys.argv).
+while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
+    arg = sys.argv.pop(1)
+    value = sys.argv.pop(1)
+    if arg == '--config':
+        # If we pass the arguments "--config some_path/scipion.conf",
+        # only the config files in that path will be read.
+        scipionLocalConfig = scipionConfig = os.path.abspath(os.path.expanduser(value))
+
+        # Verify existence
+        if not exists(scipionConfig):
+            # Here we can react differently,instead of exiting, may be continuing warning about
+            # the missing config file?
+            sys.exit('Config file missing: %s' % scipionConfig)
+
+    else:
+        sys.exit('Unknown argument: %s' % arg)
+
+# Protocols.conf and hosts.conf, fallback to the template.
+protocols = getConfigPathFromConfigFile(scipionConfig, PROTOCOLS)
+if not exists(protocols):
+    protocols = join(getTemplatesPath(), "protocols.template")
+
+hosts = getConfigPathFromConfigFile(scipionConfig, HOSTS)
+if not exists(hosts):
+    hosts = join(getTemplatesPath(), "hosts.template")
+
+
+# *********************** STORE VARIABLES ********************
+class Vars:
+    """ Class to hold all the variables that are initialized here"""
+    SCIPION_DOMAIN = "pwem"
+
+    # Installation paths
+    SCIPION_HOME = scipionHome
+    # TODO: This, hopefully is a temporary way to load Xmipp binding and it's libraries
+    SCIPION_LIBS = join(SCIPION_HOME, "lib")
+    os.makedirs(SCIPION_LIBS, exist_ok=True)
+    SCIPION_BINDINGS = join(SCIPION_HOME, "bindings")
+    os.makedirs(SCIPION_BINDINGS, exist_ok=True)
+    # Add bindings to sys.path
+    sys.path.append(SCIPION_BINDINGS)
+    # Some pw_*.py scripts under 'apps' folder change the current working
+    # directory to the SCIPION_HOME, so let's keep the current working
+    # directory in case we need it
+    SCIPION_CWD = os.path.abspath(os.getcwd())
+
+    # Scipion path to its own scripts
+    SCIPION_SCRIPTS = getScriptsPath()
+    # Scipion path to install
+    SCIPION_INSTALL = getInstallPath()
+
+    # Config files
+    SCIPION_CONFIG = scipionConfig
+    SCIPION_LOCAL_CONFIG = scipionLocalConfig
+    SCIPION_PROTOCOLS = protocols
+    SCIPION_HOSTS = hosts
+
+    # Paths to apps or scripts
+    PW_APPS = join(getPyworkflowPath(), 'apps')
+    SCIPION_TEMPLATES = getTemplatesPath()
+
+    SCIPION_VERSION = getVersion()
+    SCIPION_PYTHON = PYTHON
+    PW_ALT_TESTS_CMD = os.environ.get("PW_ALT_TESTS_CMD", '%s %s' % (SCIPION_EP, MODE_TESTS))
+
+
+# *********************** READ CONFIG FILES ***********************
 try:
-    config = ConfigParser()
-    config.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
-    config.read(SCIPION_CONFIG)
+    VARS = dict()
+
+    # Read main config file
+    config2Dict(Vars.SCIPION_CONFIG, VARS)
 
     # Load the local config
-    if SCIPION_LOCAL_CONFIG != SCIPION_CONFIG and exists(SCIPION_LOCAL_CONFIG):
-        config.read(SCIPION_LOCAL_CONFIG)
+    if Vars.SCIPION_LOCAL_CONFIG != Vars.SCIPION_CONFIG:
+        config2Dict(Vars.SCIPION_LOCAL_CONFIG, VARS)
 
-
-    def getPaths(section):
-        return dict([(key, join(SCIPION_HOME,
-                                os.path.expanduser(os.path.expandvars(path))))
-                     for key, path in config.items(section)])  # works in 2.4
-
-    def getValues(section):
-        return dict([(key, value)
-                     for key, value in config.items(section)])  # works in 2.4
-
-    DIRS_GLOBAL = getPaths('DIRS_GLOBAL')
-    DIRS_LOCAL = getPaths('DIRS_LOCAL')
-    PACKAGES = getPaths('PACKAGES')
-    VARIABLES = getValues('VARIABLES')
-    REMOTE = dict(config.items('REMOTE'))
-    BUILD = dict(config.items('BUILD'))
-
-    for d in DIRS_LOCAL.values():
-        if not exists(d):
-            sys.stdout.write('Creating directory %s ...\n' % d)
-            os.makedirs(d)
-
-    SCIPION_SOFTWARE = DIRS_GLOBAL.get('SCIPION_SOFTWARE', pyworkflow.Config.SCIPION_SOFTWARE)
-    XMIPP_HOME = PACKAGES.get('XMIPP_HOME', emConfig.XMIPP_HOME)
-    XMIPP_LIB = join(XMIPP_HOME, 'lib')
-    XMIPP_BINDINGS = join(XMIPP_HOME, 'bindings', 'python')
-
-    PATH = os.pathsep.join(
-        [dirname(sys.executable),
-         BUILD.get('JAVA_BINDIR',''),
-         BUILD.get('MPI_BINDIR',''),
-         BUILD.get('CUDA_BIN',''),
-         os.environ.get('PATH', '')]
-    )
-    LD_LIBRARY_PATH = os.pathsep.join(
-        [
-         BUILD.get('MPI_LIBDIR',''),
-         BUILD.get('CUDA_LIB',''),
-         XMIPP_LIB,
-         os.environ.get('LD_LIBRARY_PATH', '')]
-    )
-    ignorePythonpath = os.environ.get('SCIPION_IGNORE_PYTHONPATH', False)
-    PYTHONPATH_LIST = [XMIPP_BINDINGS,
-                       os.environ.get('PYTHONPATH', '') if not ignorePythonpath else "",
-                       # getXmippGhostFolder()
-                       ]  # To be able to open scipion without xmipp
+    # Prepare PYTHON PATH
+    ignorePythonPath = os.environ.get('SCIPION_IGNORE_PYTHONPATH', False)
+    PYTHONPATH_LIST = [
+                       os.environ.get('PYTHONPATH', '') if not ignorePythonPath else "",
+                       Vars.SCIPION_BINDINGS,
+                       ]
 
     if 'SCIPION_NOGUI' in os.environ:
         PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))
 
     PYTHONPATH = os.pathsep.join(PYTHONPATH_LIST)
 
-    VARS.update({
-        'PATH': PATH,
-        'PYTHONPATH': PYTHONPATH,
-        'LD_LIBRARY_PATH': LD_LIBRARY_PATH})
+    # Load VARS dictionary, all items here will go to the environment
+    VARS['PYTHONPATH'] = PYTHONPATH
+    # VARS['LD_LIBRARY_PATH'] = ";".join([Vars.SCIPION_LIBS, os.environ.get('LD_LIBRARY_PATH', '')])
+    VARS['SCIPION_DOMAIN'] = Vars.SCIPION_DOMAIN
+    VARS['SCIPION_CONFIG'] = Vars.SCIPION_CONFIG
+    VARS['SCIPION_LOCAL_CONFIG'] = Vars.SCIPION_LOCAL_CONFIG
+    VARS['SCIPION_PROTOCOLS'] = Vars.SCIPION_PROTOCOLS
+    VARS['SCIPION_HOSTS'] = Vars.SCIPION_HOSTS
+    VARS['SCIPION_VERSION'] = Vars.SCIPION_VERSION
 
-    VARS.update(DIRS_GLOBAL)
-    VARS.update(DIRS_LOCAL)
-    VARS.update(PACKAGES)
-    VARS.update(REMOTE)
-    VARS.update(BUILD)
-    VARS.update(VARIABLES)
+
 except Exception as e:
     if len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG:
-        # This way of catching exceptions works with Python 2 & 3
-        sys.stderr.write('Error at main: %s\n' % e)
-        sys.stdout.write('Please check the configuration file %s and '
-                         'try again.\n' % SCIPION_CONFIG)
+        print('Error reading config: %s\n' % e)
+        print('Please check the configuration file %s and '
+                         'try again.\n' % Vars.SCIPION_CONFIG)
         sys.exit(1)
-
 
 #
 # Auxiliary functions to run commands in our environment, one of our
 # scripts, or one of our "apps"
 #
-
-def envOn(varName):
-    value = os.environ.get(varName, '').lower()
-    return value in ['1', 'true', 'on', 'yes']
-
 
 def runCmd(cmd, args=''):
     """ Runs ANY command with its arguments"""
@@ -267,19 +226,19 @@ def runCmd(cmd, args=''):
 def runScript(scriptCmd, args='', chdir=True):
     """"Runs a PYTHON script appending the profiling prefix if ON"""
     if chdir:
-        os.chdir(SCIPION_HOME)
+        os.chdir(Vars.SCIPION_HOME)
 
     if envOn('SCIPION_PROFILE'):
         profileStr = '-m cProfile -o output.profile'
     else:
         profileStr = ''
-    cmd = '%s %s %s' % (VARS['SCIPION_PYTHON'], profileStr, scriptCmd)
+    cmd = '%s %s %s' % (Vars.SCIPION_PYTHON, profileStr, scriptCmd)
     runCmd(cmd, args)
 
 
 def runApp(app, args='', chdir=True):
     """Runs an app provided by pyworkflow"""
-    runScript(join(VARS['PW_APPS'], app), args=args, chdir=chdir)
+    runScript(join(Vars.PW_APPS, app), args=args, chdir=chdir)
 
 
 def main():
@@ -291,16 +250,24 @@ def main():
 
     # Check mode
     if mode == MODE_MANAGER:
-        runApp('pw_manager.py')
+        os.environ.update(VARS)
+        from pyworkflow.gui.project import ProjectManagerWindow
+        ProjectManagerWindow().show()
 
     elif mode == MODE_LAST:
-        runApp('pw_project.py', args='last')
+        os.environ.update(VARS)
+        from pyworkflow.apps.pw_project import openProject
+        openProject('last')
 
     elif mode == MODE_HERE:
-        runApp('pw_project.py', args='here')
+        os.environ.update(VARS)
+        from pyworkflow.apps.pw_project import openProject
+        openProject('here')
         
     elif mode == MODE_PROJECT:
-        runApp('pw_project.py', args=sys.argv[2:])
+        os.environ.update(VARS)
+        from pyworkflow.apps.pw_project import openProject
+        openProject(sys.argv[2])
 
     elif mode == MODE_TESTS or mode == MODE_TEST:
         runApp('pw_run_tests.py', args=sys.argv[2:])
@@ -316,18 +283,20 @@ def main():
 
     elif mode in PLUGIN_MODES:
         cwd = os.getcwd()
-        os.chdir(SCIPION_HOME)
+        os.chdir(Vars.SCIPION_HOME)
 
         os.environ.update(VARS)
         args = ' '.join(sys.argv)
 
-        runScript('%s %s' % (join(VARS['SCIPION_INSTALL'], 'install-plugin.py'), args))
+        runScript('%s %s' % (join(Vars.SCIPION_INSTALL, 'install-plugin.py'), args))
 
     elif mode == MODE_PLUGINS:
-        runScript(join(VARS['SCIPION_INSTALL'], PLUGIN_MANAGER_PY))
+        runScript(join(Vars.SCIPION_INSTALL, PLUGIN_MANAGER_PY))
 
     elif mode == MODE_CONFIG:
-        runApp(join(SCIPION_SCRIPTS, 'config.py'), sys.argv[2:])
+        from .scripts.config import main
+        os.environ.update(VARS)
+        main(sys.argv[2:])
 
     elif mode == MODE_VERSION:
         # Just exit, Scipion version will be printed anyway
@@ -359,10 +328,10 @@ def main():
                   chdir=False)
 
     elif mode == MODE_TUTORIAL:
-        runApp(join(SCIPION_SCRIPTS, 'tutorial.py'), sys.argv[2:])
+        runApp(join(Vars.SCIPION_SCRIPTS, 'tutorial.py'), sys.argv[2:])
 
     elif mode in MODE_DEMO:
-        runScript(join(SCIPION_SCRIPTS, KICKOFF)
+        runScript(join(Vars.SCIPION_SCRIPTS, KICKOFF)
                   + ' '.join(sys.argv[2:] if len(sys.argv) > 2 else ''))
 
     # Allow to run programs from different packages
@@ -377,7 +346,7 @@ def main():
         runCmd(EM_PROGRAM_ENTRY_POINT,  sys.argv[1:])
 
     elif mode == MODE_INSPECT:
-        runScript(join(VARS['SCIPION_INSTALL'], 'inspect-plugins.py'), sys.argv[2:])
+        runScript(join(Vars.SCIPION_INSTALL, 'inspect-plugins.py'), sys.argv[2:])
     # Else HELP or wrong argument
     else:
         sys.stdout.write("""\

@@ -30,8 +30,6 @@ from importlib import util
 from os.path import join, dirname, exists, isdir
 from os import environ
 
-import pyworkflow
-
 def getScipionHome():
 
     home = environ.get("SCIPION_HOME", None)
@@ -69,11 +67,12 @@ def getDemoTemplateBasename():
 
 
 def getExternalJsonTemplates():
+    import pyworkflow
     return dirname(pyworkflow.Config.SCIPION_CONFIG)
 
 
 def getPyworkflowPath():
-    return dirname(pyworkflow.__file__)
+    return getModuleFolder("pyworkflow")
 
 
 def getModuleFolder(moduleName):

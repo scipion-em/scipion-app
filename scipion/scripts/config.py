@@ -37,6 +37,10 @@ from shutil import copyfile
 from scipion.utils import (getExternalJsonTemplates, getTemplatesPath,
                      getDemoTemplateBasename)
 
+HOSTS = 'hosts'
+
+PROTOCOLS = 'protocols'
+
 MISSING_VAR = "None"
 
 PACKAGES = 'PACKAGES'
@@ -63,7 +67,7 @@ black, red, green, yellow, blue, magenta, cyan, white = map(ansi, range(30, 38))
 # with all python versions (and so it is simplified).
 
 
-def main():
+def main(args=None):
     parser = optparse.OptionParser(description=__doc__)
     add = parser.add_option  # shortcut
     add('--overwrite', action='store_true',
@@ -76,7 +80,7 @@ def main():
     add(COMPARE_PARAM, action='store_true',
         help="Check that the configurations seems reasonably well set up.")
 
-    options, args = parser.parse_args()
+    options, args = parser.parse_args(args)
 
     if args:  # no args which aren't options
         sys.exit(parser.format_help())
@@ -85,12 +89,14 @@ def main():
         # where pyworkflow is
         templates_dir = getTemplatesPath()
 
+        scipionConfigFile = os.environ[SCIPION_CONFIG]
         # Global installation configuration files.
         for fpath, tmplt in [
-            (os.environ[SCIPION_CONFIG], 'scipion'),
-            (os.environ['SCIPION_PROTOCOLS'], 'protocols'),
-            (os.environ['SCIPION_HOSTS'], 'hosts')]:
+            (scipionConfigFile, 'scipion'),
+            (getConfigPathFromConfigFile(PROTOCOLS, scipionConfigFile), PROTOCOLS),
+            (getConfigPathFromConfigFile(HOSTS, scipionConfigFile), HOSTS)]:
             if not exists(fpath) or options.overwrite:
+                print(fpath, tmplt)
                 createConf(fpath, join(templates_dir, tmplt + '.template'),
                            notify=options.notify)
             else:
@@ -125,26 +131,23 @@ def checkNotify(config, configfile):
 
     print("""--------------------------------------------------------------
 -----------------------------------------------------------------
-It would be very helpful if you allow Scipion
-to send anonymous usage data. This information will help Scipion's 
-team to identify the more demanded protocols and prioritize 
-support for them.
+It would be very helpful if you allow Scipion to send anonymous usage data. This
+information will help Scipion's team to identify the more demanded protocols and
+prioritize support for them.
 
-The collected usage information is COMPLETELY ANONYMOUS and does NOT
-include protocol parameters, file names or any data that can be used 
-to identify you or your data. In the URL
-https://scipion-em.github.io/docs/docs/developer/collecting-statistics.html
-you may see examples of the transmitted data as well as the
-statistics created with it. You can always deactivate/activate 
-this option by editing the file %s 
-and setting the variable SCIPION_NOTIFY to False/True respectively.
+Collected usage information is COMPLETELY ANONYMOUS and does NOT include protocol
+parameters, files or any data that can be used to identify you or your data. At
+https://scipion-em.github.io/docs/docs/developer/collecting-statistics.html you
+may see examples of the transmitted data as well as the statistics created with it.
+You can always deactivate/activate this option by editing the file %s and setting 
+the variable SCIPION_NOTIFY to False/True respectively.
 
-We understand, of course, that you may not wish to have any 
-information collected from you and we respect your privacy.
+We understand, of course, that you may not wish to have any information collected
+from you and we respect your privacy.
 """ % configfile)
 
 
-    input("Press <enter> to continue.")
+    input("Press <enter> to continue:")
     config.set('VARIABLES', 'SCIPION_NOTIFY', 'True')
 
 
@@ -420,6 +423,12 @@ def guessMPI():
 
     return options
 
+def getConfigPathFromConfigFile(configFile, scipionConfigFile):
+    """
+    :param configFile: name of the template: protocols or hosts so far
+    :param scipionConfigFile path to the config file to derive the folder name from
+    :return theoretical path for the template at the same path as the config file"""
+    return  os.path.join(os.path.dirname(scipionConfigFile), configFile + ".conf")
 
 if __name__ == '__main__':
     main()

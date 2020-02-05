@@ -37,13 +37,12 @@ from shutil import copyfile
 from scipion.utils import (getExternalJsonTemplates, getTemplatesPath,
                      getDemoTemplateBasename)
 
+PYWORKFLOW_SECTION = "PYWORKFLOW"
+SCIPION_CONF = 'scipion'
+BACKUPS = 'backups'
 HOSTS = 'hosts'
-
 PROTOCOLS = 'protocols'
-
 MISSING_VAR = "None"
-
-PACKAGES = 'PACKAGES'
 VARIABLES = 'VARIABLES'
 SCIPION_NOTIFY = 'SCIPION_NOTIFY'
 SCIPION_CONFIG = 'SCIPION_CONFIG'
@@ -76,7 +75,11 @@ def main(args=None):
         help=("Updates you local config files with the values in the template, "
               "only for those missing values."))
     add('--notify', action='store_true',
-        help="Allow Scipion to notify usage data (skips user question)")
+        help="Allow Scipion to notify usage data (skips user question) "
+             "TO BE DEPRECATED, use unattended param instead")
+    add('--unattended', action='store_true',
+        help="Scipion will skipping questions")
+
     add(COMPARE_PARAM, action='store_true',
         help="Check that the configurations seems reasonably well set up.")
 
@@ -85,38 +88,30 @@ def main(args=None):
     if args:  # no args which aren't options
         sys.exit(parser.format_help())
 
+    unattended = options.notify or options.unattended
+
     try:
-        # where pyworkflow is
+        # where templates are
         templates_dir = getTemplatesPath()
 
         scipionConfigFile = os.environ[SCIPION_CONFIG]
         # Global installation configuration files.
         for fpath, tmplt in [
-            (scipionConfigFile, 'scipion'),
+            (scipionConfigFile, SCIPION_CONF),
             (getConfigPathFromConfigFile(PROTOCOLS, scipionConfigFile), PROTOCOLS),
             (getConfigPathFromConfigFile(HOSTS, scipionConfigFile), HOSTS)]:
             if not exists(fpath) or options.overwrite:
                 print(fpath, tmplt)
-                createConf(fpath, join(templates_dir, tmplt + '.template'),
-                           notify=options.notify)
+                createConf(fpath, join(templates_dir, getTemplateName(tmplt)),
+                           unattended=unattended)
             else:
-                checkConf(fpath, join(templates_dir, tmplt + '.template'),
+                checkConf(fpath, join(templates_dir, getTemplateName(tmplt)),
                           update=options.update,
-                          notify=options.notify)
+                          unattended=unattended)
 
 
         # Check paths for the config
         checkPaths(os.environ[SCIPION_CONFIG])
-
-        # Copy file demo.json.template, contained in templates dir, into an external location
-        # TODO: Dynamically discover templates from plugins
-        demo_json_file = getDemoTemplateBasename()
-        demo_json_file_orig = join(templates_dir, demo_json_file)
-        if not exists(demo_json_file_orig):
-            print('Warning: file {} was not found\n'.format(demo_json_file_orig))
-        else:
-            copyfile(demo_json_file_orig,
-                     join(getExternalJsonTemplates(), demo_json_file))
 
     except Exception as e:
         # This way of catching exceptions works with Python 2 & 3
@@ -126,7 +121,11 @@ def main(args=None):
         sys.exit(1)
 
 
-def checkNotify(config, configfile):
+def getTemplateName(template):
+    return template + '.template'
+
+
+def checkNotify(config, configfile, unattended):
     """ Check if protocol statistics should be collected. """
 
     print("""--------------------------------------------------------------
@@ -146,12 +145,13 @@ We understand, of course, that you may not wish to have any information collecte
 from you and we respect your privacy.
 """ % configfile)
 
+    if not unattended:
+        input("Press <enter> to continue:")
 
-    input("Press <enter> to continue:")
-    config.set('VARIABLES', 'SCIPION_NOTIFY', 'True')
+    config.set(VARIABLES, 'SCIPION_NOTIFY', 'True')
 
 
-def createConf(fpath, ftemplate, notify=False):
+def createConf(fpath, ftemplate, unattended=False):
     """Create config file in fpath following the template in ftemplate"""
     # Remove from the template the sections in "remove", and if "keep"
     # is used only keep those sections.
@@ -161,9 +161,9 @@ def createConf(fpath, ftemplate, notify=False):
     if not exists(dname):
         os.makedirs(dname)
     elif exists(fpath):
-        if not exists(join(dname, 'backups')):
-            os.makedirs(join(dname, 'backups'))
-        backup = join(dname, 'backups',
+        if not exists(join(dname, BACKUPS)):
+            os.makedirs(join(dname, BACKUPS))
+        backup = join(dname, BACKUPS,
                       '%s.%d' % (basename(fpath), int(time.time())))
         print(yellow("* Creating backup: %s" % backup))
         os.rename(fpath, backup)
@@ -175,21 +175,50 @@ def createConf(fpath, ftemplate, notify=False):
     cf.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
     assert cf.read(ftemplate) != [], 'Missing file: %s' % ftemplate
 
+    # Commented once BUILD is no longer in the template.
+    # To be confirmed if this will remain once plugins are tested.
+    # # Update with our guesses.
+    # if 'BUILD' in cf.sections():
+    #     for options in [guessJava(), guessMPI()]:
+    #         for key in options:
+    #             if key in cf.options('BUILD'):
+    #                 cf.set('BUILD', key, options[key])
 
-    # Update with our guesses.
-    if 'BUILD' in cf.sections():
-        for options in [guessJava(), guessMPI()]:
-            for key in options:
-                if key in cf.options('BUILD'):
-                    cf.set('BUILD', key, options[key])
-    # Collecting Protocol Usage Statistics 
-    if 'VARIABLES' in cf.sections():
-        checkNotify(cf, fpath)
+    # Special case for scipion config
+    if getTemplateName(SCIPION_CONF) in ftemplate:
+
+        addPyworkflowVariables(cf)
+
+        addPluginsVariables(cf)
+        # Collecting Protocol Usage Statistics
+        if VARIABLES in cf.sections():
+            checkNotify(cf, fpath, unattended=unattended)
 
     # Create the actual configuration file.
     cf.write(open(fpath, 'w'))
-    # print("Please edit it to reflect the configuration of your system.\n")
 
+
+def addPyworkflowVariables(cf):
+    # Once more we need a local import to prevent the Config to be wrongly initialized
+    from pyworkflow import Config
+    # Load pyworkflow variables from the config
+    pwVARS = Config.getVariableDict()
+    cf.add_section(PYWORKFLOW_SECTION)
+    for var, value in pwVARS.items():
+        cf.set(PYWORKFLOW_SECTION, var, value)
+
+def addPluginsVariables(cf):
+    # Once more we need a local import to prevent the Config to be wrongly initialized
+    from pyworkflow import Config
+    from pyworkflow.plugin import Plugin
+
+    # Trigger plugin discovery and variable definition
+    Config.getDomain().getPlugins()
+
+    PLUGINS_SECTION = "PLUGINS"
+    cf.add_section(PLUGINS_SECTION)
+    for var, value in Plugin.getVars().items():
+        cf.set(PLUGINS_SECTION, var, str(value))
 
 def checkPaths(conf):
     """Check that some paths in the config file actually make sense"""
@@ -226,7 +255,7 @@ def checkPaths(conf):
               "can run: scipion config --overwrite")
 
 
-def checkConf(fpath, ftemplate, update=False, notify=False, compare=False):
+def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
     """Check that all the variables in the template are in the config file too"""
     # Remove from the checks the sections in "remove", and if "keep"
     # is used only check those sections.
@@ -284,7 +313,7 @@ def checkConf(fpath, ftemplate, update=False, notify=False, compare=False):
 
                 if update:
                     if s == VARIABLES and o == 'SCIPION_NOTIFY':
-                        checkNotify(ct, notify=notify)
+                        checkNotify(ct, unattended=unattended)
                     # Update config file with missing variable
                     value = ct.get(s, o)
                     cf.set(s, o, value)

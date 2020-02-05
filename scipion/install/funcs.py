@@ -310,6 +310,9 @@ class Environment:
 
     @staticmethod
     def getEmFolder():
+        # Create it if it does not exists
+        if not exists(pwem.Config.EM_ROOT):
+            os.makedirs(pwem.Config.EM_ROOT)
         return pwem.Config.EM_ROOT
 
     @staticmethod

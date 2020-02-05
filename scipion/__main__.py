@@ -132,10 +132,13 @@ class Vars:
     # TODO: This, hopefully is a temporary way to load Xmipp binding and it's libraries
     SCIPION_LIBS = join(SCIPION_HOME, "lib")
     os.makedirs(SCIPION_LIBS, exist_ok=True)
+
     SCIPION_BINDINGS = join(SCIPION_HOME, "bindings")
     os.makedirs(SCIPION_BINDINGS, exist_ok=True)
+
     # Add bindings to sys.path
     sys.path.append(SCIPION_BINDINGS)
+
     # Some pw_*.py scripts under 'apps' folder change the current working
     # directory to the SCIPION_HOME, so let's keep the current working
     # directory in case we need it
@@ -165,13 +168,6 @@ class Vars:
 try:
     VARS = dict()
 
-    # Read main config file
-    config2Dict(Vars.SCIPION_CONFIG, VARS)
-
-    # Load the local config
-    if Vars.SCIPION_LOCAL_CONFIG != Vars.SCIPION_CONFIG:
-        config2Dict(Vars.SCIPION_LOCAL_CONFIG, VARS)
-
     # Prepare PYTHON PATH
     ignorePythonPath = os.environ.get('SCIPION_IGNORE_PYTHONPATH', False)
     PYTHONPATH_LIST = [
@@ -182,11 +178,11 @@ try:
     if 'SCIPION_NOGUI' in os.environ:
         PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))
 
+    # Load variables from Vars class into VARS dict
     PYTHONPATH = os.pathsep.join(PYTHONPATH_LIST)
 
     # Load VARS dictionary, all items here will go to the environment
     VARS['PYTHONPATH'] = PYTHONPATH
-    # VARS['LD_LIBRARY_PATH'] = ";".join([Vars.SCIPION_LIBS, os.environ.get('LD_LIBRARY_PATH', '')])
     VARS['SCIPION_DOMAIN'] = Vars.SCIPION_DOMAIN
     VARS['SCIPION_CONFIG'] = Vars.SCIPION_CONFIG
     VARS['SCIPION_LOCAL_CONFIG'] = Vars.SCIPION_LOCAL_CONFIG
@@ -194,6 +190,12 @@ try:
     VARS['SCIPION_HOSTS'] = Vars.SCIPION_HOSTS
     VARS['SCIPION_VERSION'] = Vars.SCIPION_VERSION
 
+    # Read main config file
+    config2Dict(Vars.SCIPION_CONFIG, VARS)
+
+    # Load the local config
+    if Vars.SCIPION_LOCAL_CONFIG != Vars.SCIPION_CONFIG:
+        config2Dict(Vars.SCIPION_LOCAL_CONFIG, VARS)
 
 except Exception as e:
     if len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG:
@@ -248,9 +250,20 @@ def main():
     # Default to MANAGER_MODE
     mode = sys.argv[1] if n > 1 else MODE_MANAGER
 
+    # Prepare the environment
+    os.environ.update(VARS)
+
+    # Trigger Config initialization once environment is ready
+    from  pyworkflow import Config
+    pwVARS = Config.getVariableDict()
+    VARS.update(pwVARS)
+
+    # Update the environment now with pyworkflow values.
+    os.environ.update(VARS)
+
     # Check mode
     if mode == MODE_MANAGER:
-        os.environ.update(VARS)
+
         from pyworkflow.gui.project import ProjectManagerWindow
         ProjectManagerWindow().show()
 

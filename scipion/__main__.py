@@ -254,8 +254,8 @@ def main():
     os.environ.update(VARS)
 
     # Trigger Config initialization once environment is ready
-    from  pyworkflow import Config
-    pwVARS = Config.getVariableDict()
+    import pyworkflow
+    pwVARS = pyworkflow.Config.getVariableDict()
     VARS.update(pwVARS)
 
     # Update the environment now with pyworkflow values.

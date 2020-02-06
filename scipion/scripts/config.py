@@ -43,7 +43,6 @@ BACKUPS = 'backups'
 HOSTS = 'hosts'
 PROTOCOLS = 'protocols'
 MISSING_VAR = "None"
-VARIABLES = 'VARIABLES'
 SCIPION_NOTIFY = 'SCIPION_NOTIFY'
 SCIPION_CONFIG = 'SCIPION_CONFIG'
 SCIPION_LOCAL_CONFIG = 'SCIPION_LOCAL_CONFIG'
@@ -148,7 +147,7 @@ from you and we respect your privacy.
     if not unattended:
         input("Press <enter> to continue:")
 
-    config.set(VARIABLES, 'SCIPION_NOTIFY', 'True')
+    config.set(PYWORKFLOW_SECTION, SCIPION_NOTIFY, 'True')
 
 
 def createConf(fpath, ftemplate, unattended=False):
@@ -190,9 +189,9 @@ def createConf(fpath, ftemplate, unattended=False):
         addPyworkflowVariables(cf)
 
         addPluginsVariables(cf)
-        # Collecting Protocol Usage Statistics
-        if VARIABLES in cf.sections():
-            checkNotify(cf, fpath, unattended=unattended)
+
+        # Collecting protocol Usage Statistics
+        checkNotify(cf, fpath, unattended=unattended)
 
     # Create the actual configuration file.
     cf.write(open(fpath, 'w'))
@@ -200,9 +199,9 @@ def createConf(fpath, ftemplate, unattended=False):
 
 def addPyworkflowVariables(cf):
     # Once more we need a local import to prevent the Config to be wrongly initialized
-    from pyworkflow import Config
+    from pyworkflow import Config as pwConfig
     # Load pyworkflow variables from the config
-    pwVARS = Config.getVariableDict()
+    pwVARS = pwConfig.getVariableDict()
     cf.add_section(PYWORKFLOW_SECTION)
     for var, value in pwVARS.items():
         cf.set(PYWORKFLOW_SECTION, var, value)
@@ -268,6 +267,12 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
     ct.optionxform = str
     assert ct.read(ftemplate) != [], 'Missing file %s' % ftemplate
 
+    # Special case for scipion config
+    if getTemplateName(SCIPION_CONF) in ftemplate:
+
+        addPyworkflowVariables(ct)
+        addPluginsVariables(ct)
+
     df = dict([(s, set(cf.options(s))) for s in cf.sections()])
     dt = dict([(s, set(ct.options(s))) for s in ct.sections()])
     # That funny syntax to create the dictionaries works with old pythons.
@@ -312,7 +317,7 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
                       "parameter to update local config files." % (yellow(s), yellow(o), UPDATE_PARAM))
 
                 if update:
-                    if s == VARIABLES and o == 'SCIPION_NOTIFY':
+                    if o == 'SCIPION_NOTIFY':
                         checkNotify(ct, unattended=unattended)
                     # Update config file with missing variable
                     value = ct.get(s, o)
@@ -328,7 +333,7 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
             print("Update requested no changes detected for %s." % fpath)
 
         try:
-            with open(fpath, 'wb') as f:
+            with open(fpath, 'w') as f:
                 cf.write(f)
         except Exception as e:
             print("Could not update the config: ", e)

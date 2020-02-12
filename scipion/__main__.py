@@ -161,7 +161,7 @@ class Vars:
 
     SCIPION_VERSION = getVersion()
     SCIPION_PYTHON = PYTHON
-    PW_ALT_TESTS_CMD = os.environ.get("PW_ALT_TESTS_CMD", '%s %s' % (SCIPION_EP, MODE_TESTS))
+    SCIPION_LAUNCH_CMD = os.environ.get("SCIPION_LAUNCH_CMD", '%s %s' % (SCIPION_EP, MODE_TESTS))
 
 
 # *********************** READ CONFIG FILES ***********************

@@ -161,7 +161,7 @@ class Vars:
 
     SCIPION_VERSION = getVersion()
     SCIPION_PYTHON = PYTHON
-    SCIPION_LAUNCH_CMD = os.environ.get("SCIPION_LAUNCH_CMD", '%s %s' % (SCIPION_EP, MODE_TESTS))
+    SCIPION_TESTS_CMD = os.environ.get("SCIPION_TESTS_CMD", '%s %s' % (SCIPION_EP, MODE_TESTS))
 
 
 # *********************** READ CONFIG FILES ***********************
@@ -344,8 +344,10 @@ def main():
         runApp(join(Vars.SCIPION_SCRIPTS, 'tutorial.py'), sys.argv[2:])
 
     elif mode in MODE_DEMO:
-        runScript(join(Vars.SCIPION_SCRIPTS, KICKOFF)
-                  + ' '.join(sys.argv[2:] if len(sys.argv) > 2 else ''))
+        from scipion.scripts.kickoff import main as launchKickoff
+        # Remove one arg
+        sys.argv = sys.argv[1:]
+        launchKickoff()
 
     # Allow to run programs from different packages
     # scipion will load the specified environment

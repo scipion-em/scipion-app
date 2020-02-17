@@ -57,7 +57,7 @@ def getVersion(long=True):
 def printVersion():
     """ Print Scipion version """
     # Print the version and some more info
-    print('\nScipion %s\n\n' % getVersion())
+    print('Scipion %s\n' % getVersion())
 
 def config2Dict(configFile, varDict):
     """ Loads a config file if exists and populates a dictionary overwriting the keys """

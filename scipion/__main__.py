@@ -130,10 +130,10 @@ class Vars:
     # Installation paths
     SCIPION_HOME = scipionHome
     # TODO: This, hopefully is a temporary way to load Xmipp binding and it's libraries
-    SCIPION_LIBS = join(SCIPION_HOME, "lib")
+    SCIPION_LIBS = join(SCIPION_HOME, "software", "lib")
     os.makedirs(SCIPION_LIBS, exist_ok=True)
 
-    SCIPION_BINDINGS = join(SCIPION_HOME, "bindings")
+    SCIPION_BINDINGS = join(SCIPION_HOME, "software", "bindings")
     os.makedirs(SCIPION_BINDINGS, exist_ok=True)
 
     # Add bindings to sys.path

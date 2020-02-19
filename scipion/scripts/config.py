@@ -199,20 +199,20 @@ def createConf(fpath, ftemplate, unattended=False):
 
 def addPyworkflowVariables(cf):
     # Once more we need a local import to prevent the Config to be wrongly initialized
-    from pyworkflow import Config as pwConfig
+    import pyworkflow as pw
     # Load pyworkflow variables from the config
-    pwVARS = pwConfig.getVariableDict()
+    pwVARS = pw.Config.getVariableDict()
     cf.add_section(PYWORKFLOW_SECTION)
     for var, value in pwVARS.items():
         cf.set(PYWORKFLOW_SECTION, var, value)
 
 def addPluginsVariables(cf):
     # Once more we need a local import to prevent the Config to be wrongly initialized
-    from pyworkflow import Config
+    import pyworkflow as pw
     from pyworkflow.plugin import Plugin
 
     # Trigger plugin discovery and variable definition
-    Config.getDomain().getPlugins()
+    pw.Config.getDomain().getPlugins()
 
     PLUGINS_SECTION = "PLUGINS"
     cf.add_section(PLUGINS_SECTION)

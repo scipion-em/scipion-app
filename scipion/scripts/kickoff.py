@@ -55,7 +55,7 @@ from pyworkflow.gui.widgets import HotButton, Button
 from scipion.constants import MODE_PROJECT,  SCIPION_EP
 
 # Custom labels
-from scipion.utils import getExternalJsonTemplates
+from scipion.utils import getExternalJsonTemplates, getTemplatesPath
 
 START_BUTTON = "Start"
 PROJECT_TEMPLATE = os.environ.get("SCIPION_PROJECT_NAME",
@@ -95,8 +95,7 @@ class BoxWizardWindow(ProjectBaseWindow):
 class TemplateDirData():
     def __init__(self, plugin):
         self.path = self.getPath(plugin)
-        self.fileList = []
-        self.fillFileList()
+        self.fileList = self.fillFileList()
 
     def getPath(self, plugin):
         path = os.path.join(os.path.dirname(plugin.__file__), "templates")
@@ -107,8 +106,8 @@ class TemplateDirData():
 
 
     def fillFileList(self):
+        fileList = []
         if self.path:
-            fileList = []
             for file in glob.glob1(self.path, "*.json.template"):
                 fileList.append(file)
             return fileList
@@ -118,7 +117,7 @@ class Template():
     def __init__(self, pluginName, tempPath):
         self.name = pluginName
         self.id = ""
-        self.templateDir = tempPath
+        self.templateDir = os.path.abspath(tempPath)
         self.getTemplateInfo(tempPath)
 
     def getTemplateInfo(self, tempPath):
@@ -128,7 +127,8 @@ class Template():
         return self.id
 
     def get(self):
-        return self.templateDir
+        # return self.templateDir
+        return self.id
 
 class TemplateList():
     def __init__(self, templates=[]):
@@ -475,7 +475,7 @@ def getTemplate(root):
         to choose one.
     """
     templates = []
-    templateFolder = getExternalJsonTemplates()
+    templateFolder = getTemplatesPath()
     customTemplates = len(sys.argv) > 1
     if customTemplates:
         candidates = sys.argv[1:]
@@ -487,36 +487,25 @@ def getTemplate(root):
     else:
         # Check if other plugins have json.templates
         domain = pw.Config.getDomain()
-
         tempList = TemplateList()
-        # # JORGE
-        # fname = "/home/plosana/Desktop/test_PL.txt"
-        # if os.path.exists(fname):
-        #     os.remove(fname)
-        # fjj = open(fname, "a+")
-        # fjj.write('JORGE--------->onDebugMode PID {}'.format(os.getpid()))
-        # fjj.close()
-        # import time
-        # time.sleep(10)
-        # # JORGE_END
         for pluginName, plugin in domain.getPlugins().items():
             tDir = TemplateDirData(plugin)
             if tDir.path:
-                for template in tDir.fileList:
-                    t = Template(pluginName, template)
+                for templateName in tDir.fileList:
+                    t = Template(pluginName, os.path.join(tDir.path, templateName))
                     tempList.addTemplate(t)
 
         # Check if there is any .json.template in the template folder
         # get the template folder
-        for template in glob.glob1(templateFolder, "*.json.template"):
-            t = Template("user_templates", template)
+        for templateName in glob.glob1(templateFolder, "*.json.template"):
+            t = Template("user_templates", os.path.join(templateFolder, templateName))
             tempList.addTemplate(t)
 
     templates = tempList.templates
     lenTemplates = len(templates)
     if lenTemplates:
         if lenTemplates == 1:
-            chosen = templates[0]
+            chosen = templates[0].templateDir
         else:
             provider = pwgui.tree.ListTreeProviderString(templates)
             dlg = dialog.ListDialog(root, "Workflow templates", provider,
@@ -524,7 +513,7 @@ def getTemplate(root):
 
             if dlg.result == dialog.RESULT_CANCEL:
                 sys.exit()
-            chosen = dlg.values[0].get()
+            chosen = dlg.values[0].templateDir
 
         if not customTemplates:
             chosen = os.path.join(templateFolder, chosen)

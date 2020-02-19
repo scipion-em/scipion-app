@@ -92,6 +92,59 @@ class BoxWizardWindow(ProjectBaseWindow):
         self.switchView(VIEW_WIZARD)
 
 
+class TemplateDirData():
+    def __init__(self, plugin):
+        self.path = self.getPath(plugin)
+        self.fileList = []
+        self.fillFileList()
+
+    def getPath(self, plugin):
+        path = os.path.join(os.path.dirname(plugin.__file__), "templates")
+        if os.path.exists(path):
+            return path
+        else:
+            return ""
+
+
+    def fillFileList(self):
+        if self.path:
+            fileList = []
+            for file in glob.glob1(self.path, "*.json.template"):
+                fileList.append(file)
+            return fileList
+
+
+class Template():
+    def __init__(self, pluginName, tempPath):
+        self.name = pluginName
+        self.id = ""
+        self.templateDir = tempPath
+        self.getTemplateInfo(tempPath)
+
+    def getTemplateInfo(self, tempPath):
+        self.id = self.name + '_' + os.path.basename(tempPath).replace("json.template", "")
+
+    def getObjId(self):
+        return self.id
+
+    def get(self):
+        return self.templateDir
+
+class TemplateList():
+    def __init__(self, templates=[]):
+        self.templates = templates
+
+    def addTemplate(self, t):
+        self.templates.append(t)
+
+    def getList(self, ids = True):
+        if ids:
+            objList = [t.id for t in self.templates]
+        else:
+            objList = [t.templateDir for t in self.templates]
+        return objList
+
+
 class BoxWizardView(tk.Frame):
     def __init__(self, parent, windows, **kwargs):
         tk.Frame.__init__(self, parent, bg='white', **kwargs)
@@ -432,14 +485,38 @@ def getTemplate(root):
             else:
                 print(" > %s file does not exist." % candFile)
     else:
+        # Check if other plugins have json.templates
+        domain = pw.Config.getDomain()
+
+        tempList = TemplateList()
+        # # JORGE
+        # fname = "/home/plosana/Desktop/test_PL.txt"
+        # if os.path.exists(fname):
+        #     os.remove(fname)
+        # fjj = open(fname, "a+")
+        # fjj.write('JORGE--------->onDebugMode PID {}'.format(os.getpid()))
+        # fjj.close()
+        # import time
+        # time.sleep(10)
+        # # JORGE_END
+        for pluginName, plugin in domain.getPlugins().items():
+            tDir = TemplateDirData(plugin)
+            if tDir.path:
+                for template in tDir.fileList:
+                    t = Template(pluginName, template)
+                    tempList.addTemplate(t)
+
         # Check if there is any .json.template in the template folder
         # get the template folder
-        for file in glob.glob1(templateFolder, "*.json.template"):
-            templates.append(String(file))
+        for template in glob.glob1(templateFolder, "*.json.template"):
+            t = Template("user_templates", template)
+            tempList.addTemplate(t)
 
-    if len(templates):
-        if len(templates) == 1:
-            chosen = templates[0].get()
+    templates = tempList.templates
+    lenTemplates = len(templates)
+    if lenTemplates:
+        if lenTemplates == 1:
+            chosen = templates[0]
         else:
             provider = pwgui.tree.ListTreeProviderString(templates)
             dlg = dialog.ListDialog(root, "Workflow templates", provider,

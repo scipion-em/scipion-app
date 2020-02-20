@@ -48,14 +48,15 @@ import pyworkflow as pw
 import pyworkflow.utils as pwutils
 from pyworkflow.object import String
 from pyworkflow.gui import Message, Icon, dialog
+from pyworkflow.plugin import getTemplates
 from pyworkflow.project import ProjectSettings
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
-from scipion.constants import MODE_PROJECT,  SCIPION_EP
+from scipion.constants import SCIPION_EP
 
 # Custom labels
-from scipion.utils import getExternalJsonTemplates, getTemplatesPath
+from scipion.utils import getExternalJsonTemplates
 
 START_BUTTON = "Start"
 PROJECT_TEMPLATE = os.environ.get("SCIPION_PROJECT_NAME",
@@ -104,7 +105,6 @@ class TemplateDirData():
         else:
             return ""
 
-
     def fillFileList(self):
         fileList = []
         if self.path:
@@ -114,21 +114,18 @@ class TemplateDirData():
 
 
 class Template():
-    def __init__(self, pluginName, tempPath):
-        self.name = pluginName
-        self.id = ""
+    def __init__(self, pluginName, tempPath, description=None):
+        self.pluginName = pluginName
+        self.templateName = os.path.basename(tempPath).replace(".json.template", "")
         self.templateDir = os.path.abspath(tempPath)
-        self.getTemplateInfo(tempPath)
-
-    def getTemplateInfo(self, tempPath):
-        self.id = self.name + '_' + os.path.basename(tempPath).replace("json.template", "")
+        self.description = description
 
     def getObjId(self):
-        return self.id
+        return self.get()
 
     def get(self):
-        # return self.templateDir
-        return self.id
+        return self.pluginName + '-' + self.templateName
+
 
 class TemplateList():
     def __init__(self, templates=[]):
@@ -474,10 +471,10 @@ def getTemplate(root):
         If more than one template is found or passed, a dialog is raised
         to choose one.
     """
-    templates = []
-    templateFolder = getTemplatesPath()
+    templateFolder = getExternalJsonTemplates()
     customTemplates = len(sys.argv) > 1
     if customTemplates:
+        templates = []
         candidates = sys.argv[1:]
         for candFile in candidates:
             if os.path.isfile(candFile):
@@ -486,28 +483,14 @@ def getTemplate(root):
                 print(" > %s file does not exist." % candFile)
     else:
         # Check if other plugins have json.templates
-        domain = pw.Config.getDomain()
-        tempList = TemplateList()
-        for pluginName, plugin in domain.getPlugins().items():
-            tDir = TemplateDirData(plugin)
-            if tDir.path:
-                for templateName in tDir.fileList:
-                    t = Template(pluginName, os.path.join(tDir.path, templateName))
-                    tempList.addTemplate(t)
+        templates = getTemplates()
 
-        # Check if there is any .json.template in the template folder
-        # get the template folder
-        for templateName in glob.glob1(templateFolder, "*.json.template"):
-            t = Template("user_templates", os.path.join(templateFolder, templateName))
-            tempList.addTemplate(t)
-
-    templates = tempList.templates
     lenTemplates = len(templates)
     if lenTemplates:
         if lenTemplates == 1:
             chosen = templates[0].templateDir
         else:
-            provider = pwgui.tree.ListTreeProviderString(templates)
+            provider = pwgui.tree.ListTreeProviderTemplate(templates)
             dlg = dialog.ListDialog(root, "Workflow templates", provider,
                                     "Select one of the templates.")
 

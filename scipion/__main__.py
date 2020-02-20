@@ -373,7 +373,7 @@ def main():
 
     elif mode in MODE_DEMO:
         runScript(join(SCIPION_SCRIPTS, KICKOFF)
-                  + ' '.join(sys.argv[2:] if len(sys.argv) > 2 else ''))
+                  + ' {}'.format(sys.argv[2:] if len(sys.argv) > 2 else ''))
 
     # Allow to run programs from different packages
     # scipion will load the specified environment

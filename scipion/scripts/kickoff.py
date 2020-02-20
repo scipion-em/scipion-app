@@ -48,7 +48,7 @@ import pyworkflow as pw
 import pyworkflow.utils as pwutils
 from pyworkflow.object import String
 from pyworkflow.gui import Message, Icon, dialog
-from pyworkflow.plugin import getTemplates
+from pyworkflow.plugin import getTemplates, TemplateList
 from pyworkflow.project import ProjectSettings
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
@@ -91,55 +91,6 @@ class BoxWizardWindow(ProjectBaseWindow):
         ProjectBaseWindow.__init__(self, title, minsize=(400, 550), **kwargs)
         self.viewFuncs = {VIEW_WIZARD: BoxWizardView}
         self.switchView(VIEW_WIZARD)
-
-
-class TemplateDirData():
-    def __init__(self, plugin):
-        self.path = self.getPath(plugin)
-        self.fileList = self.fillFileList()
-
-    def getPath(self, plugin):
-        path = os.path.join(os.path.dirname(plugin.__file__), "templates")
-        if os.path.exists(path):
-            return path
-        else:
-            return ""
-
-    def fillFileList(self):
-        fileList = []
-        if self.path:
-            for file in glob.glob1(self.path, "*.json.template"):
-                fileList.append(file)
-            return fileList
-
-
-class Template():
-    def __init__(self, pluginName, tempPath, description=None):
-        self.pluginName = pluginName
-        self.templateName = os.path.basename(tempPath).replace(".json.template", "")
-        self.templateDir = os.path.abspath(tempPath)
-        self.description = description
-
-    def getObjId(self):
-        return self.get()
-
-    def get(self):
-        return self.pluginName + '-' + self.templateName
-
-
-class TemplateList():
-    def __init__(self, templates=[]):
-        self.templates = templates
-
-    def addTemplate(self, t):
-        self.templates.append(t)
-
-    def getList(self, ids = True):
-        if ids:
-            objList = [t.id for t in self.templates]
-        else:
-            objList = [t.templateDir for t in self.templates]
-        return objList
 
 
 class BoxWizardView(tk.Frame):
@@ -474,6 +425,7 @@ def getTemplate(root):
     templateFolder = getExternalJsonTemplates()
     customTemplates = len(sys.argv) > 1
     if customTemplates:
+        tl = TemplateList()
         templates = []
         candidates = sys.argv[1:]
         for candFile in candidates:
@@ -481,6 +433,7 @@ def getTemplate(root):
                 templates.append(String(candFile))
             else:
                 print(" > %s file does not exist." % candFile)
+        templates = tl.genFromStrList(templates).templates
     else:
         # Check if other plugins have json.templates
         templates = getTemplates()

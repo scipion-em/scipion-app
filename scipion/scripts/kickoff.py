@@ -48,7 +48,7 @@ import pyworkflow as pw
 import pyworkflow.utils as pwutils
 from pyworkflow.object import String
 from pyworkflow.gui import Message, Icon, dialog
-from pyworkflow.plugin import getTemplates, TemplateList
+from pyworkflow.plugin import Plugin, TemplateList, TemplateDirData
 from pyworkflow.project import ProjectSettings
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
@@ -435,9 +435,17 @@ def getTemplate(root):
                 print(" > %s file does not exist." % candFile)
         templates = tl.genFromStrList(templates).templates
     else:
+        templates = []
         # Check if other plugins have json.templates
-        templates = getTemplates()
-
+        templateFolder = pw.Config.getExternalJsonTemplates()
+        # Check if other plugins have json.templates
+        domain = pw.Config.getDomain()
+        tempList = TemplateList()
+        for pluginName, plugin in domain.getPlugins().items():
+            tDir = TemplateDirData(plugin)
+            if tDir.path:
+                Plugin.getTemplates(tempList, tDir, pluginName, templateFolder)
+        templates = tempList.templates
     lenTemplates = len(templates)
     if lenTemplates:
         if lenTemplates == 1:

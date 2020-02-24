@@ -435,16 +435,30 @@ def getTemplate(root):
                 print(" > %s file does not exist." % candFile)
         templates = tl.genFromStrList(templates).templates
     else:
-        templates = []
         # Check if other plugins have json.templates
-        templateFolder = pw.Config.getExternalJsonTemplates()
         # Check if other plugins have json.templates
         domain = pw.Config.getDomain()
         tempList = TemplateList()
-        for pluginName, plugin in domain.getPlugins().items():
-            tDir = TemplateDirData(plugin)
+
+        # # JORGE
+        # fname = "/home/plosana/Desktop/test_PL.txt"
+        # if os.path.exists(fname):
+        #     os.remove(fname)
+        # fjj = open(fname, "a+")
+        # fjj.write('JORGE--------->onDebugMode PID {}'.format(os.getpid()))
+        # fjj.close()
+        # import time
+        # time.sleep(10)
+        # # JORGE_END
+
+        for pluginName, pluginModule in domain.getPlugins().items():
+            tDir = TemplateDirData(pluginModule)
+            pluginModule.Plugin.setPluginTemplateDir(tDir)
             if tDir.path:
-                Plugin.getTemplates(tempList, tDir, pluginName, templateFolder)
+                pluginModule.Plugin.setName(pluginName)
+                tempListPlugin = pluginModule.Plugin.getTemplates()
+                for t in tempListPlugin:
+                    tempList.addTemplate(t)
         templates = tempList.templates
     lenTemplates = len(templates)
     if lenTemplates:
@@ -457,7 +471,7 @@ def getTemplate(root):
 
             if dlg.result == dialog.RESULT_CANCEL:
                 sys.exit()
-            chosen = dlg.values[0].templateDir
+            chosen = dlg.values[0].templatePath
 
         if not customTemplates:
             chosen = os.path.join(templateFolder, chosen)

@@ -56,11 +56,11 @@ class UpdateManager:
                               action="store_true")
 
         parsedArgs = parser.parse_args(args[1:])
-        if not cls.isScipionUpToDate():
+        if cls.isScipionUpToDate():
             print('Scipion is up to date.')
         else:
             print('A new update is available for Scipion.')
-            if parsedArgs.forceupdate():
+            if parsedArgs.forceupdate:
                 cls.updateScipion()
             else:
                 print('\nYou can update it if you wish in two ways from a terminal in Scipion3 environment:',

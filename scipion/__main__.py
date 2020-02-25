@@ -40,13 +40,11 @@ import pyworkflow
 from configparser import ConfigParser, ParsingError  # Python 3
 from scipion.constants import *
 from scipion.constants import PLUGIN_MANAGER_PY, PYTHON, KICKOFF
-from scipion.scripts.check4updates import UpdateChecker
+from scipion.install.update_manager import UpdateManager
+
 from scipion.utils import (getScipionHome, getInstallPath,
                            getTemplatesPath, getScriptsPath, getPyworkflowPath)
 
-import optparse
-from pip._internal.commands.list import ListCommand
-import pip._internal.utils.misc as piputils
 from scipion.constants import MODE_CHECKUPDATES
 
 __version__ = 'v3.0'
@@ -395,7 +393,7 @@ def main():
         runScript(join(VARS['SCIPION_INSTALL'], 'inspect-plugins.py'), sys.argv[2:])
 
     elif mode == MODE_CHECKUPDATES:
-        UpdateChecker().isScipionUpToDate(force=sys.argv[2:])
+        UpdateManager().runUpdateManager(sys.argv[:])
 
     # Else HELP or wrong argument
     else:
@@ -467,77 +465,6 @@ MODE can be:
         else:
             print("Unknown mode: %s." % mode)
             sys.exit(1)
-
-
-class UpdateChecker:
-    _args = ()
-    _kw = {'summary': 'List installed packages.', 'name': 'list', 'isolated': False}
-    _options = optparse.Values({
-        'skip_requirements_regex': '',
-        'retries': 5, 'pre': False,
-        'version': None,
-        'include_editable': True,
-        'disable_pip_version_check': False,
-        'log': None,
-        'trusted_hosts': [],
-        'outdated': False,
-        'no_input': False,
-        'local': False,
-        'timeout': 15,
-        'proxy': '',
-        'uptodate': True,
-        'help': None,
-        'cache_dir': '',
-        'no_color': False,
-        'user': False,
-        'client_cert': None,
-        'quiet': 0,
-        'not_required': None,
-        'no_python_version_warning': False,
-        'extra_index_urls': [],
-        'isolated_mode': False,
-        'exists_action': [],
-        'no_index': False,
-        'index_url': 'https://pypi.org/simple',
-        'find_links': [],
-        'path': None,
-        'require_venv': False,
-        'list_format': 'columns',
-        'editable': False,
-        'verbose': 0,
-        'cert': None})
-    _distributions = piputils.get_installed_distributions(
-            local_only=_options.local,
-            user_only=_options.user,
-            editables_only=_options.editable,
-            include_editables=_options.include_editable,
-            paths=_options.path)
-
-    upToDatePackages = ListCommand(*_args, **_kw).get_uptodate(_distributions, _options)
-
-    @ classmethod
-    def getPluginNameList(cls):
-        return [x.project_name for x in cls.upToDatePackages]
-
-    @ classmethod
-    def isScipionUpToDate(cls, pluginName='scipion-app', force=()):
-        if pluginName not in cls.getPluginNameList():
-            print('A new update is available for Scipion.')
-            forceUpdate = '--forceupdate'
-            f = '-f'
-            badArgsMsg = 'Mode <{}> only admits one argument, expressed as {} or {}.'.format(
-                MODE_CHECKUPDATES, forceUpdate, f)
-            lenForce = len(force)
-
-            if lenForce == 1:
-                if force[0] in [forceUpdate, f]:
-                    print('Updating...')
-                else:
-                    print(badArgsMsg)
-            elif lenForce == 0:
-                print('Update via pip install scipion-app or scipion3 installp -p [path to scipion-app].')
-            else:
-                print(badArgsMsg)
 
 
 if __name__ == '__main__':

@@ -28,7 +28,6 @@
 
 import argparse
 import optparse
-from os import environ
 
 from pip._internal.commands.list import ListCommand
 import pip._internal.utils.misc as piputils
@@ -62,11 +61,12 @@ class UpdateManager:
             print('A new update is available for Scipion.')
             if parsedArgs.forceupdate:
                 cls.updateScipion()
+                print('Updating...')
             else:
-                print('\nYou can update it if you wish in two ways from a terminal in Scipion3 environment:',
-                      '\n\t1) Executing pip install scipion-app --upgrade',
-                      '\n\t2) Forcing the update from Scipion: {} checkupdates -f/--forceupdate\n'.format(
-                          environ.get('SCIPION_HOME', '[path_to_scipion]')))
+                answer = input('Would you like to update it now? [Y/n]\n')
+                if answer in ['', 'y', 'Y']:
+                    cls.updateScipion()
+                    print('Updating...')
 
     @classmethod
     def getUpToDatePluginList(cls):
@@ -125,19 +125,14 @@ class UpdateManager:
         kwargs = {'isolated': False}
         cmd_args = [cls.pluginName,
                     '--upgrade',
-                    '-qqq']  # -q, --quiet Give less output. Option is additive, and can be used up to 3 times
-        # (corresponding to WARNING, ERROR, and CRITICAL logging levels).
+                    '-vvv']  # highest level of verbosity
 
         command = create_command('install', **kwargs)
         status = command.main(cmd_args)
         if status == 0:
             print('Scipion was correctly updated.')
         else:
-            print('Something went wrong during the update. Retrying...')
-            # Re-launch the update command, so the highest level of verbosity is used to explain the user the problem
-            # found
-            cmd_args[2] = '-vvv'
-            command.main(cmd_args)
+            print('Something went wrong during the update.')
 
     @staticmethod
     def genListCommand():

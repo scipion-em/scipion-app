@@ -40,8 +40,12 @@ import pyworkflow
 from configparser import ConfigParser, ParsingError  # Python 3
 from scipion.constants import *
 from scipion.constants import PLUGIN_MANAGER_PY, PYTHON, KICKOFF
+from scipion.install.update_manager import UpdateManager
+
 from scipion.utils import (getScipionHome, getInstallPath,
                            getTemplatesPath, getScriptsPath)
+
+from scipion.constants import MODE_CHECKUPDATES
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
@@ -325,7 +329,6 @@ def main():
     #     runScript('scipion install %s' % ' '.join(sys.argv[2:]))
 
     elif mode in PLUGIN_MODES:
-        cwd = os.getcwd()
         os.chdir(SCIPION_HOME)
 
         os.environ.update(VARS)
@@ -388,6 +391,10 @@ def main():
 
     elif mode == MODE_INSPECT:
         runScript(join(VARS['SCIPION_INSTALL'], 'inspect-plugins.py'), sys.argv[2:])
+
+    elif mode == MODE_CHECKUPDATES:
+        UpdateManager().runUpdateManager(sys.argv[:])
+
     # Else HELP or wrong argument
     else:
         sys.stdout.write("""\
@@ -449,6 +456,8 @@ MODE can be:
     demo | template [PATH] Launches a form based on the *.json.template found either in the PATH
                            or in the pyworkflow/templates directory. If more than one is found,
                            a dialog is raised to choose one. 
+                           
+    checkupdates [ARGS]    Checks for Scipion updates. Use with flag -h or --help to see usage.
 
 """)
         if mode == MODE_HELP:

@@ -438,8 +438,8 @@ def getTemplate(root):
     """
     templateFolder = getExternalJsonTemplates()
     customTemplates = len(sys.argv) > 1
+    tempList = TemplateList()
     if customTemplates:
-        tl = TemplateList()
         templates = []
         candidates = sys.argv[1:]
         for candFile in candidates:
@@ -447,11 +447,10 @@ def getTemplate(root):
                 templates.append(String(candFile))
             else:
                 print(" > %s file does not exist." % candFile)
-        templates = tl.genFromStrList(templates).templates
+        templates = tempList.genFromStrList(templates).templates
     else:
         # Check if other plugins have json.templates
         domain = pw.Config.getDomain()
-        tempList = TemplateList()
         # Check if there is any .json.template in the template folder
         # get the template folder (we only want it to be included once)
         templateFolder = pw.Config.getExternalJsonTemplates()

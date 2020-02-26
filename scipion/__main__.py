@@ -365,8 +365,10 @@ def main():
     # Else HELP or wrong argument
     else:
         sys.stdout.write("""\
-Usage: scipion [MODE] [ARGUMENTS]
+Usage: scipion [--config PATH] [MODE] [ARGUMENTS]
 
+    --config               Path to a full config file
+                    
 MODE can be:
     help                   Prints this help message.
 

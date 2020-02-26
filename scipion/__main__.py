@@ -457,7 +457,7 @@ MODE can be:
                            or in the pyworkflow/templates directory. If more than one is found,
                            a dialog is raised to choose one. 
                            
-    checkupdates [FORCE]   Checks for Scipion updates. Use with flag --help to see usage.
+    checkupdates [ARGS]    Checks for Scipion updates. Use with flag -h or --help to see usage.
 
 """)
         if mode == MODE_HELP:

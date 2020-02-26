@@ -127,15 +127,6 @@ def main():
                           (os.environ[SCIPION_LOCAL_CONFIG],
                            os.environ[SCIPION_CONFIG])))
 
-            # Copy file demo.json.template, contained in templates dir, into an external location
-            demo_json_file = getDemoTemplateBasename()
-            demo_json_file_orig = join(templates_dir, demo_json_file)
-            if not exists(demo_json_file_orig):
-                sys.stdout.write('Warning: file {} was not found\n'.format(demo_json_file_orig))
-            else:
-                copyfile(demo_json_file_orig,
-                         join(getExternalJsonTemplates(), demo_json_file))
-
     except Exception as e:
         # This way of catching exceptions works with Python 2 & 3
         print('Config error: %s\n' % e)

@@ -48,11 +48,12 @@ import pyworkflow as pw
 import pyworkflow.utils as pwutils
 from pyworkflow.object import String
 from pyworkflow.gui import Message, Icon, dialog
+from pyworkflow.plugin import SCIPION_JSON_TEMPLATES, Template
 from pyworkflow.project import ProjectSettings
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
-from scipion.constants import MODE_PROJECT,  SCIPION_EP
+from scipion.constants import SCIPION_EP
 
 # Custom labels
 from scipion.utils import getExternalJsonTemplates
@@ -328,6 +329,20 @@ class FormField(object):
         return validate(self._value, self._type)
 
 
+class TemplateList():
+    def __init__(self, templates=[]):
+        self.templates = templates
+
+    def addTemplate(self, t):
+        self.templates.append(t)
+
+    def genFromStrList(self, templateList):
+        for t in templateList:
+            parsedPath = t.split(os.path.sep)
+            pluginName = parsedPath[parsedPath.index('templates') - 1]
+            self.addTemplate(Template(pluginName, t))
+
+
 """ FIELDS VALIDATION """
 """ FIELDS TYPES"""
 FIELD_TYPE_STR = "0"
@@ -421,33 +436,46 @@ def getTemplate(root):
         If more than one template is found or passed, a dialog is raised
         to choose one.
     """
-    templates = []
     templateFolder = getExternalJsonTemplates()
     customTemplates = len(sys.argv) > 1
+    tempList = TemplateList()
     if customTemplates:
+        templates = []
         candidates = sys.argv[1:]
         for candFile in candidates:
             if os.path.isfile(candFile):
                 templates.append(String(candFile))
             else:
                 print(" > %s file does not exist." % candFile)
+        templates = tempList.genFromStrList(templates).templates
     else:
+        # Check if other plugins have json.templates
+        domain = pw.Config.getDomain()
         # Check if there is any .json.template in the template folder
-        # get the template folder
-        for file in glob.glob1(templateFolder, "*.json.template"):
-            templates.append(String(file))
+        # get the template folder (we only want it to be included once)
+        templateFolder = pw.Config.getExternalJsonTemplates()
+        for templateName in glob.glob1(templateFolder, "*" + SCIPION_JSON_TEMPLATES):
+            t = Template("user templates", os.path.join(templateFolder, templateName))
+            tempList.addTemplate(t)
 
-    if len(templates):
-        if len(templates) == 1:
-            chosen = templates[0].get()
+        for pluginName, pluginModule in domain.getPlugins().items():
+            tempListPlugin = pluginModule.Plugin.getTemplates()
+            for t in tempListPlugin:
+                tempList.addTemplate(t)
+
+        templates = tempList.templates
+    lenTemplates = len(templates)
+    if lenTemplates:
+        if lenTemplates == 1:
+            chosen = templates[0].templateDir
         else:
-            provider = pwgui.tree.ListTreeProviderString(templates)
+            provider = pwgui.tree.ListTreeProviderTemplate(templates)
             dlg = dialog.ListDialog(root, "Workflow templates", provider,
                                     "Select one of the templates.")
 
             if dlg.result == dialog.RESULT_CANCEL:
                 sys.exit()
-            chosen = dlg.values[0].get()
+            chosen = dlg.values[0].templatePath
 
         if not customTemplates:
             chosen = os.path.join(templateFolder, chosen)

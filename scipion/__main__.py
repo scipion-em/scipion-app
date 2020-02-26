@@ -41,7 +41,7 @@ from configparser import ConfigParser, ParsingError  # Python 3
 from scipion.constants import *
 from scipion.constants import PLUGIN_MANAGER_PY, PYTHON, KICKOFF
 from scipion.utils import (getScipionHome, getInstallPath,
-                           getTemplatesPath, getScriptsPath, getPyworkflowPath)
+                           getTemplatesPath, getScriptsPath)
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
@@ -148,7 +148,7 @@ for confFile in [SCIPION_CONFIG, SCIPION_LOCAL_CONFIG,
 # VARS will contain all the relevant environment variables, including
 # directories and packages.
 VARS = {
-    'PW_APPS': join(getPyworkflowPath(), 'apps'),
+    'PW_APPS': join(pyworkflow.Config.getPyworkflowPath(), 'apps'),
     'SCIPION_INSTALL': SCIPION_INSTALL,
     'SCIPION_HOME': SCIPION_HOME,
     'SCIPION_CWD': SCIPION_CWD,
@@ -224,7 +224,7 @@ try:
                        ]  # To be able to open scipion without xmipp
 
     if 'SCIPION_NOGUI' in os.environ:
-        PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))
+        PYTHONPATH_LIST.insert(0, join(pyworkflow.Config.getPyworkflowPath(), 'gui', 'no-tkinter'))
 
     PYTHONPATH = os.pathsep.join(PYTHONPATH_LIST)
 
@@ -373,7 +373,7 @@ def main():
 
     elif mode in MODE_DEMO:
         runScript(join(SCIPION_SCRIPTS, KICKOFF)
-                  + ' '.join(sys.argv[2:] if len(sys.argv) > 2 else ''))
+                  + ' {}'.format(sys.argv[2:] if len(sys.argv) > 2 else ''))
 
     # Allow to run programs from different packages
     # scipion will load the specified environment

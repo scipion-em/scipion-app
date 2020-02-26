@@ -26,9 +26,9 @@
 # *
 # **************************************************************************
 import sys
-from importlib import util
 from os.path import join, dirname, exists, isdir
 from os import environ
+import importlib
 
 def getScipionHome():
 
@@ -45,39 +45,23 @@ def getScipionHome():
 
     return home
 
-
 def getScipionAppPath():
     return dirname(__file__)
-
 
 def getInstallPath():
     return join(getScipionAppPath(), 'install')
 
-
 def getScriptsPath():
     return join(getScipionAppPath(), 'scripts')
 
-
 def getTemplatesPath():
     return join(getScipionAppPath(), 'templates')
-
-
-def getDemoTemplateBasename():
-    return "demo.json.template"
-
 
 def getExternalJsonTemplates():
     import pyworkflow
     return dirname(pyworkflow.Config.SCIPION_CONFIG)
 
-
-def getPyworkflowPath():
-    return getModuleFolder("pyworkflow")
-
-
 def getModuleFolder(moduleName):
     """ Returns the path of a module without importing it"""
-
-    spec = util.find_spec(moduleName)
+    spec = importlib.util.find_spec(moduleName)
     return dirname(spec.origin)
-

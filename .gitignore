@@ -22,3 +22,4 @@ scipion_app.egg-info/*
 config/*
 /software/
 /data/
+/scipion3venv/

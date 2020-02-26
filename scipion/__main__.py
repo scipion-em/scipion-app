@@ -39,8 +39,9 @@ import subprocess
 from configparser import ConfigParser, ParsingError  # Python 3
 from scipion.constants import *
 from scipion.utils import (getScipionHome, getInstallPath,
-                           getTemplatesPath, getScriptsPath, getPyworkflowPath)
+                           getScriptsPath, getTemplatesPath, getModuleFolder)
 from .scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
+from scipion.constants import MODE_CHECKUPDATES
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
@@ -156,7 +157,7 @@ class Vars:
     SCIPION_HOSTS = hosts
 
     # Paths to apps or scripts
-    PW_APPS = join(getPyworkflowPath(), 'apps')
+    PW_APPS = join(getModuleFolder("pyworkflow"), 'apps')
     SCIPION_TEMPLATES = getTemplatesPath()
 
     SCIPION_VERSION = getVersion()
@@ -176,7 +177,7 @@ try:
                        ]
 
     if 'SCIPION_NOGUI' in os.environ:
-        PYTHONPATH_LIST.insert(0, join(getPyworkflowPath(), 'gui', 'no-tkinter'))
+        PYTHONPATH_LIST.insert(0, join(pyworkflow.Config.getPyworkflowPath(), 'gui', 'no-tkinter'))
 
     # Load variables from Vars class into VARS dict
     PYTHONPATH = os.pathsep.join(PYTHONPATH_LIST)
@@ -295,7 +296,6 @@ def main():
     #     runScript('scipion install %s' % ' '.join(sys.argv[2:]))
 
     elif mode in PLUGIN_MODES:
-        cwd = os.getcwd()
         os.chdir(Vars.SCIPION_HOME)
 
         os.environ.update(VARS)
@@ -362,6 +362,11 @@ def main():
 
     elif mode == MODE_INSPECT:
         runScript(join(Vars.SCIPION_INSTALL, 'inspect-plugins.py'), sys.argv[2:])
+
+    elif mode == MODE_CHECKUPDATES:
+        # Once more: local import to avoid importing pyworkflow, triegered by install.__init__ (Plugin Manager)
+        from scipion.install.update_manager import UpdateManager
+        UpdateManager().runUpdateManager(sys.argv[:])
     # Else HELP or wrong argument
     else:
         sys.stdout.write("""\
@@ -422,9 +427,11 @@ MODE can be:
 
     view | show NAME       Opens a file with Scipion's showj, or a directory with Browser.
     
-    demo | template [PATH] Launches a form based on the *.json.template found either in the PATH
-                           or in the pyworkflow/templates directory. If more than one is found,
-                           a dialog is raised to choose one. 
+    demo | template [PATH] Shows all the *.json.template found in the config folder
+                           and all provided by plugins. If PATH (a path to a template) is provided, 
+                           then that template is used. 
+                           
+    checkupdates [ARGS]    Checks for Scipion updates. Use with flag -h or --help to see usage.
 
 """)
         if mode == MODE_HELP:

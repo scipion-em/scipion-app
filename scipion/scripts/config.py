@@ -34,8 +34,7 @@ import optparse
 import collections
 from shutil import copyfile
 
-from scipion.utils import (getExternalJsonTemplates, getTemplatesPath,
-                     getDemoTemplateBasename)
+from scipion.utils import getExternalJsonTemplates, getTemplatesPath
 
 PYWORKFLOW_SECTION = "PYWORKFLOW"
 SCIPION_CONF = 'scipion'
@@ -119,10 +118,8 @@ def main(args=None):
         traceback.print_exc()
         sys.exit(1)
 
-
 def getTemplateName(template):
     return template + '.template'
-
 
 def checkNotify(config, configfile, unattended):
     """ Check if protocol statistics should be collected. """
@@ -148,7 +145,6 @@ from you and we respect your privacy.
         input("Press <enter> to continue:")
 
     config.set(PYWORKFLOW_SECTION, SCIPION_NOTIFY, 'True')
-
 
 def createConf(fpath, ftemplate, unattended=False):
     """Create config file in fpath following the template in ftemplate"""
@@ -195,7 +191,6 @@ def createConf(fpath, ftemplate, unattended=False):
 
     # Create the actual configuration file.
     cf.write(open(fpath, 'w'))
-
 
 def addPyworkflowVariables(cf):
     # Once more we need a local import to prevent the Config to be wrongly initialized
@@ -252,7 +247,6 @@ def checkPaths(conf):
         print("Please edit %s and check again." % conf)
         print("To regenerate the config files trying to guess the paths, you "
               "can run: scipion config --overwrite")
-
 
 def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
     """Check that all the variables in the template are in the config file too"""
@@ -338,7 +332,6 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
         except Exception as e:
             print("Could not update the config: ", e)
 
-
 def compareConfig(cf, ct, fPath, fTemplate):
     """ Compare configuration against template values"""
 
@@ -357,10 +350,8 @@ def compareConfig(cf, ct, fPath, fTemplate):
             # Compare value with template
             compareConfigVariable(s, variable, valueInConfig, valueInTemplate)
 
-
 def getConfigVariable(config, section, variableName):
     return config._sections[section].get(variableName)
-
 
 def compareConfigVariable(section, variableName, valueInConfig, valueInTemplate):
     if valueInTemplate is None:
@@ -370,7 +361,6 @@ def compareConfigVariable(section, variableName, valueInConfig, valueInTemplate)
         print("%s at %s section (%s) differs from the default value in the "
               "template: %s" % (red(variableName), section, red(valueInConfig),
                                 yellow(valueInTemplate)))
-
 
 def guessJava():
     """Guess the system's Java installation, return a dict with the Java keys"""
@@ -414,7 +404,6 @@ def guessJava():
             print(red("Our candidates were:\n  %s" % '\n  '.join(candidates)))
 
     return options
-
 
 def guessMPI():
     """Guess the system's MPI installation, return a dict with MPI keys"""

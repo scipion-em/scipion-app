@@ -48,7 +48,7 @@ import pyworkflow as pw
 import pyworkflow.utils as pwutils
 from pyworkflow.object import String
 from pyworkflow.gui import Message, Icon, dialog
-from pyworkflow.plugin import Plugin, TemplateList, TemplateDirData
+from pyworkflow.plugin import SCIPION_JSON_TEMPLATES, Template
 from pyworkflow.project import ProjectSettings
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
@@ -329,6 +329,20 @@ class FormField(object):
         return validate(self._value, self._type)
 
 
+class TemplateList():
+    def __init__(self, templates=[]):
+        self.templates = templates
+
+    def addTemplate(self, t):
+        self.templates.append(t)
+
+    def genFromStrList(self, templateList):
+        for t in templateList:
+            parsedPath = t.split(os.path.sep)
+            pluginName = parsedPath[parsedPath.index('templates') - 1]
+            self.addTemplate(Template(pluginName, t))
+
+
 """ FIELDS VALIDATION """
 """ FIELDS TYPES"""
 FIELD_TYPE_STR = "0"
@@ -436,29 +450,20 @@ def getTemplate(root):
         templates = tl.genFromStrList(templates).templates
     else:
         # Check if other plugins have json.templates
-        # Check if other plugins have json.templates
         domain = pw.Config.getDomain()
         tempList = TemplateList()
-
-        # # JORGE
-        # fname = "/home/plosana/Desktop/test_PL.txt"
-        # if os.path.exists(fname):
-        #     os.remove(fname)
-        # fjj = open(fname, "a+")
-        # fjj.write('JORGE--------->onDebugMode PID {}'.format(os.getpid()))
-        # fjj.close()
-        # import time
-        # time.sleep(10)
-        # # JORGE_END
+        # Check if there is any .json.template in the template folder
+        # get the template folder (we only want it to be included once)
+        templateFolder = pw.Config.getExternalJsonTemplates()
+        for templateName in glob.glob1(templateFolder, "*" + SCIPION_JSON_TEMPLATES):
+            t = Template("user templates", os.path.join(templateFolder, templateName))
+            tempList.addTemplate(t)
 
         for pluginName, pluginModule in domain.getPlugins().items():
-            tDir = TemplateDirData(pluginModule)
-            pluginModule.Plugin.setPluginTemplateDir(tDir)
-            if tDir.path:
-                pluginModule.Plugin.setName(pluginName)
-                tempListPlugin = pluginModule.Plugin.getTemplates()
-                for t in tempListPlugin:
-                    tempList.addTemplate(t)
+            tempListPlugin = pluginModule.Plugin.getTemplates()
+            for t in tempListPlugin:
+                tempList.addTemplate(t)
+
         templates = tempList.templates
     lenTemplates = len(templates)
     if lenTemplates:

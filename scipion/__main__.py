@@ -445,5 +445,6 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        # This way of catching exceptions works with Python 2 & 3
+        import traceback
+        traceback.print_exc()
         sys.exit('Error at main: %s\n' % e)

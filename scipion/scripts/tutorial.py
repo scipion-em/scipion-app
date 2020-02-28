@@ -31,7 +31,7 @@ Launch main project window
 import os
 import sys
 from collections import OrderedDict
-
+import pyworkflow as pw
 import pyworkflow.tests as tests
 from pyworkflow.project import Manager
 import pyworkflow.utils as pwutils
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         print("\nwhere TUTORIAL_NAME can be:")
         print("\n".join([' %s' % k for k in ALL_TUTORIALS.keys()]))
         
-    if pwutils.envVarOn('SCIPION_DEBUG'):
+    if pw.Config.debugOn():
         # Add callback for remote debugging if available.
         try:
             from rpdb2 import start_embedded_debugger

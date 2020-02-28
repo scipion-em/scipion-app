@@ -277,7 +277,7 @@ class BoxWizardView(tk.Frame):
         os.system("python -m %s python %s %s" % (scipion, scheduleProjectScript, projectName))
 
         # Launch scipion
-        os.system("python -m %s python project %s" % (scipion, projectName))
+        os.system("python -m %s project %s" % (scipion, projectName))
 
     def _createTemplate(self):
 
@@ -494,6 +494,9 @@ def getTemplate(root):
                         "\n see 'scipion help'\n" % templateFolder)
 
 
-if __name__ == "__main__":
+def main():
     wizWindow = BoxWizardWindow()
     wizWindow.show()
+
+if __name__ == "__main__":
+    main()

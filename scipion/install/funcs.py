@@ -264,7 +264,7 @@ class Environment:
     
     @staticmethod
     def getSoftware():
-        return os.environ.get('SCIPION_SOFTWARE', 'software')
+        return Config.SCIPION_SOFTWARE
 
     @staticmethod
     def getLibFolder():
@@ -274,9 +274,10 @@ class Environment:
     def getPython():
         return sys.executable
 
-    @staticmethod
-    def getPythonFolder():
-        return Environment.getLibFolder() + '/python2.7'
+    # Pablo: A quick search didn't find usages.
+    # @staticmethod
+    # def getPythonFolder():
+    #     return Environment.getLibFolder() + '/python2.7'
 
     @staticmethod
     def getPythonPackagesFolder():
@@ -309,15 +310,14 @@ class Environment:
 
     @staticmethod
     def getEmFolder():
+        # Create it if it does not exists
+        if not exists(pwem.Config.EM_ROOT):
+            os.makedirs(pwem.Config.EM_ROOT)
         return pwem.Config.EM_ROOT
 
     @staticmethod
     def getEm(name):
         return '%s/%s' % (Environment.getEmFolder(), name)
-
-    @staticmethod
-    def getEmPackagesFolder():
-        return "pyworkflow/em/packages"
 
     def getTargetList(self):
         return self._targetList
@@ -804,8 +804,8 @@ class Environment:
         cudaBin = os.environ.get(packUpper + '_CUDA_BIN')
     
         if cudaLib is None:
-            cudaLib = os.environ.get('CUDA_LIB')
-            cudaBin = os.environ.get('CUDA_BIN')
+            cudaLib = pwem.Config.CUDA_LIB
+            cudaBin = pwem.Config.CUDA_BIN
 
         environ = os.environ.copy()
 

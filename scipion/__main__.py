@@ -284,7 +284,9 @@ def main():
         openProject(sys.argv[2])
 
     elif mode == MODE_TESTS or mode == MODE_TEST:
-        runApp('pw_run_tests.py', args=sys.argv[2:])
+        os.environ.update(VARS)
+        from pyworkflow.apps.pw_run_tests import Tester
+        Tester().main(sys.argv[2:])
 
     elif mode == MODE_TEST_DATA:
         runApp('pw_sync_data.py', args=sys.argv[2:])

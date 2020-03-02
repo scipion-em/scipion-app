@@ -467,7 +467,7 @@ def getTemplate(root):
     lenTemplates = len(templates)
     if lenTemplates:
         if lenTemplates == 1:
-            chosen = templates[0].templateDir
+            chosen = templates[0]
         else:
             provider = pwgui.tree.ListTreeProviderTemplate(templates)
             dlg = dialog.ListDialog(root, "Workflow templates", provider,
@@ -475,16 +475,11 @@ def getTemplate(root):
 
             if dlg.result == dialog.RESULT_CANCEL:
                 sys.exit()
-            chosen = dlg.values[0].templatePath
-
-        if not customTemplates:
-            chosen = os.path.join(templateFolder, chosen)
+            chosen = dlg.values[0]
 
         print("Template to use: %s" % chosen)
-        with open(chosen, 'r') as myfile:
-            template = myfile.read()
         # Replace environment variables
-        return template % os.environ
+        return chosen.content % os.environ
 
     else:
         raise Exception("No valid file found (*.json.template).\n"
@@ -497,6 +492,7 @@ def getTemplate(root):
 def main():
     wizWindow = BoxWizardWindow()
     wizWindow.show()
+
 
 if __name__ == "__main__":
     main()

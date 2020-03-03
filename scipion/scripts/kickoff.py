@@ -457,21 +457,28 @@ def getTemplate(root):
         # get the template folder (we only want it to be included once)
         templateFolder = pw.Config.getExternalJsonTemplates()
         for templateName in glob.glob1(templateFolder, "*" + SCIPION_JSON_TEMPLATES):
-            if tempId and len(tempList.templates) == 1:
-                break
             t = Template("user templates", os.path.join(templateFolder, templateName))
-            if not tempId or tempId == t.getObjId():
+            if tempId:
+                if tempId == t.getObjId():
+                    tempList.addTemplate(t)
+                    break
+                else:
+                    continue
+            else:
                 tempList.addTemplate(t)
 
-        for pluginName, pluginModule in domain.getPlugins().items():
-            if tempId and len(tempList.templates) == 1:
-                break
-            tempListPlugin = pluginModule.Plugin.getTemplates()
-            for t in tempListPlugin:
-                if tempId and len(tempList.templates) == 1:
-                    break
-                if not tempId or tempId == t.getObjId():
-                    tempList.addTemplate(t)
+        if not (tempId and len(tempList.templates) == 1):
+            for pluginName, pluginModule in domain.getPlugins().items():
+                tempListPlugin = pluginModule.Plugin.getTemplates()
+                for t in tempListPlugin:
+                    if tempId:
+                        if tempId == t.getObjId():
+                            tempList.addTemplate(t)
+                            break
+                        else:
+                            continue
+                    else:
+                        tempList.addTemplate(t)
 
     templates = tempList.templates
     lenTemplates = len(templates)

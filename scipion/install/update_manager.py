@@ -77,6 +77,7 @@ class UpdateManager:
 
     @classmethod
     def isScipionUpToDate(cls):
+        print('Looking for updates...')
         return cls.pluginName in cls.getUpToDatePluginList()
 
     @classmethod

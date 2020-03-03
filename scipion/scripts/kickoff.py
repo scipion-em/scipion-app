@@ -430,15 +430,16 @@ def getTemplate(root):
     templateFolder = getExternalJsonTemplates()
     customTemplates = len(sys.argv) > 1
     tempList = TemplateList()
+    tempId = ""
     if customTemplates:
-        atributes = {}
+        attributes = {}
         if os.path.isfile(sys.argv[1]):
             t = Template("custom template", sys.argv[1])
             tempList.addTemplate(t)
         else:
             tempId = sys.argv[1]
         for nameAttr, valAttr in (attr.split('=') for attr in sys.argv[2:]):
-            atributes[nameAttr] = valAttr
+            attributes[nameAttr] = valAttr
 
     if len(tempList.templates) == 0:
         # Check if other plugins have json.templates

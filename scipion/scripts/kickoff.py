@@ -150,32 +150,23 @@ class BoxWizardView(tk.Frame):
         self.rowconfigure(1, weight=1)
 
     def _fillContent(self, frame):
-        labelFrame = tk.LabelFrame(frame, text=' General ', bg='white',
-                                   font=self.bigFontBold)
-        labelFrame.grid(row=0, column=0, sticky='nw', padx=20)
-
-        self._addPair(PROJECT_NAME, 1, labelFrame, value=PROJECT_TEMPLATE)
-        self._addPair(MESSAGE, 4, labelFrame, widget='label')
-
+        # General parameters
+        labelFrame = tk.LabelFrame(frame, text=' General ', bg='white',  font=self.bigFontBold)
+        labelFrame.grid(row=0, column=0, sticky='news', padx=20,  pady=10)
         labelFrame.columnconfigure(0, weight=1)
         labelFrame.columnconfigure(0, minsize=120)
-        labelFrame.columnconfigure(1, weight=1)
-
-        labelFrame2 = tk.LabelFrame(frame, text=' Acquisition values ', bg='white',
-                                    font=self.bigFontBold)
-
-        labelFrame2.grid(row=1, column=0, sticky='nw', padx=20, pady=10)
+        self._addPair(PROJECT_NAME, 1, labelFrame, value=PROJECT_TEMPLATE)
+        # Acquisition parameters
+        labelFrame2 = tk.LabelFrame(frame, text=' Acquisition values ', bg='white', font=self.bigFontBold)
+        labelFrame2.grid(row=1, column=0, sticky='news', padx=20, pady=10)
         labelFrame2.columnconfigure(0, minsize=120)
-
-        self.addFieldsFromTemplate(labelFrame2)
-
-        frame.columnconfigure(0, weight=1)
+        self.addFieldsFromTemplate(labelFrame, labelFrame2)
 
     def _addPair(self, text, r, lf, widget='entry', traceCallback=None,
                  mouseBind=False, value=None):
         label = tk.Label(lf, text=text, bg='white',
                          font=self.bigFont)
-        label.grid(row=r, column=0, padx=(10, 5), pady=2, sticky='ne')
+        label.grid(row=r, column=0, padx=(10, 5), pady=2, sticky='news')
 
         if not widget:
             return
@@ -197,7 +188,7 @@ class BoxWizardView(tk.Frame):
             widget = tk.Label(lf, font=self.bigFont, textvariable=var)
 
         self.vars[text] = var
-        widget.grid(row=r, column=1, sticky='nw', padx=(5, 10), pady=2)
+        widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=2)
 
     def _addCheckPair(self, label, r, lf, col=1):
 
@@ -207,12 +198,12 @@ class BoxWizardView(tk.Frame):
                             variable=var)
         self.vars[label] = var
         self.checkvars.append(label)
-        cb.grid(row=r, column=col, padx=5, sticky='nw')
+        cb.grid(row=r, column=col, padx=5, sticky='news')
 
-    def addFieldsFromTemplate(self, labelFrame2):
+    def addFieldsFromTemplate(self, labelFrame1, labelFrame2):
 
-        self._template = getTemplateSplit(self.root)
-
+        self._template, tId = getTemplateSplit(self.root)
+        self._addPair(PROJECT_NAME, 1, labelFrame1, value=tId + '-' + datetime.now().strftime("%y%m%d-%H%M%S"))
         self._fields = getFields(self._template)
 
         row = 2
@@ -329,7 +320,7 @@ class FormField(object):
         return validate(self._value, self._type)
 
 
-class TemplateList():
+class TemplateList:
     def __init__(self, templates=[]):
         self.templates = templates
 
@@ -424,10 +415,10 @@ def replaceFields(fields, template):
 
 def getTemplateSplit(root):
     # Get the fields definition from the template
-    templateStr = getTemplate(root)
+    templateStr, tId = getTemplate(root)
 
     # Split the template by the field separator
-    return templateStr.split(FIELD_SEP)
+    return templateStr.split(FIELD_SEP), tId
 
 
 def getTemplate(root):
@@ -479,7 +470,7 @@ def getTemplate(root):
 
         print("Template to use: %s" % chosen)
         # Replace environment variables
-        return chosen.content % os.environ
+        return chosen.content % os.environ, chosen.getObjId()
 
     else:
         raise Exception("No valid file found (*.json.template).\n"
@@ -490,6 +481,8 @@ def getTemplate(root):
 
 
 def main():
+
+
     wizWindow = BoxWizardWindow()
     wizWindow.show()
 

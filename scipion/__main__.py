@@ -32,8 +32,7 @@ Main entry point to scipion. It launches the gui, tests, etc.
 """
 import sys
 import os
-from os.path import join, exists, dirname, expanduser
-
+from os.path import join, exists, dirname, expanduser, expandvars
 
 import subprocess
 from configparser import ConfigParser, ParsingError  # Python 3
@@ -46,6 +45,7 @@ from scipion.constants import MODE_CHECKUPDATES
 __version__ = 'v3.0'
 __nickname__ = DEVEL
 __releasedate__ = ''
+
 
 # *********************  Helper functions *****************************
 def getVersion(long=True):
@@ -60,12 +60,13 @@ def printVersion():
     # Print the version and some more info
     print('Scipion %s\n' % getVersion())
 
-def config2Dict(configFile, varDict):
-    """ Loads a config file if exists and populates a dictionary overwriting the keys """
 
+def config2Dict(configFile, varDict):
+    """ Loads a config file if exists and populates a dictionary
+    overwriting the keys.
+    """
     # If config file exists
     if exists(configFile):
-
         #read the file
         config = ConfigParser()
         config.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
@@ -74,14 +75,14 @@ def config2Dict(configFile, varDict):
         # For each section
         for sectionName, section in config.items():
             for variable, value in section.items():
-                varDict[variable] = value
+                varDict[variable] = expandvars(value)
 
     return varDict
+
 
 def envOn(varName):
     value = os.environ.get(varName, '').lower()
     return value in ['1', 'true', 'on', 'yes']
-
 
 # *********************************************************
 
@@ -205,11 +206,11 @@ except Exception as e:
                          'try again.\n' % Vars.SCIPION_CONFIG)
         sys.exit(1)
 
+
 #
 # Auxiliary functions to run commands in our environment, one of our
 # scripts, or one of our "apps"
 #
-
 def runCmd(cmd, args=''):
     """ Runs ANY command with its arguments"""
     if isinstance(args, list):
@@ -256,7 +257,7 @@ def main():
 
     # Trigger Config initialization once environment is ready
     import pyworkflow
-    pwVARS = pyworkflow.Config.getVariableDict()
+    pwVARS = pyworkflow.Config.getVars()
     VARS.update(pwVARS)
 
     # Update the environment now with pyworkflow values.
@@ -264,7 +265,6 @@ def main():
 
     # Check mode
     if mode == MODE_MANAGER:
-
         from pyworkflow.gui.project import ProjectManagerWindow
         ProjectManagerWindow().show()
 

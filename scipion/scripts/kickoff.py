@@ -431,15 +431,16 @@ def getTemplate(root):
     customTemplates = len(sys.argv) > 1
     tempList = TemplateList()
     if customTemplates:
-        templates = []
-        candidates = sys.argv[1:]
-        for candFile in candidates:
-            if os.path.isfile(candFile):
-                templates.append(String(candFile))
-            else:
-                print(" > %s file does not exist." % candFile)
-        templates = tempList.genFromStrList(templates).templates
-    else:
+        atributes = {}
+        if os.path.isfile(sys.argv[1]):
+            t = Template("custom template", sys.argv[1])
+            tempList.addTemplate(t)
+        else:
+            tempId = sys.argv[1]
+        for nameAttr, valAttr in (attr.split('=') for attr in sys.argv[2:]):
+            atributes[nameAttr] = valAttr
+
+    if len(tempList.templates) == 0:
         # Check if other plugins have json.templates
         domain = pw.Config.getDomain()
         # Check if there is any .json.template in the template folder
@@ -447,14 +448,29 @@ def getTemplate(root):
         templateFolder = pw.Config.getExternalJsonTemplates()
         for templateName in glob.glob1(templateFolder, "*" + SCIPION_JSON_TEMPLATES):
             t = Template("user templates", os.path.join(templateFolder, templateName))
-            tempList.addTemplate(t)
-
-        for pluginName, pluginModule in domain.getPlugins().items():
-            tempListPlugin = pluginModule.Plugin.getTemplates()
-            for t in tempListPlugin:
+            if tempId:
+                if tempId == t.getObjId():
+                    tempList.addTemplate(t)
+                    break
+                else:
+                    continue
+            else:
                 tempList.addTemplate(t)
 
-        templates = tempList.templates
+        if not (tempId and len(tempList.templates) == 1):
+            for pluginName, pluginModule in domain.getPlugins().items():
+                tempListPlugin = pluginModule.Plugin.getTemplates()
+                for t in tempListPlugin:
+                    if tempId:
+                        if tempId == t.getObjId():
+                            tempList.addTemplate(t)
+                            break
+                        else:
+                            continue
+                    else:
+                        tempList.addTemplate(t)
+
+    templates = tempList.templates
     lenTemplates = len(templates)
     if lenTemplates:
         if lenTemplates == 1:
@@ -481,8 +497,6 @@ def getTemplate(root):
 
 
 def main():
-
-
     wizWindow = BoxWizardWindow()
     wizWindow.show()
 

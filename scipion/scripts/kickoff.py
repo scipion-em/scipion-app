@@ -464,6 +464,8 @@ def getTemplate(root):
                 tempList.addTemplate(t)
 
         for pluginName, pluginModule in domain.getPlugins().items():
+            if tempId and len(tempList.templates) == 1:
+                break
             tempListPlugin = pluginModule.Plugin.getTemplates()
             for t in tempListPlugin:
                 if tempId and len(tempList.templates) == 1:

@@ -31,7 +31,7 @@ MODE_PYTHON = 'python'
 MODE_TUTORIAL = 'tutorial'
 MODE_DEMO = ['demo', 'template']
 MODE_INSPECT = "inspect"
-MODE_CHECKUPDATES = 'checkupdates'
+MODE_UPDATE = 'update'
 PLUGIN_MODES = [MODE_UNINSTALL_PLUGIN, MODE_INSTALL_PLUGIN,
                 MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
 

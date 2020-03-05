@@ -32,7 +32,10 @@ import optparse
 from pip._internal.commands.list import ListCommand
 import pip._internal.utils.misc as piputils
 from pip._internal.commands import create_command
+from scipion.constants import MODE_UPDATE
 
+Y_COMMAND = '-y'
+SCIPION_NAME = 'Scipion'
 
 class UpdateManager:
 
@@ -44,22 +47,22 @@ class UpdateManager:
         parser = argparse.ArgumentParser(prog=args[1:],
                                          formatter_class=argparse.RawTextHelpFormatter)
         subparsers = parser.add_subparsers()
-        # create the parser for the "checkupdates" command
-        parser_f = subparsers.add_parser('checkupdates',
-                                         description='description: check for Scipion updates.',
+        # create the parser for the "update" command
+        parser_f = subparsers.add_parser(MODE_UPDATE,
+                                         description='description: update {}.'.format(SCIPION_NAME),
                                          formatter_class=argparse.RawTextHelpFormatter,
-                                         usage="{} [-h/--help] [-f/--forceupdate]".format(' '.join(args[:2]))
+                                         usage="{} [-h/--help] [{}]".format(' '.join(args[:2]), Y_COMMAND)
                                          )
-        parser_f.add_argument('-f', '--forceupdate',
-                              help='force to update Scipion in case a new update is available',
+        parser_f.add_argument(Y_COMMAND,
+                              help='force to update {}.'.format(SCIPION_NAME),
                               action="store_true")
 
         parsedArgs = parser.parse_args(args[1:])
         if cls.isScipionUpToDate():
-            print('Scipion is up to date.')
+            print('{} is up to date.'.format(SCIPION_NAME))
         else:
-            print('A new update is available for Scipion.')
-            if parsedArgs.forceupdate:
+            print('A new update is available for {}.'.format(SCIPION_NAME))
+            if parsedArgs.y:
                 cls.updateScipion()
                 print('Updating...')
             else:
@@ -74,6 +77,7 @@ class UpdateManager:
 
     @classmethod
     def isScipionUpToDate(cls):
+        print('Looking for updates...')
         return cls.pluginName in cls.getUpToDatePluginList()
 
     @classmethod

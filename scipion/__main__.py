@@ -40,7 +40,7 @@ from scipion.constants import *
 from scipion.utils import (getScipionHome, getInstallPath,
                            getScriptsPath, getTemplatesPath, getModuleFolder)
 from .scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
-from scipion.constants import MODE_CHECKUPDATES
+from scipion.constants import MODE_UPDATE
 
 __version__ = 'v3.0'
 __nickname__ = DEVEL
@@ -365,7 +365,7 @@ def main():
     elif mode == MODE_INSPECT:
         runScript(join(Vars.SCIPION_INSTALL, 'inspect-plugins.py'), sys.argv[2:])
 
-    elif mode == MODE_CHECKUPDATES:
+    elif mode == MODE_UPDATE:
         # Once more: local import to avoid importing pyworkflow, triegered by install.__init__ (Plugin Manager)
         from scipion.install.update_manager import UpdateManager
         UpdateManager().runUpdateManager(sys.argv[:])

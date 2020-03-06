@@ -88,7 +88,7 @@ class BoxWizardWindow(ProjectBaseWindow):
         settings = ProjectSettings()
         self.generalCfg = settings.getConfig()
 
-        ProjectBaseWindow.__init__(self, title, minsize=(650, 500), **kwargs)
+        ProjectBaseWindow.__init__(self, title, minsize=(800, 350), **kwargs)
         self.viewFuncs = {VIEW_WIZARD: BoxWizardView}
         self.switchView(VIEW_WIZARD, **kwargs)
 
@@ -126,23 +126,11 @@ class BoxWizardView(tk.Frame):
         self.projDateFont = tkFont.Font(size=smallSize, family=fontName)
         self.projDelFont = tkFont.Font(size=smallSize, family=fontName,
                                        weight='bold')
-        # Header section
-        headerFrame = tk.Frame(self, bg='white')
-        headerFrame.columnconfigure(0, weight=1)
-        headerFrame.grid(row=0, column=0, sticky='news')
-        headerText = "Enter your desired values"
-
-        label = tk.Label(headerFrame, text=headerText,
-                         font=self.bigFontBold,
-                         borderwidth=0, anchor='nw', bg='white',
-                         fg=pwgui.Color.DARK_GREY_COLOR)
-        label.grid(row=0, column=0, sticky='news', padx=(20, 5), pady=10)
-
         # Body section
         bodyFrame = tk.Frame(self, bg='white')
-        bodyFrame.columnconfigure(0, weight=1)
-        bodyFrame.rowconfigure(0, weight=1)
-        bodyFrame.grid(row=1, column=0, sticky='news')
+        bodyFrame.columnconfigure(0, minsize=120)
+        bodyFrame.columnconfigure(1, minsize=120, weight=1)
+        bodyFrame.grid(row=0, column=0, sticky='news')
         self._fillContent(bodyFrame)
 
         # Add the create project button
@@ -151,7 +139,7 @@ class BoxWizardView(tk.Frame):
         btn = HotButton(btnFrame, text=START_BUTTON,
                         font=self.bigFontBold,
                         command=self._onAction)
-        btn.grid(row=0, column=1, sticky='ne', padx=20, pady=10)
+        btn.grid(row=0, column=1, sticky='ne', padx=10, pady=10)
 
         # Add the Import project button
         btn = Button(btnFrame, Message.LABEL_BUTTON_CANCEL,
@@ -160,31 +148,22 @@ class BoxWizardView(tk.Frame):
         btn.grid(row=0, column=0, sticky='ne', pady=10)
 
         btnFrame.columnconfigure(0, weight=1)
-        btnFrame.grid(row=2, column=0, sticky='news')
+        btnFrame.grid(row=1, column=0, sticky='news')
 
         self.columnconfigure(0, weight=1)
 
     def _fillContent(self, frame):
-        # General parameters
-        gpFrame = tk.LabelFrame(frame, text=' General ', bg='white',  font=self.bigFontBold)
-        gpFrame.grid(row=0, column=0, sticky='news', padx=20,  pady=10)
-        gpFrame.columnconfigure(0, minsize=120)
-        gpFrame.columnconfigure(1, minsize=120, weight=1)
-        # Acquisition parameters
-        apFrame = tk.LabelFrame(frame, text=' Acquisition values ', bg='white', font=self.bigFontBold)
-        apFrame.grid(row=1, column=0, sticky='news', padx=20, pady=10)
-        apFrame.columnconfigure(0, minsize=120)
-        apFrame.columnconfigure(1, minsize=120, weight=1)
-        # Data
         self._templateContent, self._templateId = getTemplateSplit(self.template)
-        self._addGeneralFields(gpFrame)
-        self._addFieldsFromTemplate(apFrame)
+        # Add project name
+        self._addPair(PROJECT_NAME, 1, frame,
+                      value=self._templateId + '-' + datetime.now().strftime("%y%m%d-%H%M%S"),
+                      pady=(10, 30))
+        # Add template params
+        self._addFieldsFromTemplate(frame)
 
-    def _addPair(self, text, r, lf, widget='entry', traceCallback=None,
-                 mouseBind=False, value=None):
-        label = tk.Label(lf, text=text, bg='white',
-                         font=self.bigFont)
-        label.grid(row=r, column=0, padx=(10, 5), pady=2, sticky='nes')
+    def _addPair(self, text, r, lf, widget='entry', traceCallback=None,  mouseBind=False, value=None, pady=2):
+        label = tk.Label(lf, text=text, bg='white', font=self.bigFont)
+        label.grid(row=r, column=0, padx=(10, 5), pady=pady, sticky='nes')
 
         if not widget:
             return
@@ -206,7 +185,7 @@ class BoxWizardView(tk.Frame):
             widget = tk.Label(lf, font=self.bigFont, textvariable=var)
 
         self.vars[text] = var
-        widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=2)
+        widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=pady)
 
     def _addGeneralFields(self, labelFrame):
         self._addPair(PROJECT_NAME, 1, labelFrame,
@@ -215,7 +194,7 @@ class BoxWizardView(tk.Frame):
     def _addFieldsFromTemplate(self, labelFrame):
         self._fields = getFields(self._templateContent)
 
-        row = 2
+        row = 3
         for field in self._fields.values():
             self._addPair(field.getTitle(), row, labelFrame, value=field.getValue())
             row += 1
@@ -262,10 +241,6 @@ class BoxWizardView(tk.Frame):
 
         scipion = SCIPION_EP
         scriptsPath = pw.join('project', 'scripts')
-
-        # Download the required data
-        # pwutils.runCommand(scipion +
-        #                     " testdata --download jmbFalconMovies")
 
         # Create the project
         createProjectScript = os.path.join(scriptsPath, 'create.py')

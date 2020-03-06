@@ -46,7 +46,6 @@ import collections
 
 import pyworkflow as pw
 import pyworkflow.utils as pwutils
-from pyworkflow.object import String
 from pyworkflow.gui import Message, Icon, dialog
 from pyworkflow.plugin import SCIPION_JSON_TEMPLATES, Template
 from pyworkflow.project import ProjectSettings
@@ -69,7 +68,6 @@ VIEW_WIZARD = 'wizardview'
 
 # Session id
 PROJECT_NAME = 'Project name'
-MESSAGE = 'Message'
 
 # Project regex to validate the session id name
 PROJECT_PATTERN = "^\w{2}\d{4,6}-\d+$"
@@ -100,7 +98,7 @@ class BoxWizardWindow(ProjectBaseWindow):
             self.viewWidget.grid_forget()
             self.viewWidget.destroy()
         # Create the new view
-        self.viewWidget = self.viewFuncs[newView](self.footer, self, kwargs['templates'] if kwargs else None)
+        self.viewWidget = self.viewFuncs[newView](self.footer, self, template=kwargs.get('template', None))
         # Grid in the second row (1)
         self.viewWidget.grid(row=0, column=0, columnspan=10, sticky='news')
         self.footer.rowconfigure(0, weight=1)
@@ -109,13 +107,13 @@ class BoxWizardWindow(ProjectBaseWindow):
 
 
 class BoxWizardView(tk.Frame):
-    def __init__(self, parent, windows, templates=None, **kwargs):
+    def __init__(self, parent, windows, template=None, **kwargs):
         tk.Frame.__init__(self, parent, bg='white', **kwargs)
         self.windows = windows
         self.root = windows.root
         self.vars = {}
         self.checkvars = []
-        self.templates = templates
+        self.template = template
 
         bigSize = pwgui.cfgFontSize + 2
         smallSize = pwgui.cfgFontSize - 2
@@ -150,13 +148,13 @@ class BoxWizardView(tk.Frame):
         # Add the create project button
         btnFrame = tk.Frame(self, bg='white')
 
-        btn = HotButton(btnFrame, text=BUTTON_ALIGN_PATTERN.format(START_BUTTON),
+        btn = HotButton(btnFrame, text=START_BUTTON,
                         font=self.bigFontBold,
                         command=self._onAction)
         btn.grid(row=0, column=1, sticky='ne', padx=20, pady=10)
 
         # Add the Import project button
-        btn = Button(btnFrame, BUTTON_ALIGN_PATTERN.format(Message.LABEL_BUTTON_CANCEL),
+        btn = Button(btnFrame, Message.LABEL_BUTTON_CANCEL,
                      font=self.bigFontBold,
                      command=self.windows.close)
         btn.grid(row=0, column=0, sticky='ne', pady=10)
@@ -178,15 +176,15 @@ class BoxWizardView(tk.Frame):
         apFrame.columnconfigure(0, minsize=120)
         apFrame.columnconfigure(1, minsize=120, weight=1)
         # Data
-        self._template, self.templateId = getTemplateSplit(self)
-        self.addGeneralFields(gpFrame)
-        self.addFieldsFromTemplate(apFrame)
+        self._templateContent, self._templateId = getTemplateSplit(self.template)
+        self._addGeneralFields(gpFrame)
+        self._addFieldsFromTemplate(apFrame)
 
     def _addPair(self, text, r, lf, widget='entry', traceCallback=None,
                  mouseBind=False, value=None):
         label = tk.Label(lf, text=text, bg='white',
                          font=self.bigFont)
-        label.grid(row=r, column=0, padx=(10, 5), pady=2, sticky='news')
+        label.grid(row=r, column=0, padx=(10, 5), pady=2, sticky='nes')
 
         if not widget:
             return
@@ -210,16 +208,16 @@ class BoxWizardView(tk.Frame):
         self.vars[text] = var
         widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=2)
 
-    def addGeneralFields(self, labelFrame):
-        self._addPair(LABEL_ALIGN_PATTERN.format(PROJECT_NAME), 1, labelFrame,
-                      value=self.templateId + '-' + datetime.now().strftime("%y%m%d-%H%M%S"))
+    def _addGeneralFields(self, labelFrame):
+        self._addPair(PROJECT_NAME, 1, labelFrame,
+                      value=self._templateId + '-' + datetime.now().strftime("%y%m%d-%H%M%S"))
 
-    def addFieldsFromTemplate(self, labelFrame):
-        self._fields = getFields(self._template)
+    def _addFieldsFromTemplate(self, labelFrame):
+        self._fields = getFields(self._templateContent)
 
         row = 2
         for field in self._fields.values():
-            self._addPair(LABEL_ALIGN_PATTERN.format(field.getTitle()), row, labelFrame, value=field.getValue())
+            self._addPair(field.getTitle(), row, labelFrame, value=field.getValue())
             row += 1
 
     def _getVar(self, varKey):
@@ -286,9 +284,9 @@ class BoxWizardView(tk.Frame):
             # Where to write the json file.
             (fileHandle, path) = tempfile.mkstemp()
 
-            replaceFields(self._fields.values(), self._template)
+            replaceFields(self._fields.values(), self._templateContent)
 
-            finalJson = "".join(self._template)
+            finalJson = "".join(self._templateContent)
 
             os.write(fileHandle, finalJson.encode())
             os.close(fileHandle)
@@ -331,8 +329,8 @@ class FormField(object):
 
 
 class TemplateList:
-    def __init__(self, templates=[]):
-        self.templates = templates
+    def __init__(self, templates=None):
+        self.templates = templates if templates else []
 
     def addTemplate(self, t):
         self.templates.append(t)
@@ -423,24 +421,8 @@ def replaceFields(fields, template):
         template[field.getIndex()] = field.getValue()
 
 
-def getTemplateSplit(obj):
-    if len(obj.templates) == 1:
-        chosen = obj.templates[0]
-    else:
-        provider = pwgui.tree.ListTreeProviderTemplate(obj.templates)
-        dlg = dialog.ListDialog(obj, "Workflow templates", provider,
-                                "Select one of the templates.")
-
-        if dlg.result == dialog.RESULT_CANCEL:
-            sys.exit()
-        chosen = dlg.values[0]
-
-    print("Template to use: %s" % chosen)
-    # Replace environment variables
-    chosen.content % os.environ, chosen.getObjId()
-
-    # Split the template by the field separator
-    return chosen.content.split(FIELD_SEP), chosen.getObjId()
+def getTemplateSplit(chosenTemplate):
+    return chosenTemplate.content.split(FIELD_SEP), chosenTemplate.getObjId()
 
 
 def getTemplates():
@@ -503,10 +485,48 @@ def getTemplates():
     return tempList.templates
 
 
+def chooseTemplate(templates):
+    if len(templates) == 1:
+        chosenTemplate = templates[0]
+    else:
+        provider = pwgui.tree.ListTreeProviderTemplate(templates)
+        dlg = dialog.ListDialog(None, "Workflow templates", provider, "Select one of the templates.")
+
+        if dlg.result == dialog.RESULT_CANCEL:
+            sys.exit()
+        chosenTemplate = dlg.values[0]
+
+    print("Template to use: %s" % chosenTemplate)
+    # Replace environment variables
+    chosenTemplate.content = chosenTemplate.content % os.environ
+
+    return chosenTemplate
+
+
+def resolveTemplate(template):
+    """ Resolve a template assigning CML params to the template.
+    if not enough, a window will pop pup to ask for missing ones only"""
+    if not assignParams(template):
+        wizWindow = BoxWizardWindow(template=template)
+        wizWindow.show()
+
+
+def assignParams(template):
+    """ Assign CML params to the template, if missing params after assignment return False"""
+    return False
+
+
+def launchTemplate(template):
+    """ Launches a resolved tamplate"""
+    pass
+
+
 def main():
     templates = getTemplates()
-    wizWindow = BoxWizardWindow(templates=templates)
-    wizWindow.show()
+    chosenTemplate = chooseTemplate(templates)
+    resolveTemplate(chosenTemplate)
+    launchTemplate(chosenTemplate)
+
 
 
 if __name__ == "__main__":

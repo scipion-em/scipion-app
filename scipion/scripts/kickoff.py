@@ -43,12 +43,13 @@ import traceback
 
 import pyworkflow as pw
 import pyworkflow.utils as pwutils
-from pyworkflow.gui import Message, Icon, dialog
+from pyworkflow.gui import Message, dialog
 from pyworkflow.plugin import SCIPION_JSON_TEMPLATES, Template
 from pyworkflow.project import ProjectSettings
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
+from pyworkflow.template import TemplateList
 from scipion.constants import SCIPION_EP
 
 # Custom labels
@@ -105,7 +106,7 @@ class KickoffWindow(ProjectBaseWindow):
         if self.viewWidget:
             self.viewWidget.grid_forget()
             self.viewWidget.destroy()
-        # Create the new view: Instantiates BoxWizardView HERE!.
+        # Create the new view: Instantiates KickoffView HERE!.
         self.viewWidget = self.viewFuncs[newView](self.footer, self, template=self.template)
         # Grid in the second row (1)
         self.viewWidget.grid(row=0, column=0, columnspan=10, sticky='news')
@@ -233,21 +234,8 @@ class KickoffView(tk.Frame):
             self.windows.template = self.template
             self.windows.action = START_BUTTON
             self.windows.root.quit()
+            self.windows.root.withdraw()
             return
-
-
-class TemplateList:
-    def __init__(self, templates=None):
-        self.templates = templates if templates else []
-
-    def addTemplate(self, t):
-        self.templates.append(t)
-
-    def genFromStrList(self, templateList):
-        for t in templateList:
-            parsedPath = t.split(os.path.sep)
-            pluginName = parsedPath[parsedPath.index('templates') - 1]
-            self.addTemplate(Template(pluginName, t))
 
 
 def getTemplates():
@@ -277,7 +265,7 @@ def getTemplates():
         # get the template folder (we only want it to be included once)
         templateFolder = pw.Config.getExternalJsonTemplates()
         for templateName in glob.glob1(templateFolder, "*" + SCIPION_JSON_TEMPLATES):
-            t = Template("user templates", os.path.join(templateFolder, templateName))
+            t = Template("local", os.path.join(templateFolder, templateName))
             if tempId:
                 if tempId == t.getObjId():
                     tempList.addTemplate(t)
@@ -307,7 +295,7 @@ def getTemplates():
                         "\n -> Usage: scipion template [PATH.json.template]\n"
                         "\n see 'scipion help'\n" % templateFolder)
 
-    return tempList.templates
+    return tempList.sortListByPluginName().templates
 
 
 def chooseTemplate(templates):
@@ -340,6 +328,7 @@ def resolveTemplate(template):
     else:
         # All parameters have been assigned and template is fully populated
         return True
+
 
 def assignAllParams(template):
     """ Assign CML params to the template, if missing params after assignment return False"""

@@ -153,13 +153,18 @@ class KickoffView(tk.Frame):
         # Add the Import project button
         btn = Button(btnFrame, Message.LABEL_BUTTON_CANCEL,
                      font=self.bigFontBold,
-                     command=self.windows.close)
+                     command=self._closeCallback)
         btn.grid(row=0, column=0, sticky='ne', pady=10)
 
         btnFrame.columnconfigure(0, weight=1)
         btnFrame.grid(row=1, column=0, sticky='news')
 
         self.columnconfigure(0, weight=1)
+
+    def _closeCallback(self):
+        self.root.destroy()
+        import sys
+        sys.exit()
 
     def _fillContent(self, frame):
         # Add project name

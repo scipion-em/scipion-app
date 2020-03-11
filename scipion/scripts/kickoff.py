@@ -163,7 +163,6 @@ class KickoffView(tk.Frame):
 
     def _closeCallback(self):
         self.root.destroy()
-        import sys
         sys.exit()
 
     def _fillContent(self, frame):

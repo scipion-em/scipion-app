@@ -29,8 +29,7 @@ import os
 from os.path import join, exists, basename
 import time
 import optparse
-# We use optparse instead of argparse because we want this script to
-# be compatible with python >= 2.3
+from pathlib import Path
 import collections
 from shutil import copyfile
 
@@ -209,8 +208,14 @@ def addVariablesToSection(cf, section, vars):
         if varValue.startswith(pwem.Config.EM_ROOT):
             varValue = varValue.replace(pwem.Config.EM_ROOT, "%(EM_ROOT)s")
 
-        if varValue.startswith(pw.Config.SCIPION_HOME):
+        # If value contains SCIPION_HOME and is not scipion home
+        if varValue.startswith(pw.Config.SCIPION_HOME) and varValue != pw.Config.SCIPION_HOME:
             varValue = varValue.replace(pwem.Config.SCIPION_HOME, "%(SCIPION_HOME)s")
+
+        # Replace HOME paths with ~
+        home = str(Path.home())
+        if varValue.startswith(home):
+            varValue = varValue.replace(home, "~")
 
         return varValue
 

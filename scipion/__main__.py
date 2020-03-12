@@ -169,12 +169,8 @@ try:
         #PYTHONPATH_LIST.insert(0, join(pyworkflow.Config.getPyworkflowPath(), 'gui', 'no-tkinter'))
         print("SCIPION_NOGUI variable not implemented for this version. Please contact us if you need this.")
 
-    # Prepare PYTHON PATH
-    ignorePythonPath = os.environ.get('SCIPION_IGNORE_PYTHONPATH', False)
-    PYTHONPATH = os.environ.get('PYTHONPATH', '') if not ignorePythonPath else ''
 
     # Load VARS dictionary, all items here will go to the environment
-    VARS['PYTHONPATH'] = PYTHONPATH
     VARS['SCIPION_DOMAIN'] = Vars.SCIPION_DOMAIN
     VARS['SCIPION_CONFIG'] = Vars.SCIPION_CONFIG
     VARS['SCIPION_LOCAL_CONFIG'] = Vars.SCIPION_LOCAL_CONFIG
@@ -316,6 +312,11 @@ def main():
 
     elif mode == MODE_ENV:
         # Print all the environment variables needed to run scipion.
+        from pyworkflow.plugin import Plugin
+
+        # Trigger plugin's variable definition
+        pyworkflow.Config.getDomain().getPlugins()
+        VARS.update(pyworkflow.plugin.Plugin.getVars())
         for key in sorted(VARS):
             sys.stdout.write('export %s="%s"\n' % (key, VARS[key]))
 

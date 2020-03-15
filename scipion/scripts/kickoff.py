@@ -39,42 +39,40 @@ import re
 import glob
 import tkinter as tk
 import tkinter.font as tkFont
-import tempfile
-from datetime import datetime
 import traceback
-import collections
 
 import pyworkflow as pw
 import pyworkflow.utils as pwutils
-from pyworkflow.object import String
-from pyworkflow.gui import Message, Icon, dialog
+from pyworkflow.gui import Message, dialog
 from pyworkflow.plugin import SCIPION_JSON_TEMPLATES, Template
 from pyworkflow.project import ProjectSettings
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
+from pyworkflow.template import TemplateList
 from scipion.constants import SCIPION_EP
 
 # Custom labels
 from scipion.utils import getExternalJsonTemplates
 
 START_BUTTON = "Start"
-PROJECT_TEMPLATE = os.environ.get("SCIPION_PROJECT_NAME",
-                                  "project-" + datetime.now().strftime("%y%m%d-%H%M%S"))
+LEN_LABEL_IN_CHARS = 30
+LABEL_ALIGN_PATTERN = '{:>%s}' % LEN_LABEL_IN_CHARS
+LEN_BUTTON_IN_CHARS = 12
+BUTTON_ALIGN_PATTERN = "{:^%s}" % LEN_BUTTON_IN_CHARS
 
 FIELD_SEP = '~'
 VIEW_WIZARD = 'wizardview'
 
 # Session id
 PROJECT_NAME = 'Project name'
-MESSAGE = 'Message'
 
 # Project regex to validate the session id name
 PROJECT_PATTERN = "^\w{2}\d{4,6}-\d+$"
 PROJECT_REGEX = re.compile(PROJECT_PATTERN)
 
 
-class BoxWizardWindow(ProjectBaseWindow):
+class KickoffWindow(ProjectBaseWindow):
     """ Windows to manage all projects. """
 
     def __init__(self, **kwargs):
@@ -88,18 +86,43 @@ class BoxWizardWindow(ProjectBaseWindow):
         settings = ProjectSettings()
         self.generalCfg = settings.getConfig()
 
-        ProjectBaseWindow.__init__(self, title, minsize=(400, 550), **kwargs)
-        self.viewFuncs = {VIEW_WIZARD: BoxWizardView}
-        self.switchView(VIEW_WIZARD)
+        ProjectBaseWindow.__init__(self, title, minsize=(800, 350), **kwargs)
+        self.viewFuncs = {VIEW_WIZARD: KickoffView}
+        self.template = kwargs.get('template', None)
+        self.action = Message.LABEL_BUTTON_CANCEL
+        self.switchView(VIEW_WIZARD, **kwargs)
+
+    def close(self, e=None):
+        self.root.destroy()
+
+    def getTemplate(self):
+        return self.template
+
+    def getAction(self):
+        return self.action
+
+    def switchView(self, newView, **kwargs):
+        # Destroy the previous view if exists:
+        if self.viewWidget:
+            self.viewWidget.grid_forget()
+            self.viewWidget.destroy()
+        # Create the new view: Instantiates KickoffView HERE!.
+        self.viewWidget = self.viewFuncs[newView](self.footer, self, template=self.template)
+        # Grid in the second row (1)
+        self.viewWidget.grid(row=0, column=0, columnspan=10, sticky='news')
+        self.footer.rowconfigure(0, weight=1)
+        self.footer.columnconfigure(0, weight=1)
+        self.view = newView
 
 
-class BoxWizardView(tk.Frame):
-    def __init__(self, parent, windows, **kwargs):
+class KickoffView(tk.Frame):
+    def __init__(self, parent, windows, template=None, **kwargs):
         tk.Frame.__init__(self, parent, bg='white', **kwargs)
         self.windows = windows
         self.root = windows.root
         self.vars = {}
         self.checkvars = []
+        self.template = template
 
         bigSize = pwgui.cfgFontSize + 2
         smallSize = pwgui.cfgFontSize - 2
@@ -112,20 +135,11 @@ class BoxWizardView(tk.Frame):
         self.projDateFont = tkFont.Font(size=smallSize, family=fontName)
         self.projDelFont = tkFont.Font(size=smallSize, family=fontName,
                                        weight='bold')
-        # Header section
-        headerFrame = tk.Frame(self, bg='white')
-        headerFrame.grid(row=0, column=0, sticky='new')
-        headerText = "Enter your desired values"
-
-        label = tk.Label(headerFrame, text=headerText,
-                         font=self.bigFontBold,
-                         borderwidth=0, anchor='nw', bg='white',
-                         fg=pwgui.Color.DARK_GREY_COLOR)
-        label.grid(row=0, column=0, sticky='nw', padx=(20, 5), pady=10)
-
         # Body section
         bodyFrame = tk.Frame(self, bg='white')
-        bodyFrame.grid(row=1, column=0, sticky='news')
+        bodyFrame.columnconfigure(0, minsize=120)
+        bodyFrame.columnconfigure(1, minsize=120, weight=1)
+        bodyFrame.grid(row=0, column=0, sticky='news')
         self._fillContent(bodyFrame)
 
         # Add the create project button
@@ -133,49 +147,34 @@ class BoxWizardView(tk.Frame):
 
         btn = HotButton(btnFrame, text=START_BUTTON,
                         font=self.bigFontBold,
-                        command=self._onAction)
+                        command=self._onReadDataFromTemplateForm)
         btn.grid(row=0, column=1, sticky='ne', padx=10, pady=10)
 
         # Add the Import project button
         btn = Button(btnFrame, Message.LABEL_BUTTON_CANCEL,
-                     Icon.ACTION_CLOSE,
                      font=self.bigFontBold,
-                     command=self.windows.close)
-        btn.grid(row=0, column=0, sticky='ne', padx=10, pady=10)
+                     command=self._closeCallback)
+        btn.grid(row=0, column=0, sticky='ne', pady=10)
 
-        btnFrame.grid(row=2, column=0, sticky='sew')
         btnFrame.columnconfigure(0, weight=1)
+        btnFrame.grid(row=1, column=0, sticky='news')
 
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
+
+    def _closeCallback(self):
+        self.root.destroy()
+        sys.exit()
 
     def _fillContent(self, frame):
-        labelFrame = tk.LabelFrame(frame, text=' General ', bg='white',
-                                   font=self.bigFontBold)
-        labelFrame.grid(row=0, column=0, sticky='nw', padx=20)
+        # Add project name
+        self.template.genProjectName()
+        self._addPair(PROJECT_NAME, 1, frame, value=self.template.projectName, pady=(10, 30))
+        # Add template params
+        self._addTemplateFieldsToForm(frame)
 
-        self._addPair(PROJECT_NAME, 1, labelFrame, value=PROJECT_TEMPLATE)
-        self._addPair(MESSAGE, 4, labelFrame, widget='label')
-
-        labelFrame.columnconfigure(0, weight=1)
-        labelFrame.columnconfigure(0, minsize=120)
-        labelFrame.columnconfigure(1, weight=1)
-
-        labelFrame2 = tk.LabelFrame(frame, text=' Acquisition values ', bg='white',
-                                    font=self.bigFontBold)
-
-        labelFrame2.grid(row=1, column=0, sticky='nw', padx=20, pady=10)
-        labelFrame2.columnconfigure(0, minsize=120)
-
-        self.addFieldsFromTemplate(labelFrame2)
-
-        frame.columnconfigure(0, weight=1)
-
-    def _addPair(self, text, r, lf, widget='entry', traceCallback=None,
-                 mouseBind=False, value=None):
-        label = tk.Label(lf, text=text, bg='white',
-                         font=self.bigFont)
-        label.grid(row=r, column=0, padx=(10, 5), pady=2, sticky='ne')
+    def _addPair(self, text, r, lf, widget='entry', traceCallback=None,  mouseBind=False, value=None, pady=2):
+        label = tk.Label(lf, text=text, bg='white', font=self.bigFont)
+        label.grid(row=r, column=0, padx=(10, 5), pady=pady, sticky='nes')
 
         if not widget:
             return
@@ -197,28 +196,13 @@ class BoxWizardView(tk.Frame):
             widget = tk.Label(lf, font=self.bigFont, textvariable=var)
 
         self.vars[text] = var
-        widget.grid(row=r, column=1, sticky='nw', padx=(5, 10), pady=2)
+        widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=pady)
 
-    def _addCheckPair(self, label, r, lf, col=1):
-
-        var = tk.IntVar()
-
-        cb = tk.Checkbutton(lf, text=label, font=self.bigFont, bg='white',
-                            variable=var)
-        self.vars[label] = var
-        self.checkvars.append(label)
-        cb.grid(row=r, column=col, padx=5, sticky='nw')
-
-    def addFieldsFromTemplate(self, labelFrame2):
-
-        self._template = getTemplateSplit(self.root)
-
-        self._fields = getFields(self._template)
-
-        row = 2
-        for field in self._fields.values():
-            self._addPair(field.getTitle(), row, labelFrame2,
-                          value=field.getValue())
+    def _addTemplateFieldsToForm(self, labelFrame):
+        self.template.parseContent()
+        row = 3
+        for field in self.template.params.values():
+            self._addPair(field.getTitle(), row, labelFrame, value=field.getValue())
             row += 1
 
     def _getVar(self, varKey):
@@ -231,11 +215,11 @@ class BoxWizardView(tk.Frame):
         return self.vars[varKey].set(value)
 
     # noinspection PyUnusedLocal
-    def _onAction(self, e=None):
+    def _onReadDataFromTemplateForm(self, e=None):
         errors = []
 
         # Check the entered data
-        for field in self._fields.values():
+        for field in self.template.params.values():
             newValue = self._getValue(field.getTitle())
             field.setValue(newValue)
             if not field.validate():
@@ -248,189 +232,17 @@ class BoxWizardView(tk.Frame):
             errors.insert(0, "*Errors*:")
             self.windows.showError("\n  - ".join(errors))
         else:
+            self.template.projectName = self._getValue(PROJECT_NAME)
 
-            workflow = self._createTemplate()
-            if workflow is not None:
-                # Create the project
-                self.createProjectFromWorkflow(workflow)
-
-                self.windows.close()
-                return
-
-    def createProjectFromWorkflow(self, workflow):
-
-        projectName = self._getValue(PROJECT_NAME)
-
-        scipion = SCIPION_EP
-        scriptsPath = pw.join('project', 'scripts')
-
-        # Download the required data
-        # pwutils.runCommand(scipion +
-        #                     " testdata --download jmbFalconMovies")
-
-        # Create the project
-        createProjectScript = os.path.join(scriptsPath, 'create.py')
-        os.system("python -m %s  python %s %s %s" % (scipion, createProjectScript, projectName, workflow))
-
-        # Schedule the project
-        scheduleProjectScript = os.path.join(scriptsPath, 'schedule.py')
-        os.system("python -m %s python %s %s" % (scipion, scheduleProjectScript, projectName))
-
-        # Launch scipion
-        os.system("python -m %s project %s" % (scipion, projectName))
-
-    def _createTemplate(self):
-
-        try:
-            # Where to write the json file.
-            (fileHandle, path) = tempfile.mkstemp()
-
-            replaceFields(self._fields.values(), self._template)
-
-            finalJson = "".join(self._template)
-
-            os.write(fileHandle, finalJson.encode())
-            os.close(fileHandle)
-
-            print("New workflow saved at " + path)
-
-        except Exception as e:
-            self.windows.showError(
-                "Couldn't create the template.\n" + str(e))
-            traceback.print_exc()
-            return None
-
-        return path
+            # Set parent with the data
+            self.windows.template = self.template
+            self.windows.action = START_BUTTON
+            self.windows.root.quit()
+            self.windows.root.withdraw()
+            return
 
 
-class FormField(object):
-    def __init__(self, index, title, value=None, varType=None):
-        self._index = index
-        self._title = title
-        self._value = value
-        self._type = varType
-
-    def getTitle(self):
-        return self._title
-
-    def getIndex(self):
-        return self._index
-
-    def getType(self):
-        return self._type
-
-    def getValue(self):
-        return self._value
-
-    def setValue(self, value):
-        self._value = value
-
-    def validate(self):
-        return validate(self._value, self._type)
-
-
-class TemplateList():
-    def __init__(self, templates=[]):
-        self.templates = templates
-
-    def addTemplate(self, t):
-        self.templates.append(t)
-
-    def genFromStrList(self, templateList):
-        for t in templateList:
-            parsedPath = t.split(os.path.sep)
-            pluginName = parsedPath[parsedPath.index('templates') - 1]
-            self.addTemplate(Template(pluginName, t))
-
-
-""" FIELDS VALIDATION """
-""" FIELDS TYPES"""
-FIELD_TYPE_STR = "0"
-FIELD_TYPE_BOOLEAN = "1"
-FIELD_TYPE_PATH = "2"
-FIELD_TYPE_INTEGER = "3"
-FIELD_TYPE_DECIMAL = "4"
-
-
-""" VALIDATION METHODS"""
-def validate(value, fieldType):
-    if fieldType == FIELD_TYPE_BOOLEAN:
-        return validBoolean(value)
-    elif fieldType == FIELD_TYPE_DECIMAL:
-        return validDecimal(value)
-    elif fieldType == FIELD_TYPE_INTEGER:
-        return validInteger(value)
-    elif fieldType == FIELD_TYPE_PATH:
-        return validPath(value)
-    elif fieldType == FIELD_TYPE_STR:
-        return validString(value)
-
-    else:
-        print("Type %s for %snot recognized. Review the template."
-              % (type, value))
-        return
-
-
-def validString(value):
-    return value is not None
-
-
-def validInteger(value):
-    return value.isdigit()
-
-
-def validPath(value):
-    return os.path.exists(value)
-
-
-def validDecimal(value):
-
-    try:
-        float(value)
-        return True
-    except Exception as e:
-        return False
-
-
-def validBoolean(value):
-    return value is True or value is False
-
-
-def getFields(template):
-
-    def fieldStr2Field(fieldIndex, fieldString):
-        fieldLst = fieldString.split('|')
-
-        title = fieldLst[0]
-        defaultValue = fieldLst[1] if len(fieldLst) >= 2 else None
-        varType = fieldLst[2] if len(fieldLst) >= 3 else None
-
-        return FormField(fieldIndex, title, defaultValue, varType)
-
-    # fill each field in the template in order to prevent spreading in the form
-    fields = collections.OrderedDict()
-    for index in range(1, len(template), 2):
-        field = fieldStr2Field(index, template[index])
-        fields[field.getTitle()] = field
-
-    return fields
-
-
-def replaceFields(fields, template):
-
-    for field in fields:
-        template[field.getIndex()] = field.getValue()
-
-
-def getTemplateSplit(root):
-    # Get the fields definition from the template
-    templateStr = getTemplate(root)
-
-    # Split the template by the field separator
-    return templateStr.split(FIELD_SEP)
-
-
-def getTemplate(root):
+def getTemplates():
     """ Get a template or templates either from arguments
         or from the templates directory.
         If more than one template is found or passed, a dialog is raised
@@ -441,14 +253,14 @@ def getTemplate(root):
     tempList = TemplateList()
     tempId = ""
     if customTemplates:
-        atributes = {}
+        attributes = {}
         if os.path.isfile(sys.argv[1]):
             t = Template("custom template", sys.argv[1])
             tempList.addTemplate(t)
         else:
             tempId = sys.argv[1]
         for nameAttr, valAttr in (attr.split('=') for attr in sys.argv[2:]):
-            atributes[nameAttr] = valAttr
+            attributes[nameAttr] = valAttr
 
     if len(tempList.templates) == 0:
         # Check if other plugins have json.templates
@@ -457,7 +269,7 @@ def getTemplate(root):
         # get the template folder (we only want it to be included once)
         templateFolder = pw.Config.getExternalJsonTemplates()
         for templateName in glob.glob1(templateFolder, "*" + SCIPION_JSON_TEMPLATES):
-            t = Template("user templates", os.path.join(templateFolder, templateName))
+            t = Template("local", os.path.join(templateFolder, templateName))
             if tempId:
                 if tempId == t.getObjId():
                     tempList.addTemplate(t)
@@ -480,37 +292,93 @@ def getTemplate(root):
                     else:
                         tempList.addTemplate(t)
 
-    templates = tempList.templates
-    lenTemplates = len(templates)
-    if lenTemplates:
-        provider = pwgui.tree.ListTreeProviderTemplate(templates)
-        dlg = dialog.ListDialog(root, "Workflow templates", provider,
-                                "Select one of the templates.")
-
-        if dlg.result == dialog.RESULT_CANCEL:
-            sys.exit()
-        chosen = dlg.values[0].templatePath
-
-        if not customTemplates:
-            chosen = os.path.join(templateFolder, chosen)
-
-        print("Template to use: %s" % chosen)
-        with open(chosen, 'r') as myfile:
-            template = myfile.read()
-        # Replace environment variables
-        return template % os.environ
-
-    else:
+    if not len(tempList.templates):
         raise Exception("No valid file found (*.json.template).\n"
                         "Please, add (at least one) at %s "
                         "or pass it/them as argument(s).\n"
                         "\n -> Usage: scipion template [PATH.json.template]\n"
                         "\n see 'scipion help'\n" % templateFolder)
 
+    return tempList.sortListByPluginName().templates
+
+
+def chooseTemplate(templates):
+    if len(templates) == 1:
+        chosenTemplate = templates[0]
+    else:
+        provider = pwgui.tree.ListTreeProviderTemplate(templates)
+        dlg = dialog.ListDialog(None, "Workflow templates", provider, "Select one of the templates.")
+
+        if dlg.result == dialog.RESULT_CANCEL:
+            sys.exit()
+        chosenTemplate = dlg.values[0]
+
+    print("Template to use: %s" % chosenTemplate)
+    # Replace environment variables
+    chosenTemplate.replaceEnvVariables()
+
+    return chosenTemplate
+
+
+def resolveTemplate(template):
+    """ Resolve a template assigning CML params to the template.
+    if not enough, a window will pop pup to ask for missing ones only"""
+    if not assignAllParams(template):
+
+        wizWindow = KickoffWindow(template=template)
+        wizWindow.show()
+
+        return wizWindow.action == START_BUTTON
+    else:
+        # All parameters have been assigned and template is fully populated
+        return True
+
+
+def assignAllParams(template):
+    """ Assign CML params to the template, if missing params after assignment return False"""
+    return False
+
+
+def launchTemplate(template):
+    """ Launches a resolved tamplate"""
+    try:
+        workflow = template.createTemplateFile()
+    except Exception as e:
+        workflow = None
+        errorStr = "Couldn't create the template.\n" + str(e)
+        print(errorStr)
+        traceback.print_exc()
+
+    if workflow is not None:
+        # Create the project
+        if not template.projectName:
+            template.genProjectName()
+        createProjectFromWorkflow(workflow, template.projectName)
+
+
+def createProjectFromWorkflow(workflow, projectName):
+
+    scipion = SCIPION_EP
+    scriptsPath = pw.join('project', 'scripts')
+
+    # Create the project
+    createProjectScript = os.path.join(scriptsPath, 'create.py')
+    os.system("python -m %s  python %s %s %s" % (scipion, createProjectScript, projectName, workflow))
+
+    # Schedule the project
+    scheduleProjectScript = os.path.join(scriptsPath, 'schedule.py')
+    os.system("python -m %s python %s %s" % (scipion, scheduleProjectScript, projectName))
+
+    # Launch scipion
+    os.system("python -m %s project %s" % (scipion, projectName))
+
 
 def main():
-    wizWindow = BoxWizardWindow()
-    wizWindow.show()
+    templates = getTemplates()
+    chosenTemplate = chooseTemplate(templates)
+    if resolveTemplate(chosenTemplate):
+        launchTemplate(chosenTemplate)
+
 
 if __name__ == "__main__":
     main()

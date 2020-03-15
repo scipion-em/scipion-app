@@ -29,8 +29,7 @@ import os
 from os.path import join, exists, basename
 import time
 import optparse
-# We use optparse instead of argparse because we want this script to
-# be compatible with python >= 2.3
+from pathlib import Path
 import collections
 from shutil import copyfile
 
@@ -197,14 +196,40 @@ def createConf(fpath, ftemplate, unattended=False):
     cf.write(open(fpath, 'w'))
 
 
+def addVariablesToSection(cf, section, vars):
+    """ Add all the variables in vars to the config "cf" at the section passed
+    it cleans the path to avoid long absolute repetitive paths"""
+
+    def cleanVarPath(varValue):
+        """ Clean variable to avoid long paths and relate them to SCIPION_HOME or EM_ROOT"""
+        import pwem
+        import pyworkflow as pw
+
+        if varValue.startswith(pwem.Config.EM_ROOT):
+            varValue = varValue.replace(pwem.Config.EM_ROOT, "%(EM_ROOT)s")
+
+        # If value contains SCIPION_HOME and is not scipion home
+        if varValue.startswith(pw.Config.SCIPION_HOME) and varValue != pw.Config.SCIPION_HOME:
+            varValue = varValue.replace(pwem.Config.SCIPION_HOME, "%(SCIPION_HOME)s")
+
+        # Replace HOME paths with ~
+        home = str(Path.home())
+        if varValue.startswith(home):
+            varValue = varValue.replace(home, "~")
+
+        return varValue
+
+    cf.add_section(section)
+    for var in sorted(vars.keys()):
+        value = vars[var]
+        cf.set(section, var, cleanVarPath(str(value)))
+
+
 def addPyworkflowVariables(cf):
     # Once more we need a local import to prevent the Config to be wrongly initialized
     import pyworkflow as pw
     # Load pyworkflow variables from the config
-    pwVARS = pw.Config.getVars()
-    cf.add_section(PYWORKFLOW_SECTION)
-    for var, value in pwVARS.items():
-        cf.set(PYWORKFLOW_SECTION, var, value)
+    addVariablesToSection(cf, PYWORKFLOW_SECTION, pw.Config.getVars())
 
 
 def addPluginsVariables(cf):
@@ -214,11 +239,7 @@ def addPluginsVariables(cf):
 
     # Trigger plugin discovery and variable definition
     pw.Config.getDomain().getPlugins()
-
-    PLUGINS_SECTION = "PLUGINS"
-    cf.add_section(PLUGINS_SECTION)
-    for var, value in Plugin.getVars().items():
-        cf.set(PLUGINS_SECTION, var, str(value))
+    addVariablesToSection(cf, "PLUGINS", Plugin.getVars())
 
 
 def checkPaths(conf):

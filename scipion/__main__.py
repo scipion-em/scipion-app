@@ -131,15 +131,6 @@ class Vars:
 
     # Installation paths
     SCIPION_HOME = scipionHome
-    # TODO: This, hopefully is a temporary way to load Xmipp binding and it's libraries
-    SCIPION_LIBS = join(SCIPION_HOME, "software", "lib")
-    os.makedirs(SCIPION_LIBS, exist_ok=True)
-
-    SCIPION_BINDINGS = join(SCIPION_HOME, "software", "bindings")
-    os.makedirs(SCIPION_BINDINGS, exist_ok=True)
-
-    # Add bindings to sys.path
-    sys.path.append(SCIPION_BINDINGS)
 
     # Some pw_*.py scripts under 'apps' folder change the current working
     # directory to the SCIPION_HOME, so let's keep the current working
@@ -170,21 +161,16 @@ class Vars:
 try:
     VARS = dict()
 
-    # Prepare PYTHON PATH
-    ignorePythonPath = os.environ.get('SCIPION_IGNORE_PYTHONPATH', False)
-    PYTHONPATH_LIST = [
-                       os.environ.get('PYTHONPATH', '') if not ignorePythonPath else "",
-                       Vars.SCIPION_BINDINGS,
-                       ]
+    # Load variables from Vars class into VARS dict
 
     if 'SCIPION_NOGUI' in os.environ:
-        PYTHONPATH_LIST.insert(0, join(pyworkflow.Config.getPyworkflowPath(), 'gui', 'no-tkinter'))
+        # This cannot work since pyworkflow is not imported and can not be imported here
+        # Due to a wrong/early initialisation of the config
+        #PYTHONPATH_LIST.insert(0, join(pyworkflow.Config.getPyworkflowPath(), 'gui', 'no-tkinter'))
+        print("SCIPION_NOGUI variable not implemented for this version. Please contact us if you need this.")
 
-    # Load variables from Vars class into VARS dict
-    PYTHONPATH = os.pathsep.join(PYTHONPATH_LIST)
 
     # Load VARS dictionary, all items here will go to the environment
-    VARS['PYTHONPATH'] = PYTHONPATH
     VARS['SCIPION_DOMAIN'] = Vars.SCIPION_DOMAIN
     VARS['SCIPION_CONFIG'] = Vars.SCIPION_CONFIG
     VARS['SCIPION_LOCAL_CONFIG'] = Vars.SCIPION_LOCAL_CONFIG
@@ -206,11 +192,8 @@ except Exception as e:
                          'try again.\n' % Vars.SCIPION_CONFIG)
         sys.exit(1)
 
-
-#
 # Auxiliary functions to run commands in our environment, one of our
 # scripts, or one of our "apps"
-#
 def runCmd(cmd, args=''):
     """ Runs ANY command with its arguments"""
     if isinstance(args, list):
@@ -329,6 +312,11 @@ def main():
 
     elif mode == MODE_ENV:
         # Print all the environment variables needed to run scipion.
+        from pyworkflow.plugin import Plugin
+
+        # Trigger plugin's variable definition
+        pyworkflow.Config.getDomain().getPlugins()
+        VARS.update(pyworkflow.plugin.Plugin.getVars())
         for key in sorted(VARS):
             sys.stdout.write('export %s="%s"\n' % (key, VARS[key]))
 

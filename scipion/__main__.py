@@ -105,8 +105,8 @@ while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
         # only the config files in that path will be read.
         scipionLocalConfig = scipionConfig = os.path.abspath(os.path.expanduser(value))
 
-        # Verify existence
-        if not exists(scipionConfig):
+        # Verify existence if not config
+        if sys.argv[1] != MODE_CONFIG and not exists(scipionConfig):
             # Here we can react differently,instead of exiting, may be continuing warning about
             # the missing config file?
             sys.exit('Config file missing: %s' % scipionConfig)

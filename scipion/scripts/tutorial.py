@@ -36,7 +36,7 @@ import pyworkflow.tests as tests
 from pyworkflow.project import Manager
 import pyworkflow.utils as pwutils
 from pyworkflow.gui.project import ProjectWindow
-from ..utils import getTemplatesPath
+from scipion.utils import getTemplatesPath
 
 
 def getWorkflow(workflow):
@@ -47,7 +47,7 @@ def getWorkflow(workflow):
     
 
 class Tutorial:
-    """ Base class to implement some common functionalities. """
+    """ Base class to implement some common functionality. """
     def __init__(self):
         projName = self.__class__.__name__
         manager = Manager()

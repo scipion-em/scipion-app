@@ -40,7 +40,7 @@ from pyworkflow.utils import redStr
 #  *                                                                      *
 #  ************************************************************************
 from pyworkflow import Config
-
+import pyworkflow
 MODE_INSTALL_PLUGIN = 'installp'
 MODE_UNINSTALL_PLUGIN = 'uninstallp'
 MODE_LIST_BINS = 'listb'
@@ -49,6 +49,8 @@ MODE_UNINSTALL_BINS = 'uninstallb'
 
 args = sys.argv[1:]
 
+# Initialize pyworkflow to discover plugins
+pyworkflow.Config.getDomain().getPlugins()
 pluginRepo = PluginRepository()
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)

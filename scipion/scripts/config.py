@@ -205,7 +205,7 @@ def addVariablesToSection(cf, section, vars):
         import pwem
         import pyworkflow as pw
 
-        if varValue.startswith(pwem.Config.EM_ROOT):
+        if varValue.startswith(pwem.Config.EM_ROOT) and varValue != pwem.Config.EM_ROOT:
             varValue = varValue.replace(pwem.Config.EM_ROOT, "%(EM_ROOT)s")
 
         # If value contains SCIPION_HOME and is not scipion home

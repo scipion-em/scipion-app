@@ -284,9 +284,8 @@ def main():
         os.chdir(Vars.SCIPION_HOME)
 
         os.environ.update(VARS)
-        args = ' '.join(sys.argv)
-
-        runScript('%s %s' % (join(Vars.SCIPION_INSTALL, 'install-plugin.py'), args))
+        from scipion.install import installPluginMethods
+        installPluginMethods()
 
     elif mode == MODE_PLUGINS:
         runScript(join(Vars.SCIPION_INSTALL, PLUGIN_MANAGER_PY))

@@ -665,11 +665,18 @@ class Environment:
         for cmd, tgt in commands:
             if isinstance(tgt, basestring):
                 tgt = [tgt]
-            # Take all package targets relative to package build dir
 
-            target.addCommand(
-                cmd, targets=[join(target.targetPath, t) for t in tgt],
-                cwd=target.buildPath, final=True, environ=environ)
+            # Take all package targets relative to package build dir
+            normTgt = []
+            for t in tgt:
+                # Check for empty targets and warn about them
+                if not t:
+                    print("WARNING: Target empty for command %s" % cmd)
+
+                normTgt.append(join(target.targetPath, t))
+
+            target.addCommand(cmd, targets=normTgt, cwd=target.buildPath,
+                              final=True, environ=environ)
         
         target.addCommand(Command(self, Link(extName, targetDir),
                                   targets=[self.getEm(extName),
@@ -838,6 +845,12 @@ class Environment:
         """Return all plugin packages"""
         return self._packages
 
+    def hasPackage(self, name):
+        """ Returns true if it has the package"""
+        return name in self._packages
+
+    def getPackage(self, name):
+        return  self._packages.get(name, None)
 
 class Link:
     def __init__(self, packageLink, packageFolder):

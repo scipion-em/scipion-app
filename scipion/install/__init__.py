@@ -27,3 +27,4 @@
 
 from .funcs import Environment
 from .plugin_manager import PluginManager
+from .install_plugin import installPluginMethods

@@ -84,11 +84,50 @@ def envOn(varName):
     value = os.environ.get(varName, '').lower()
     return value in ['1', 'true', 'on', 'yes']
 
-# *********************************************************
+def getMode():
+    """ :returns the mode scipion has to be launched """
+    return MODE_MANAGER if len(sys.argv) == 1 else sys.argv[1]
+
+# Auxiliary functions to run commands in our environment, one of our
+# scripts, or one of our "apps"
+def runCmd(cmd, args=''):
+    """ Runs ANY command with its arguments"""
+    if isinstance(args, list):
+        args = ' '.join('"%s"' % x for x in args)
+
+    cmd = '%s %s' % (cmd, args)
+
+    os.environ.update(VARS)
+    # sys.stdout.write(">>>>> %s\n" % cmd)
+    result = os.system(cmd)
+    if not -256 < result < 256:
+        result = 1  # because if not, 256 is confused with 0 !
+    sys.exit(result)
+
+
+# The following functions require a working SCIPION_PYTHON
+def runScript(scriptCmd, args='', chdir=True):
+    """"Runs a PYTHON script appending the profiling prefix if ON"""
+    if chdir:
+        os.chdir(Vars.SCIPION_HOME)
+
+    if envOn('SCIPION_PROFILE'):
+        profileStr = '-m cProfile -o output.profile'
+    else:
+        profileStr = ''
+    cmd = '%s %s %s' % (Vars.SCIPION_PYTHON, profileStr, scriptCmd)
+    runCmd(cmd, args)
+
+
+def runApp(app, args='', chdir=True):
+    """Runs an app provided by pyworkflow"""
+    runScript(join(Vars.PW_APPS, app), args=args, chdir=chdir)
+
+
+# ***************** END FUNCTIONS *****************************************
 
 # Get Scipion home
 scipionHome = getScipionHome()
-
 
 # ***************** CONFIGURATION  FILES RESOLUTION ************************
 # Default values for configuration files.
@@ -106,7 +145,7 @@ while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
         scipionLocalConfig = scipionConfig = os.path.abspath(os.path.expanduser(value))
 
         # Verify existence if not config
-        if not exists(scipionConfig):
+        if getMode() != MODE_CONFIG and not exists(scipionConfig):
             # Here we can react differently,instead of exiting, may be continuing warning about
             # the missing config file?
             sys.exit('Config file missing: %s' % scipionConfig)
@@ -192,48 +231,12 @@ except Exception as e:
                          'try again.\n' % Vars.SCIPION_CONFIG)
         sys.exit(1)
 
-# Auxiliary functions to run commands in our environment, one of our
-# scripts, or one of our "apps"
-def runCmd(cmd, args=''):
-    """ Runs ANY command with its arguments"""
-    if isinstance(args, list):
-        args = ' '.join('"%s"' % x for x in args)
-
-    cmd = '%s %s' % (cmd, args)
-
-    os.environ.update(VARS)
-    # sys.stdout.write(">>>>> %s\n" % cmd)
-    result = os.system(cmd)
-    if not -256 < result < 256:
-        result = 1  # because if not, 256 is confused with 0 !
-    sys.exit(result)
-
-
-# The following functions require a working SCIPION_PYTHON
-def runScript(scriptCmd, args='', chdir=True):
-    """"Runs a PYTHON script appending the profiling prefix if ON"""
-    if chdir:
-        os.chdir(Vars.SCIPION_HOME)
-
-    if envOn('SCIPION_PROFILE'):
-        profileStr = '-m cProfile -o output.profile'
-    else:
-        profileStr = ''
-    cmd = '%s %s %s' % (Vars.SCIPION_PYTHON, profileStr, scriptCmd)
-    runCmd(cmd, args)
-
-
-def runApp(app, args='', chdir=True):
-    """Runs an app provided by pyworkflow"""
-    runScript(join(Vars.PW_APPS, app), args=args, chdir=chdir)
-
-
 def main():
     printVersion()
     # See in which "mode" the script is called. By default, it's MODE_MANAGER.
     n = len(sys.argv)
     # Default to MANAGER_MODE
-    mode = sys.argv[1] if n > 1 else MODE_MANAGER
+    mode = getMode()
 
     # Prepare the environment
     os.environ.update(VARS)

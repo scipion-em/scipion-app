@@ -71,7 +71,7 @@ def installPluginMethods():
     installParser = subparsers.add_parser("installp", formatter_class=argparse.RawTextHelpFormatter,
                                           usage="%s  [-h] [--noBin] [-p pluginName [pipVersion ...]]" %
                                                 invokeCmd,
-                                          epilog="Example: %s -p scipion-em-grigoriefflab 1.0.1 "
+                                          epilog="Example: %s -p scipion-em-motioncorr 1.0.6 "
                                                 "-p scipion-em-relion -p scipion-em-eman2 \n\n" %
                                                 invokeCmd,
                                           add_help=False)
@@ -108,7 +108,7 @@ def installPluginMethods():
 
     uninstallParser = subparsers.add_parser("uninstallp", formatter_class=argparse.RawTextHelpFormatter,
                                             usage="%s  [-h] [-p pluginName [binVersion ...]]" % invokeCmd,
-                                            epilog="Example: %s -p scipion-em-grigoriefflab scipion-em-eman2 \n\n" %
+                                            epilog="Example: %s -p scipion-em-eman2 scipion-em-motioncorr \n\n" %
                                                    invokeCmd,
                                             add_help=False)
     uninstallParser.add_argument('-h', '--help', action='store_true', help='show help')
@@ -127,7 +127,7 @@ def installPluginMethods():
 
     installBinParser = subparsers.add_parser("installb", formatter_class=argparse.RawTextHelpFormatter,
                                              usage="%s  [-h] binName1 binName2-1.2.3 binName3 ..." % invokeCmd,
-                                             epilog="Example: %s ctffind4 unblur-1.0.15\n\n" % invokeCmd,
+                                             epilog="Example: %s ctffind4 eman-2.3\n\n" % invokeCmd,
                                              add_help=False)
     # installBinParser.add_argument('pluginName', metavar='pluginName',
     #                              help='The name of the plugin whose bins we want to uninstall.\n')
@@ -148,7 +148,7 @@ def installPluginMethods():
 
     uninstallBinParser = subparsers.add_parser("uninstallb", formatter_class=argparse.RawTextHelpFormatter,
                                                usage="%s [-h] binName1 binName2-1.2.3 binName3 ..." % invokeCmd,
-                                               epilog="Example: %s ctffind4 unblur-1.0.15\n\n " % invokeCmd,
+                                               epilog="Example: %s ctffind4 relion-3.0\n\n " % invokeCmd,
                                                add_help=False)
     # uninstallBinParser.add_argument('pluginName', metavar='pluginName',
     #                                help='The name of the plugin whose bins we want to uninstall.\n')

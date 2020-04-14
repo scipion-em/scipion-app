@@ -171,11 +171,6 @@ class Vars:
     # Installation paths
     SCIPION_HOME = scipionHome
 
-    # Some pw_*.py scripts under 'apps' folder change the current working
-    # directory to the SCIPION_HOME, so let's keep the current working
-    # directory in case we need it
-    SCIPION_CWD = os.path.abspath(os.getcwd())
-
     # Scipion path to its own scripts
     SCIPION_SCRIPTS = getScriptsPath()
     # Scipion path to install

@@ -32,10 +32,9 @@ Main entry point to scipion. It launches the gui, tests, etc.
 """
 import sys
 import os
-from os.path import join, exists, dirname, expanduser, expandvars
+from os.path import join, exists, expanduser, expandvars
 
-import subprocess
-from configparser import ConfigParser, ParsingError  # Python 3
+from configparser import ConfigParser  # Python 3
 from scipion.constants import *
 from scipion.utils import (getScipionHome, getInstallPath,
                            getScriptsPath, getTemplatesPath, getModuleFolder)

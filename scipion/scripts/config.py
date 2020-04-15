@@ -30,12 +30,10 @@ from os.path import join, exists, basename
 import time
 import optparse
 from pathlib import Path
-import collections
-from shutil import copyfile
 
 from configparser import ConfigParser  # Python 3
 
-from scipion.utils import getExternalJsonTemplates, getTemplatesPath
+from scipion.utils import getTemplatesPath
 
 
 PYWORKFLOW_SECTION = "PYWORKFLOW"

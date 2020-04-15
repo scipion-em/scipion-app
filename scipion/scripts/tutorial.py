@@ -31,10 +31,10 @@ Launch main project window
 import os
 import sys
 from collections import OrderedDict
+
 import pyworkflow as pw
 import pyworkflow.tests as tests
 from pyworkflow.project import Manager
-import pyworkflow.utils as pwutils
 from pyworkflow.gui.project import ProjectWindow
 from scipion.utils import getTemplatesPath
 

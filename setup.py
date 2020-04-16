@@ -41,7 +41,7 @@ setup(
         'console_scripts': [
             '%s = scipion.__main__:main' % SCIPION_EP,
         ],
-        'pyworkflow.guiplugin': 'scipion = scipion'
+        'pyworkflow.guiplugin': 'guiplugin = scipion.guiplugin'
     }
     # package_data={  # Optional
     # #    '': [''],

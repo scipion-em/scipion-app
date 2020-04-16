@@ -33,6 +33,8 @@ from os.path import join, exists, islink, abspath
 from subprocess import STDOUT, call
 
 from pyworkflow import Config
+import pwem
+
 
 try:
     unicode = unicode
@@ -264,7 +266,7 @@ class Environment:
     
     @staticmethod
     def getSoftware():
-        return os.environ.get('SCIPION_SOFTWARE', 'software')
+        return Config.SCIPION_SOFTWARE
 
     @staticmethod
     def getLibFolder():
@@ -274,9 +276,10 @@ class Environment:
     def getPython():
         return sys.executable
 
-    @staticmethod
-    def getPythonFolder():
-        return Environment.getLibFolder() + '/python2.7'
+    # Pablo: A quick search didn't find usages.
+    # @staticmethod
+    # def getPythonFolder():
+    #     return Environment.getLibFolder() + '/python2.7'
 
     @staticmethod
     def getPythonPackagesFolder():
@@ -309,16 +312,14 @@ class Environment:
 
     @staticmethod
     def getEmFolder():
-        defaultValue = '%s/em' % Environment.getSoftware()
-        return os.environ.get('EM_ROOT', defaultValue)
+        # Create it if it does not exists
+        if not exists(pwem.Config.EM_ROOT):
+            os.makedirs(pwem.Config.EM_ROOT)
+        return pwem.Config.EM_ROOT
 
     @staticmethod
     def getEm(name):
         return '%s/%s' % (Environment.getEmFolder(), name)
-
-    @staticmethod
-    def getEmPackagesFolder():
-        return "pyworkflow/em/packages"
 
     def getTargetList(self):
         return self._targetList
@@ -667,11 +668,18 @@ class Environment:
         for cmd, tgt in commands:
             if isinstance(tgt, basestring):
                 tgt = [tgt]
-            # Take all package targets relative to package build dir
 
-            target.addCommand(
-                cmd, targets=[join(target.targetPath, t) for t in tgt],
-                cwd=target.buildPath, final=True, environ=environ)
+            # Take all package targets relative to package build dir
+            normTgt = []
+            for t in tgt:
+                # Check for empty targets and warn about them
+                if not t:
+                    print("WARNING: Target empty for command %s" % cmd)
+
+                normTgt.append(join(target.targetPath, t))
+
+            target.addCommand(cmd, targets=normTgt, cwd=target.buildPath,
+                              final=True, environ=environ)
         
         target.addCommand(Command(self, Link(extName, targetDir),
                                   targets=[self.getEm(extName),
@@ -806,8 +814,8 @@ class Environment:
         cudaBin = os.environ.get(packUpper + '_CUDA_BIN')
     
         if cudaLib is None:
-            cudaLib = os.environ.get('CUDA_LIB')
-            cudaBin = os.environ.get('CUDA_BIN')
+            cudaLib = pwem.Config.CUDA_LIB
+            cudaBin = pwem.Config.CUDA_BIN
 
         environ = os.environ.copy()
 
@@ -840,6 +848,12 @@ class Environment:
         """Return all plugin packages"""
         return self._packages
 
+    def hasPackage(self, name):
+        """ Returns true if it has the package"""
+        return name in self._packages
+
+    def getPackage(self, name):
+        return  self._packages.get(name, None)
 
 class Link:
     def __init__(self, packageLink, packageFolder):

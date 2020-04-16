@@ -251,7 +251,9 @@ class Environment:
 
         self._downloadCmd = ('wget -nv -c -O %(tar)s.part %(url)s\n'
                              'mv -v %(tar)s.part %(tar)s')
-        self._tarCmd = 'tar -xzf %s'
+        # Removed the z: "The tar command auto-detects compression type and extracts the archive"
+        # From https://linuxize.com/post/how-to-extract-unzip-tar-bz2-file/#extracting-tarbz2-file
+        self._tarCmd = 'tar -xf %s'
         self._pipCmd = kwargs.get('pipCmd', 'pip install %s==%s')
 
     def getLibSuffix(self):
@@ -417,6 +419,7 @@ class Environment:
                          cwd=downloadDir)
         else:
             tarCmd = self._tarCmd % tar
+
 
         finalTarget = join(downloadDir, kwargs.get('target', buildDir))
         t.addCommand(tarCmd,

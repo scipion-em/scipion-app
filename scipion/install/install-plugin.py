@@ -207,10 +207,10 @@ elif mode == MODE_INSTALL_PLUGIN:
                 exitWithErrors = True
             else:
                 plugin = PluginInfo(pipName=pluginName, pluginSourceUrl=pluginSrc, remote=False)
-                processors = parsedArgs.j
+                numberProcessor = parsedArgs.j
                 installed = plugin.installPipModule()
                 if installed and not parsedArgs.noBin:
-                    plugin.installBin(args={'-j': numberProcessor})
+                    plugin.installBin({'args': ['-j', numberProcessor]})
     else:
         pluginsToInstall = list(zip(*parsedArgs.plugin))[0]
         pluginDict = pluginRepo.getPlugins(pluginList=pluginsToInstall,
@@ -226,7 +226,7 @@ elif mode == MODE_INSTALL_PLUGIN:
                 if plugin:
                     installed = plugin.installPipModule(version=pluginVersion)
                     if installed and not parsedArgs.noBin:
-                        plugin.installBin(args={'-j': numberProcessor})
+                        plugin.installBin({'args': ['-j', numberProcessor]})
                 else:
                     print("WARNING: Plugin %s does not exist." % pluginName)
                     exitWithErrors = True
@@ -243,7 +243,6 @@ elif parsedArgs.mode == MODE_UNINSTALL_PLUGIN:
             print("WARNING: Plugin %s is not installed." % pluginName)
 
 elif parsedArgs.mode == MODE_INSTALL_BINS:
-
     binToInstallList = parsedArgs.binName
     binToPlugin = pluginRepo.getBinToPluginDict()
     for binTarget in binToInstallList:
@@ -254,7 +253,7 @@ elif parsedArgs.mode == MODE_INSTALL_BINS:
         pmodule = Config.getDomain().getPlugin(pluginTargetName)
         numberProcessor = parsedArgs.j
         pinfo = PluginInfo(name=pluginTargetName, plugin=pmodule, remote=False)
-        pinfo.installBin([binTarget, '-j', numberProcessor])
+        pinfo.installBin({'args': [binTarget, '-j', numberProcessor]})
 
 
 elif parsedArgs.mode == MODE_UNINSTALL_BINS:

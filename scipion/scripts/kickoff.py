@@ -199,7 +199,6 @@ class KickoffView(tk.Frame):
         widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=pady)
 
     def _addTemplateFieldsToForm(self, labelFrame):
-        self.template.parseContent()
         row = 3
         for field in self.template.params.values():
             self._addPair(field.getTitle(), row, labelFrame, value=field.getValue())

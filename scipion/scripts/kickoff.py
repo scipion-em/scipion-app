@@ -251,46 +251,16 @@ def getTemplates():
     templateFolder = getExternalJsonTemplates()
     customTemplates = len(sys.argv) > 1
     tempList = TemplateList()
-    tempId = ""
     if customTemplates:
-        attributes = {}
-        if os.path.isfile(sys.argv[1]):
-            t = Template("custom template", sys.argv[1])
+        fileTemplate = sys.argv[1]
+        if os.path.isfile(fileTemplate) and os.path.exists(fileTemplate):
+            t = Template("custom template", fileTemplate)
             tempList.addTemplate(t)
-        else:
-            tempId = sys.argv[1]
-        for nameAttr, valAttr in (attr.split('=') for attr in sys.argv[2:]):
-            attributes[nameAttr] = valAttr
 
+    # Try to find all templates from the template folder and the plugins
     if len(tempList.templates) == 0:
-        # Check if other plugins have json.templates
-        domain = pw.Config.getDomain()
-        # Check if there is any .json.template in the template folder
-        # get the template folder (we only want it to be included once)
-        templateFolder = pw.Config.getExternalJsonTemplates()
-        for templateName in glob.glob1(templateFolder, "*" + SCIPION_JSON_TEMPLATES):
-            t = Template("local", os.path.join(templateFolder, templateName))
-            if tempId:
-                if tempId == t.getObjId():
-                    tempList.addTemplate(t)
-                    break
-                else:
-                    continue
-            else:
-                tempList.addTemplate(t)
-
-        if not (tempId and len(tempList.templates) == 1):
-            for pluginName, pluginModule in domain.getPlugins().items():
-                tempListPlugin = pluginModule.Plugin.getTemplates()
-                for t in tempListPlugin:
-                    if tempId:
-                        if tempId == t.getObjId():
-                            tempList.addTemplate(t)
-                            break
-                        else:
-                            continue
-                    else:
-                        tempList.addTemplate(t)
+        tempList.addScipionTemplates()
+        tempList.addPluginTemplates()
 
     if not len(tempList.templates):
         raise Exception("No valid file found (*.json.template).\n"
@@ -307,7 +277,9 @@ def chooseTemplate(templates):
         chosenTemplate = templates[0]
     else:
         provider = pwgui.tree.ListTreeProviderTemplate(templates)
-        dlg = dialog.ListDialog(None, "Workflow templates", provider, "Select one of the templates.")
+        dlg = dialog.ListDialog(None, "Workflow templates", provider,
+                                "Select one of the templates.",
+                                selectOnDoubleClick=True)
 
         if dlg.result == dialog.RESULT_CANCEL:
             sys.exit()
@@ -335,7 +307,21 @@ def resolveTemplate(template):
 
 
 def assignAllParams(template):
-    """ Assign CML params to the template, if missing params after assignment return False"""
+    """
+    Assign CML params to the template, if missing params after assignment
+    return False
+    """
+    paramsSetted = 0
+    template.parseContent()
+    if len(sys.argv) > 2:
+        attrList = sys.argv[2:]
+        for aliasAttr, valAttr in (attr.split('=') for attr in attrList):
+            try:
+                paramsSetted += template.setParamValue(aliasAttr, valAttr)
+            except Exception as e:
+                print(pwutils.redStr(e))
+
+        return len(template.params) == paramsSetted
     return False
 
 

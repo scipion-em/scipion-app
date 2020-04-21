@@ -254,7 +254,7 @@ def getTemplates():
     if customTemplates:
         fileTemplate = sys.argv[1]
         if os.path.isfile(fileTemplate) and os.path.exists(fileTemplate):
-            t = Template("custom template", fileTemplate)
+            t = Template("custom_template", fileTemplate)
             tempList.addTemplate(t)
 
     # Try to find all templates from the template folder and the plugins
@@ -360,6 +360,8 @@ def createProjectFromWorkflow(workflow, projectName):
 
 
 def main():
+    # import time
+    # time.sleep(10)
     templates = getTemplates()
     chosenTemplate = chooseTemplate(templates)
     if resolveTemplate(chosenTemplate):

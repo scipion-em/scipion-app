@@ -94,6 +94,7 @@ class KickoffWindow(ProjectBaseWindow):
 
     def close(self, e=None):
         self.root.destroy()
+        sys.exit(3)
 
     def getTemplate(self):
         return self.template
@@ -369,7 +370,8 @@ def main():
     chosenTemplate = chooseTemplate(templates)
     if resolveTemplate(chosenTemplate):
         launchTemplate(chosenTemplate)
-
+    else:
+        sys.exit(3)
 
 if __name__ == "__main__":
     main()

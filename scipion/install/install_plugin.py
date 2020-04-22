@@ -49,6 +49,7 @@ MODE_UNINSTALL_BINS = 'uninstallb'
 # For now let's use scipion hard coded as example for the help
 SCIPION_CMD = "scipion"
 
+
 def installPluginMethods():
     """ Deals with plugin installation methods"""
 

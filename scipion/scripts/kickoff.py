@@ -321,14 +321,14 @@ def assignAllParams(template):
                 paramsSetted += template.setParamValue(aliasAttr, valAttr)
             except Exception as e:
                 print(pwutils.redStr(e))
-                sys.exit(3)
+                sys.exit(os.EX_DATAERR)
 
         return len(template.params) == paramsSetted
     return False
 
 
 def launchTemplate(template):
-    """ Launches a resolved tamplate"""
+    """ Launches a resolved template"""
     try:
         workflow = template.createTemplateFile()
     except Exception as e:

@@ -94,7 +94,7 @@ class KickoffWindow(ProjectBaseWindow):
 
     def close(self, e=None):
         self.root.destroy()
-        sys.exit(3)
+        sys.exit(0)
 
     def getTemplate(self):
         return self.template

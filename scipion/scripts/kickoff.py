@@ -298,20 +298,16 @@ def chooseTemplate(templates):
 def resolveTemplate(template):
     """ Resolve a template assigning CML params to the template.
     if not enough, a window will pop pup to ask for missing ones only"""
-    errors = []
-    assignAllparameters = assignAllParams(template, errors)
-    if not errors:
-        if not assignAllparameters:
-            wizWindow = KickoffWindow(template=template)
-            wizWindow.show()
-            return wizWindow.action == START_BUTTON
-        else:
-            # All parameters have been assigned and template is fully populated
-            return True
-    return False
+    if not assignAllParams(template):
+        wizWindow = KickoffWindow(template=template)
+        wizWindow.show()
+        return wizWindow.action == START_BUTTON
+    else:
+        # All parameters have been assigned and template is fully populated
+        return True
 
 
-def assignAllParams(template, errors):
+def assignAllParams(template):
     """
     Assign CML params to the template, if missing params after assignment
     return False
@@ -324,8 +320,8 @@ def assignAllParams(template, errors):
             try:
                 paramsSetted += template.setParamValue(aliasAttr, valAttr)
             except Exception as e:
-                errors.append(str(e))
                 print(pwutils.redStr(e))
+                sys.exit(3)
 
         return len(template.params) == paramsSetted
     return False

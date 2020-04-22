@@ -250,16 +250,19 @@ def getTemplates():
     templateFolder = getExternalJsonTemplates()
     customTemplates = len(sys.argv) > 1
     tempList = TemplateList()
+    tempId = None
     if customTemplates:
         fileTemplate = sys.argv[1]
         if os.path.isfile(fileTemplate) and os.path.exists(fileTemplate):
             t = Template("custom_template", fileTemplate)
             tempList.addTemplate(t)
-
+        else:
+            tempId = sys.argv[1]
     # Try to find all templates from the template folder and the plugins
     if len(tempList.templates) == 0:
-        tempList.addScipionTemplates()
-        tempList.addPluginTemplates()
+        tempList.addScipionTemplates(tempId)
+        if not (tempId is not None and len(tempList.templates) == 1):
+            tempList.addPluginTemplates(tempId)
 
     if not len(tempList.templates):
         raise Exception("No valid file found (*.json.template).\n"

@@ -94,6 +94,7 @@ class KickoffWindow(ProjectBaseWindow):
 
     def close(self, e=None):
         self.root.destroy()
+        sys.exit(0)
 
     def getTemplate(self):
         return self.template
@@ -199,7 +200,6 @@ class KickoffView(tk.Frame):
         widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=pady)
 
     def _addTemplateFieldsToForm(self, labelFrame):
-        self.template.parseContent()
         row = 3
         for field in self.template.params.values():
             self._addPair(field.getTitle(), row, labelFrame, value=field.getValue())
@@ -251,46 +251,19 @@ def getTemplates():
     templateFolder = getExternalJsonTemplates()
     customTemplates = len(sys.argv) > 1
     tempList = TemplateList()
-    tempId = ""
+    tempId = None
     if customTemplates:
-        attributes = {}
-        if os.path.isfile(sys.argv[1]):
-            t = Template("custom template", sys.argv[1])
+        fileTemplate = sys.argv[1]
+        if os.path.isfile(fileTemplate) and os.path.exists(fileTemplate):
+            t = Template("custom_template", fileTemplate)
             tempList.addTemplate(t)
         else:
             tempId = sys.argv[1]
-        for nameAttr, valAttr in (attr.split('=') for attr in sys.argv[2:]):
-            attributes[nameAttr] = valAttr
-
+    # Try to find all templates from the template folder and the plugins
     if len(tempList.templates) == 0:
-        # Check if other plugins have json.templates
-        domain = pw.Config.getDomain()
-        # Check if there is any .json.template in the template folder
-        # get the template folder (we only want it to be included once)
-        templateFolder = pw.Config.getExternalJsonTemplates()
-        for templateName in glob.glob1(templateFolder, "*" + SCIPION_JSON_TEMPLATES):
-            t = Template("local", os.path.join(templateFolder, templateName))
-            if tempId:
-                if tempId == t.getObjId():
-                    tempList.addTemplate(t)
-                    break
-                else:
-                    continue
-            else:
-                tempList.addTemplate(t)
-
-        if not (tempId and len(tempList.templates) == 1):
-            for pluginName, pluginModule in domain.getPlugins().items():
-                tempListPlugin = pluginModule.Plugin.getTemplates()
-                for t in tempListPlugin:
-                    if tempId:
-                        if tempId == t.getObjId():
-                            tempList.addTemplate(t)
-                            break
-                        else:
-                            continue
-                    else:
-                        tempList.addTemplate(t)
+        tempList.addScipionTemplates(tempId)
+        if not (tempId is not None and len(tempList.templates) == 1):
+            tempList.addPluginTemplates(tempId)
 
     if not len(tempList.templates):
         raise Exception("No valid file found (*.json.template).\n"
@@ -307,7 +280,9 @@ def chooseTemplate(templates):
         chosenTemplate = templates[0]
     else:
         provider = pwgui.tree.ListTreeProviderTemplate(templates)
-        dlg = dialog.ListDialog(None, "Workflow templates", provider, "Select one of the templates.")
+        dlg = dialog.ListDialog(None, "Workflow templates", provider,
+                                "Select one of the templates.",
+                                selectOnDoubleClick=True)
 
         if dlg.result == dialog.RESULT_CANCEL:
             sys.exit()
@@ -324,10 +299,8 @@ def resolveTemplate(template):
     """ Resolve a template assigning CML params to the template.
     if not enough, a window will pop pup to ask for missing ones only"""
     if not assignAllParams(template):
-
         wizWindow = KickoffWindow(template=template)
         wizWindow.show()
-
         return wizWindow.action == START_BUTTON
     else:
         # All parameters have been assigned and template is fully populated
@@ -335,12 +308,27 @@ def resolveTemplate(template):
 
 
 def assignAllParams(template):
-    """ Assign CML params to the template, if missing params after assignment return False"""
+    """
+    Assign CML params to the template, if missing params after assignment
+    return False
+    """
+    paramsSetted = 0
+    template.parseContent()
+    if len(sys.argv) > 2:
+        attrList = sys.argv[2:]
+        for aliasAttr, valAttr in (attr.split('=') for attr in attrList):
+            try:
+                paramsSetted += template.setParamValue(aliasAttr, valAttr)
+            except Exception as e:
+                print(pwutils.redStr(e))
+                sys.exit(os.EX_DATAERR)
+
+        return len(template.params) == paramsSetted
     return False
 
 
 def launchTemplate(template):
-    """ Launches a resolved tamplate"""
+    """ Launches a resolved template"""
     try:
         workflow = template.createTemplateFile()
     except Exception as e:
@@ -378,7 +366,8 @@ def main():
     chosenTemplate = chooseTemplate(templates)
     if resolveTemplate(chosenTemplate):
         launchTemplate(chosenTemplate)
-
+    else:
+        sys.exit(3)
 
 if __name__ == "__main__":
     main()

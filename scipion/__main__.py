@@ -170,11 +170,6 @@ class Vars:
     # Installation paths
     SCIPION_HOME = scipionHome
 
-    # Some pw_*.py scripts under 'apps' folder change the current working
-    # directory to the SCIPION_HOME, so let's keep the current working
-    # directory in case we need it
-    SCIPION_CWD = os.path.abspath(os.getcwd())
-
     # Scipion path to its own scripts
     SCIPION_SCRIPTS = getScriptsPath()
     # Scipion path to install
@@ -418,8 +413,9 @@ MODE can be:
 
     view | show NAME       Opens a file with Scipion's showj, or a directory with Browser.
     
-    demo | template [PATH] Shows all the *.json.template found in the config folder
-                           and all provided by plugins. If PATH (a path to a template) is provided, 
+    template [TEMPLATE]    Shows all the *.json.template files found in the config folder
+                           and all templates provided by plugins. If TEMPLATE 
+                           (a path to a template or a template name) is provided, 
                            then that template is used. 
                            
     checkupdates [ARGS]    Checks for Scipion updates. Use with flag -h or --help to see usage.

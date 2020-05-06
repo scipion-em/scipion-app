@@ -27,7 +27,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='scipion-app',  # Required
-    version='1.0.1',  # Required
+    version='1.0.2',  # Required
     description='Scipion application. For processing cryo electron microscopy '
                 'images and hibrid modelling',  # Required
     long_description=long_description,  # Optional
@@ -37,6 +37,9 @@ setup(
     keywords='scipion cryoem imageprocessing scipion-3.0',  # Optional
     packages=find_packages(),
     install_requires=[requirements],
+    package_data={  # Optional
+        'scipion': ['templates/*.template', 'templates/*.json'],
+    },
     entry_points={
         'console_scripts': [
             '%s = scipion.__main__:main' % SCIPION_EP,

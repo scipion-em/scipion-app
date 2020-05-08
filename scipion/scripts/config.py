@@ -485,10 +485,10 @@ def guessMPI():
     return options
 
 
-def getConfigPathFromConfigFile(configFile, scipionConfigFile):
+def getConfigPathFromConfigFile(scipionConfigFile, configFile):
     """
-    :param configFile: name of the template: protocols or hosts so far
     :param scipionConfigFile path to the config file to derive the folder name from
+    :param configFile: name of the template: protocols or hosts so far
     :return theoretical path for the template at the same path as the config file"""
     return  os.path.join(os.path.dirname(scipionConfigFile), configFile + ".conf")
 

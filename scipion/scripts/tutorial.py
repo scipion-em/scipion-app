@@ -37,6 +37,7 @@ import pyworkflow.tests as tests
 from pyworkflow.project import Manager
 from pyworkflow.gui.project import ProjectWindow
 from scipion.utils import getTemplatesPath
+from abc import ABC, abstractmethod
 
 
 def getWorkflow(workflow):
@@ -46,7 +47,7 @@ def getWorkflow(workflow):
     return os.path.join(getTemplatesPath(), workflow)
     
 
-class Tutorial:
+class Tutorial(ABC):
     """ Base class to implement some common functionality. """
     def __init__(self):
         projName = self.__class__.__name__
@@ -60,11 +61,14 @@ class Tutorial:
             settings.setRunsView(1)  # graph view
             settings.write()
             self.loadWorkflow()
-    
+    @abstractmethod
+    def loadWorkflow(self):
+        pass
+
 
 class TutorialIntro(Tutorial):
-    
-    def loadWorkflow(self):            
+
+    def loadWorkflow(self):
         # Create a new project
         self.ds = tests.DataSet.getDataSet('xmipp_tutorial')
         self.project.loadProtocols(getWorkflow('workflow_tutorial_intro.json'))
@@ -100,15 +104,6 @@ if __name__ == '__main__':
         print("\nUSAGE: scipion tutorial [TUTORIAL_NAME]")
         print("\nwhere TUTORIAL_NAME can be:")
         print("\n".join([' %s' % k for k in ALL_TUTORIALS.keys()]))
-        
-    if pw.Config.debugOn():
-        # Add callback for remote debugging if available.
-        try:
-            from rpdb2 import start_embedded_debugger
-            from signal import signal, SIGUSR2
-            signal(SIGUSR2, lambda sig, frame: start_embedded_debugger('a'))
-        except ImportError:
-            pass
 
     if len(sys.argv) == 2:
         manager = Manager()
@@ -117,7 +112,7 @@ if __name__ == '__main__':
         if tutorialName not in ALL_TUTORIALS:
             printUsage("Invalid tutorial '%s'." % tutorialName)
         else:
-            # Instanciate the proper tutorial class
+            # Instantiate the proper tutorial class
             tutorial = ALL_TUTORIALS[tutorialName]()
         
             projWindow = ProjectWindow(tutorial.project.getName())

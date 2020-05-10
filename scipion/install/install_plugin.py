@@ -200,7 +200,6 @@ def installPluginMethods():
                 pluginName = ""
                 if os.path.exists(pluginSrc):
                     pluginName = os.path.basename(pluginSrc.rstrip('/'))
-                    numberProcessor = parsedArgs.j
                 else:  # we assume it is a git url
                     m = re.match('https://github.com/(.*)/(.*).git', pluginSrc)
                     if m:
@@ -210,7 +209,7 @@ def installPluginMethods():
                     exitWithErrors = True
                 else:
                     plugin = PluginInfo(pipName=pluginName, pluginSourceUrl=pluginSrc, remote=False)
-                    processors = parsedArgs.j
+                    numberProcessor = parsedArgs.j
                     installed = plugin.installPipModule()
                     if installed and not parsedArgs.noBin:
                         plugin.installBin({'args': ['-j', numberProcessor]})

@@ -95,8 +95,8 @@ def main(args=None):
         # Global installation configuration files.
         for fpath, tmplt in [
             (scipionConfigFile, SCIPION_CONF),
-            (getConfigPathFromConfigFile(PROTOCOLS, scipionConfigFile), PROTOCOLS),
-            (getConfigPathFromConfigFile(HOSTS, scipionConfigFile), HOSTS)]:
+            (getConfigPathFromConfigFile(scipionConfigFile,PROTOCOLS),  PROTOCOLS),
+            (getConfigPathFromConfigFile(scipionConfigFile,HOSTS), HOSTS)]:
             if not exists(fpath) or options.overwrite:
                 print(fpath, tmplt)
                 createConf(fpath, join(templates_dir, getTemplateName(tmplt)),
@@ -194,7 +194,7 @@ def createConf(fpath, ftemplate, unattended=False):
     cf.write(open(fpath, 'w'))
 
 
-def addVariablesToSection(cf, section, vars):
+def addVariablesToSection(cf, section, vars, exclude=[]):
     """ Add all the variables in vars to the config "cf" at the section passed
     it cleans the path to avoid long absolute repetitive paths"""
 
@@ -214,7 +214,7 @@ def addVariablesToSection(cf, section, vars):
 
         # If value contains SCIPION_HOME and is not scipion home
         if varValue.startswith(pw.Config.SCIPION_HOME) and varValue != pw.Config.SCIPION_HOME:
-            varValue = varValue.replace(pwem.Config.SCIPION_HOME, "%(SCIPION_HOME)s")
+            varValue = varValue.replace(pwem.Config.SCIPION_HOME, "${SCIPION_HOME}s")
 
         # Replace HOME paths with ~
         home = str(Path.home())
@@ -225,15 +225,19 @@ def addVariablesToSection(cf, section, vars):
 
     cf.add_section(section)
     for var in sorted(vars.keys()):
-        value = vars[var]
-        cf.set(section, var, cleanVarPath(str(value)))
+        if var not in exclude:
+            value = vars[var]
+            cf.set(section, var, cleanVarPath(str(value)))
 
 
 def addPyworkflowVariables(cf):
     # Once more we need a local import to prevent the Config to be wrongly initialized
     import pyworkflow as pw
+
+    exclude = ["SCIPION_CONFIG","SCIPION_CWD", "SCIPION_LOCAL_CONFIG",
+               "SCIPION_HOME", "SCIPION_PROTOCOLS", "SCIPION_HOSTS"]
     # Load pyworkflow variables from the config
-    addVariablesToSection(cf, PYWORKFLOW_SECTION, pw.Config.getVars())
+    addVariablesToSection(cf, PYWORKFLOW_SECTION, pw.Config.getVars(), exclude )
 
 
 def addPluginsVariables(cf):
@@ -290,15 +294,17 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
     cf = ConfigParser()
     cf.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
     assert cf.read(fpath) != [], 'Missing file %s' % fpath
+
     ct = ConfigParser()
     ct.optionxform = str
-    assert ct.read(ftemplate) != [], 'Missing file %s' % ftemplate
 
-    # Special case for scipion config
+    # Special case for scipion config... get values from objects
     if getTemplateName(SCIPION_CONF) in ftemplate:
-
+        # This will be the place to "exlude some variables"
         addPyworkflowVariables(ct)
         addPluginsVariables(ct)
+    else:
+        assert ct.read(ftemplate) != [], 'Missing file %s' % ftemplate
 
     df = dict([(s, set(cf.options(s))) for s in cf.sections()])
     dt = dict([(s, set(ct.options(s))) for s in ct.sections()])

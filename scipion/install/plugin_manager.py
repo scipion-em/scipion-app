@@ -946,9 +946,7 @@ class PluginBrowser(tk.Frame):
                                                  values=PluginStates.BINARY)
                 else:
                     latestRelease = pluginDict.get(pluginName).getLatestRelease()
-                    if latestRelease == NULL_VERSION:
-                        print("Plugin %s not available for Scipion %s" % (plugin.getPipName(), LAST_VERSION))
-                    elif latestRelease:
+                    if latestRelease != NULL_VERSION:
                         self.tree.insert("", 0, pluginName, text=pluginName,
                                          tags=tag, values=PluginStates.PLUGIN)
         self._closeProgressBar()

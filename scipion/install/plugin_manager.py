@@ -604,9 +604,9 @@ class PluginBrowser(tk.Frame):
         self.Textlog = TextFileViewer(self.terminal, font=getDefaultFont())
         self.Textlog.grid(row=0, column=0, sticky='news')
 
-        self.file_log_path = os.path.join(Config.SCIPION_LOGS,
+        self.file_log_path = os.path.join(Config.getLogsFolder(),
                                           PLUGIN_LOG_NAME)
-        self.file_errors_path = os.path.join(Config.SCIPION_LOGS,
+        self.file_errors_path = os.path.join(Config.getLogsFolder(),
                                              PLUGIN_ERRORS_LOG_NAME)
 
         self.fileLog = open(self.file_log_path, 'w')

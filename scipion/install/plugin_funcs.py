@@ -223,23 +223,14 @@ class PluginInfo(object):
             scipionVersions = [parse_version(v)
                                for v in re.findall(reg,
                                                    releaseData['comment_text'])]
-            if len(scipionVersions) == 0:
-                latestCompRelease = release
-            elif any([v == parse_version(CORE_VERSION)
-                      for v in scipionVersions]):
-                if parse_version(latestCompRelease) < parse_version(release):
-                    latestCompRelease = release
+            if len(scipionVersions) != 0:
+                releases[release] = releaseData
+                if any([v == parse_version(CORE_VERSION)
+                          for v in scipionVersions]):
+                    if parse_version(latestCompRelease) < parse_version(release):
+                        latestCompRelease = release
 
-            releases[release] = releaseData
-
-        if releases:
-            releases['latest'] = latestCompRelease
-            if (latestCompRelease != NULL_VERSION and
-                    releases[latestCompRelease]['comment_text'] == ''):
-                print("WARNING: %s's release %s did not specify a compatible "
-                      "Scipion version" % (self.pipName, latestCompRelease))
-        else:
-            releases['latest'] = ''
+        releases['latest'] = latestCompRelease
         return releases
 
     def setRemotePluginInfo(self):

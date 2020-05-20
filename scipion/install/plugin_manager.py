@@ -161,6 +161,7 @@ class Operation:
     def __init__(self, objName, objType=PluginStates.PLUGIN,
                  objStatus=PluginStates.INSTALL, objParent=None):
         self.objName = objName
+        self.objText = objName.split('[')[0]
         self.objType = objType
         self.objStatus = objStatus
         self.objParent = objParent
@@ -170,6 +171,12 @@ class Operation:
         Get the object(plugin/binary) name
         """
         return self.objName
+
+    def getObjText(self):
+        """
+        Get the object(plugin/binary) text
+        """
+        return self.objText
 
     def getObjType(self):
         """
@@ -218,9 +225,9 @@ class Operation:
             plugin = PluginInfo(self.objParent, self.objParent, remote=False)
             if self.objStatus == PluginStates.INSTALL:
                 if plugin is not None:
-                    plugin.installBin({'args': [self.getObjName(), '-j', processors]})
+                    plugin.installBin({'args': [self.objText, '-j', processors]})
             else:
-                plugin.uninstallBins([self.objName])
+                plugin.uninstallBins([self.objText])
 
 
 class OperationList:
@@ -804,7 +811,7 @@ class PluginBrowser(tk.Frame):
             for op in operations:
                 self.operationTree.insert("", 'end', op.getObjName(),
                                           text=str(op.getObjStatus().upper() +
-                                                   ' --> ' + op.getObjName()),
+                                                   ' --> ' + op.getObjText()),
                                           tags=op.getObjStatus())
             self.executeOpsBtn.config(state='normal')
         else:
@@ -886,13 +893,13 @@ class PluginBrowser(tk.Frame):
                             tag = PluginStates.UNCHECKED
                             if installed:
                                 tag = PluginStates.CHECKED
-                            binaryName = str(binary + '-' + version)
-                            if binaryName in self.tree.get_children(pluginName):
-                                self.tree.item(binaryName, tags=(tag,))
-                            else:
-                                self.tree.insert(pluginName, "end", binaryName,
-                                                 text=binaryName, tags=tag,
-                                                 values='binary')
+                            binaryName = str(binary)
+                            if version:
+                                binaryName += str('-' + version)
+                            self.tree.insert(pluginName, "end",
+                                             binaryName + "[" + pluginName + "]",
+                                             text=binaryName, tags=tag,
+                                             values='binary')
                 tag = PluginStates.CHECKED
                 if plugin.latestRelease != plugin.pipVersion:
                     tag = PluginStates.AVAILABLE_RELEASE
@@ -942,8 +949,11 @@ class PluginBrowser(tk.Frame):
                                 tag = PluginStates.UNCHECKED
                                 if installed:
                                     tag = PluginStates.CHECKED
-                                binaryName = str(binary + '-' + version)
-                                self.tree.insert(pluginName, "end", binaryName,
+                                binaryName = str(binary)
+                                if version:
+                                    binaryName += str('-' + version)
+                                self.tree.insert(pluginName, "end",
+                                                 binaryName + "[" + pluginName + "]",
                                                  text=binaryName, tags=tag,
                                                  values=PluginStates.BINARY)
                 else:
@@ -1004,6 +1014,9 @@ class PluginManagerWindow(gui.Window):
 
     def onHelp(self):
         PluginHelp('Plugin manager glossary', self).show()
+
+    def close(self, e=None):
+        sys.exit()
 
 
 class PluginHelp(gui.Window):

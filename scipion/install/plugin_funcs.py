@@ -8,7 +8,7 @@ from pkg_resources import parse_version
 
 from .funcs import Environment
 from pwem import Domain
-from pyworkflow.utils import redStr
+from pyworkflow.utils import redStr, yellowStr
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
 from importlib import reload
@@ -223,23 +223,18 @@ class PluginInfo(object):
             scipionVersions = [parse_version(v)
                                for v in re.findall(reg,
                                                    releaseData['comment_text'])]
-            if len(scipionVersions) == 0:
-                latestCompRelease = release
-            elif any([v == parse_version(CORE_VERSION)
-                      for v in scipionVersions]):
-                if parse_version(latestCompRelease) < parse_version(release):
-                    latestCompRelease = release
+            if len(scipionVersions) != 0:
+                releases[release] = releaseData
+                if any([v == parse_version(CORE_VERSION)
+                          for v in scipionVersions]):
+                    if parse_version(latestCompRelease) < parse_version(release):
+                        latestCompRelease = release
+            else:
+                print(yellowStr("WARNING: %s's release %s did not specify a "
+                             "compatible Scipion version. Please, remove this "
+                             "release from pypi") % (self.pipName, release))
 
-            releases[release] = releaseData
-
-        if releases:
-            releases['latest'] = latestCompRelease
-            if (latestCompRelease != NULL_VERSION and
-                    releases[latestCompRelease]['comment_text'] == ''):
-                print("WARNING: %s's release %s did not specify a compatible "
-                      "Scipion version" % (self.pipName, latestCompRelease))
-        else:
-            releases['latest'] = ''
+        releases['latest'] = latestCompRelease
         return releases
 
     def setRemotePluginInfo(self):
@@ -477,8 +472,10 @@ class PluginRepository(object):
                       "scipion installp --help")
 
         for pluginName in targetPlugins:
-            pluginsJson[pluginName].update(remote=getPipData)
-            self.plugins[pluginName] = PluginInfo(**pluginsJson[pluginName])
+            pluginsJson[pluginName].update(remote=True)
+            pluginInfo = PluginInfo(**pluginsJson[pluginName])
+            if pluginInfo.getLatestRelease() != NULL_VERSION:
+                self.plugins[pluginName] = pluginInfo
 
         return self.plugins
 
@@ -506,9 +503,9 @@ class PluginRepository(object):
                 plugin = pluginDict[name]
                 if withBins and not plugin.isInstalled():
                     continue
-                printStr += "%16s" % name
-                vInfo = '%s [%s]' % (plugin.pipVersion, 'X' if plugin.isInstalled() else ' ')
-                printStr += '%15s' % vInfo
+                printStr += "{0:30} {1:10} [{2}]".format(name,
+                                                            plugin.pipVersion,
+                                                            'X' if plugin.isInstalled() else ' ')
                 if withUpdates and plugin.isInstalled():
                     if plugin.latestRelease != plugin.pipVersion:
                         printStr += yellow('\t(%s available)' % plugin.latestRelease)

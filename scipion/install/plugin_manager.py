@@ -603,11 +603,13 @@ class PluginBrowser(tk.Frame):
 
         self.Textlog = TextFileViewer(self.terminal, font=getDefaultFont())
         self.Textlog.grid(row=0, column=0, sticky='news')
-
-        self.file_log_path = os.path.join(Config.SCIPION_LOGS,
-                                          PLUGIN_LOG_NAME)
-        self.file_errors_path = os.path.join(Config.SCIPION_LOGS,
-                                             PLUGIN_ERRORS_LOG_NAME)
+        logSufix = '_' + time.strftime("%d_%m_%y_%H_%M_%S")
+        pluginLogName = PLUGIN_LOG_NAME + logSufix
+        pluginErrorsLogName = PLUGIN_ERRORS_LOG_NAME + logSufix
+        self.file_log_path = os.path.join(Config.getLogsFolder(),
+                                          pluginLogName)
+        self.file_errors_path = os.path.join(Config.getLogsFolder(),
+                                             pluginErrorsLogName)
 
         self.fileLog = open(self.file_log_path, 'w')
         self.fileLogErr = open(self.file_errors_path, 'w')
@@ -946,9 +948,7 @@ class PluginBrowser(tk.Frame):
                                                  values=PluginStates.BINARY)
                 else:
                     latestRelease = pluginDict.get(pluginName).getLatestRelease()
-                    if latestRelease == NULL_VERSION:
-                        print("Plugin %s not available for Scipion %s" % (plugin.getPipName(), LAST_VERSION))
-                    elif latestRelease:
+                    if latestRelease != NULL_VERSION:
                         self.tree.insert("", 0, pluginName, text=pluginName,
                                          tags=tag, values=PluginStates.PLUGIN)
         self._closeProgressBar()

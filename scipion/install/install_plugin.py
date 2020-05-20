@@ -174,7 +174,7 @@ def installPluginMethods():
                            and len(parsedArgs.binName) == 0):
 
         if mode not in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]:
-            parserUsed.epilog += pluginRepo.printPluginInfoStr()
+            parserUsed.epilog += pluginRepo.printPluginInfoStr(withUpdates=True)
         else:
             env = Environment()
             env.setDefault(False)

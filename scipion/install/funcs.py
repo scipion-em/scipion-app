@@ -760,19 +760,15 @@ class Environment:
         printStr = ""
         if self._packages:
             printStr = ("Available binaries: "
-                        "([ ] not installed, [X] seems already installed)\n")
+                        "([ ] not installed, [X] seems already installed)\n\n")
 
             keys = sorted(self._packages.keys())
             for k in keys:
                 pVersions = self._packages[k]
-                # sys.stdout.write("%15s " % k)
-                printStr += "\t%15s " % k
+                printStr += "{0:25}".format(k)
                 for name, version in pVersions:
                     installed = self._isInstalled(name, version)
-                    vInfo = '%s [%s]' % (version, 'X' if installed else ' ')
-                    # sys.stdout.write('%13s' % vInfo)
-                    printStr += '%13s' % vInfo
-                # sys.stdout.write("\n")
+                    printStr += '{0:8}[{1}]{2:5}'.format(version, 'X' if installed else ' ', ' ')
                 printStr += '\n'
         return printStr
 

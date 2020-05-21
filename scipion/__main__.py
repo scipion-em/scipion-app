@@ -123,6 +123,27 @@ def runApp(app, args='', chdir=True):
     runScript(join(Vars.PW_APPS, app), args=args, chdir=chdir)
 
 
+def printEnv(args=''):
+    """
+    Print all the environment variables needed to run scipion.
+    args: list of plugin variables whose variables match with a specific pattern
+    """
+    import pyworkflow as pw
+    from pyworkflow.plugin import Plugin
+    # Trigger plugin's variable definition
+    pw.Config.getDomain().getPlugins()
+    VARS.update(Plugin.getVars())
+    for key in sorted(VARS):
+        if args:
+            for pattern in args:
+                if key.__contains__(pattern.upper()):
+                    sys.stdout.write('export %s="%s"\n' % (key, VARS[key]))
+        else:
+            sys.stdout.write('export %s="%s"\n' % (key, VARS[key]))
+
+    sys.exit(0)
+
+
 # ***************** END FUNCTIONS *****************************************
 
 # Get Scipion home
@@ -307,16 +328,9 @@ def main():
         runApp('pw_protocol_list.py', args=sys.argv[2:])
 
     elif mode == MODE_ENV:
-        # Print all the environment variables needed to run scipion.
-        from pyworkflow.plugin import Plugin
-
-        # Trigger plugin's variable definition
-        pyworkflow.Config.getDomain().getPlugins()
-        VARS.update(pyworkflow.plugin.Plugin.getVars())
-        for key in sorted(VARS):
-            sys.stdout.write('export %s="%s"\n' % (key, VARS[key]))
-
-        sys.exit(0)
+        # Print all the environment variables needed to run scipion or a
+        # list of plugin variables whose variables match with a specific pattern
+        printEnv(args=sys.argv[2:])
 
     elif mode == MODE_RUN:
         # Run any command with the environment of scipion loaded.

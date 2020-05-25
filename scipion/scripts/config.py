@@ -214,7 +214,7 @@ def addVariablesToSection(cf, section, vars, exclude=[]):
 
         # If value contains SCIPION_HOME and is not scipion home
         if varValue.startswith(pw.Config.SCIPION_HOME) and varValue != pw.Config.SCIPION_HOME:
-            varValue = varValue.replace(pwem.Config.SCIPION_HOME, "${SCIPION_HOME}s")
+            varValue = varValue.replace(pwem.Config.SCIPION_HOME, "${SCIPION_HOME}")
 
         # Replace HOME paths with ~
         home = str(Path.home())

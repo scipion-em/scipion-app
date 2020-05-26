@@ -472,7 +472,7 @@ class PluginRepository(object):
                       "scipion installp --help")
 
         for pluginName in targetPlugins:
-            pluginsJson[pluginName].update(remote=True)
+            pluginsJson[pluginName].update(remote=getPipData)
             pluginInfo = PluginInfo(**pluginsJson[pluginName])
             if pluginInfo.getLatestRelease() != NULL_VERSION:
                 self.plugins[pluginName] = pluginInfo

@@ -286,7 +286,12 @@ def checkPaths(conf):
 
 
 def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
-    """Check that all the variables in the template are in the config file too"""
+    """Check that all the variables in the template are in the config file too
+    :parameter fpath:  path to the config file
+    :parameter ftemplate, template file to compare. Only used for protocols and hosts
+    :parameter update: flag, default to false. if true, values from the template will be written to the config file
+    :parameter unattended: avoid questions, default to false.
+    :parameter compare: make a comparison with the template"""
     # Remove from the checks the sections in "remove", and if "keep"
     # is used only check those sections.
 
@@ -351,7 +356,7 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
 
                 if update:
                     if o == 'SCIPION_NOTIFY':
-                        checkNotify(ct, unattended=unattended)
+                        checkNotify(ct, fpath, unattended)
                     # Update config file with missing variable
                     value = ct.get(s, o)
                     cf.set(s, o, value)

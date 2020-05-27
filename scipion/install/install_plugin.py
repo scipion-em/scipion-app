@@ -275,7 +275,3 @@ def installPluginMethods():
         parserUsed.exit(1)
     else:
         parserUsed.exit(0)
-
-
-if __name__ == '__main__':
-    installPluginMethods(sys.argv[1:])

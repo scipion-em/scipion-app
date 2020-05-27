@@ -1,13 +1,14 @@
-sudo: true
-dist: trusty
-env: TRAVIS=1
 language: python
-python: 2.7
+os: linux
+dist: bionic
+python: 3.8
+git:
+    depth: false # to get blame information for SonarCloud
 addons:
   sonarcloud:
 # See https://docs.travis-ci.com/user/sonarcloud/
-    organization: "i2pc"
-    token:
-        secure: $SONAR_TOKEN
+    organization: "scipion-em"
+    token: $SONAR_TOKEN
+
 script:
  - sonar-scanner

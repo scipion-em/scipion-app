@@ -256,7 +256,6 @@ class PluginInfo(object):
     def setFakedRemotePluginInfo(self):
         """Sets value for the attributes that need to be obtained from json file"""
         self.homePage = self.pluginSourceUrl
-        self.summary = self.summary
         self.compatibleReleases = {DEVEL_VERSION: {'upload_time': '   devel_mode'}}
         self.latestRelease = DEVEL_VERSION
         self.author = ' Developer mode'

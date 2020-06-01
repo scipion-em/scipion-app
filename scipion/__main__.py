@@ -320,7 +320,7 @@ def main():
 
     elif mode == MODE_RUN:
         # Run any command with the environment of scipion loaded.
-        runCmd(' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
+        runCmd('emprogram ' + ' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
         
     elif mode == MODE_PYTHON:
         runScript(' '.join(['"%s"' % arg for arg in sys.argv[2:]]), 

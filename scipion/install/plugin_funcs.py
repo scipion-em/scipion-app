@@ -444,6 +444,7 @@ class PluginRepository(object):
         else:
             try:
                 r = requests.get(self.repoUrl)
+                getPipData = True
             except requests.ConnectionError as e:
                 print("\nWARNING: Error while trying to connect with a server:\n"
                       "  > Please, check your internet connection!\n")

@@ -46,6 +46,7 @@ except NameError:  # 'unicode' is undefined, must be Python 3
 MACOSX = (platform.system() == 'Darwin')
 WINDOWS = (platform.system() == 'Windows')
 LINUX = (platform.system() == 'Linux')
+VOID_TGZ="void.tgz"
 
 
 def ansi(n):
@@ -172,6 +173,9 @@ class Target:
         self._commandList = list(commands)  # copy the list/tuple of commands
         self._finalCommands = []  # their targets will be used to check if we need to re-build
         self._deps = []  # names of dependency targets
+
+    def getCommands(self):
+        return self._commandList
 
     def addCommand(self, cmd, **kwargs):
         if isinstance(cmd, Command):
@@ -612,7 +616,7 @@ class Environment:
     def addPackage(self, name, **kwargs):
         """ Download a package tgz, untar it and create a link in software/em.
         Params in kwargs:
-            tar: the package tar file, by default the name + .tgz
+            tar: the package tar file, by default the name + .tgz. Pass None or VOID_TGZ if there is no tar file.
             commands: a list with actions to be executed to install the package
         """
         # Add to the list of available packages, for reference (used in --help).
@@ -654,10 +658,17 @@ class Environment:
         # We reuse the download and untar from the addLibrary method
         # and pass the createLink as a new command 
         tar = kwargs.get('tar', '%s.tgz' % extName)
+
+        # If tar is None or void.tgz
+        if tar is None or tar == VOID_TGZ:
+            tar = VOID_TGZ
+            kwargs["buildDir"] = extName
+            kwargs["createBuildDir"] = True
+
         buildDir = kwargs.get('buildDir',
-                              tar.rsplit('.tar.gz', 1)[0].rsplit('.tgz', 1)[0])
+                          tar.rsplit('.tar.gz', 1)[0].rsplit('.tgz', 1)[0])
         targetDir = kwargs.get('targetDir', buildDir)
-  
+
         libArgs = {'downloadDir': self.getEmFolder(),
                    'urlSuffix': 'em',
                    'default': False}  # This will be updated with value in kwargs

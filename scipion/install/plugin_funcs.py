@@ -6,7 +6,7 @@ import json
 import pkg_resources
 from pkg_resources import parse_version
 
-from .funcs import Environment
+from .funcs import Environment, VOID_TGZ
 from pwem import Domain
 from pyworkflow.utils import redStr, yellowStr
 from pyworkflow.utils.path import cleanPath

@@ -17,6 +17,7 @@
 
 # Packaging files
 scipion_app.egg-info/*
+dist
 
 *.snap
 config/*

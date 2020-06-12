@@ -27,7 +27,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='scipion-app',  # Required
-    version='3.0.1a1',  # Required
+    version='3.0.1a2',  # Required
     description='Scipion application. For processing cryo electron microscopy '
                 'images and hibrid modelling',  # Required
     long_description=long_description,  # Optional

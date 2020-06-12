@@ -269,12 +269,12 @@ class Environment:
         return self._processors
     
     @staticmethod
-    def getSoftware():
-        return Config.SCIPION_SOFTWARE
+    def getSoftware(*paths):
+        return os.path.join(Config.SCIPION_SOFTWARE, *paths)
 
     @staticmethod
-    def getLibFolder():
-        return '%s/lib' % (Environment.getSoftware())
+    def getLibFolder(*paths):
+        return Environment.getSoftware("lib", *paths)
 
     @staticmethod
     def getPython():
@@ -296,30 +296,31 @@ class Environment:
 
     @staticmethod
     def getIncludeFolder():
-        return '%s/include' % (Environment.getSoftware())
+        return Environment.getSoftware('include')
 
     def getLib(self, name):
-        return '%s/lib%s.%s' % (Environment.getLibFolder(),
-                                name, self._libSuffix)
+
+        return Environment.getLibFolder('lib%s.%s' % (name, self._libSuffix))
 
     @staticmethod
-    def getBinFolder():
-        return '%s/bin' % Environment.getSoftware()
+    def getBinFolder(*paths):
+        return  os.path.join(mkdir(Environment.getSoftware('bin')), *paths)
 
     @staticmethod
     def getBin(name):
-        return '%s/%s' % (Environment.getBinFolder(), name)
+        return  Environment.getBinFolder(name)
 
     @staticmethod
     def getTmpFolder():
-        return '%s/tmp' % Environment.getSoftware()
+        return  mkdir(Environment.getSoftware('tmp'))
+
+    @staticmethod
+    def getLogFolder(*path):
+        return os.path.join(mkdir(Environment.getSoftware('log')),*path)
 
     @staticmethod
     def getEmFolder():
-        # Create it if it does not exists
-        if not exists(pwem.Config.EM_ROOT):
-            os.makedirs(pwem.Config.EM_ROOT)
-        return pwem.Config.EM_ROOT
+        return mkdir(pwem.Config.EM_ROOT)
 
     @staticmethod
     def getEm(name):
@@ -497,7 +498,7 @@ class Environment:
             flags.append('--libdir=%s/lib' % prefix)
             t.addCommand('./configure %s' % ' '.join(flags),
                          targets=makeFile, cwd=configPath,
-                         out='%s/log/%s_configure.log' % (prefix, name),
+                         out=self.getLogFolder('%s_configure.log' % name),
                          always=configAlways, environ=environ)
         else:
             assert progInPath('cmake') or 'cmake' in sys.argv[2:], \
@@ -506,23 +507,23 @@ class Environment:
             flags.append('-DCMAKE_INSTALL_PREFIX:PATH=%s .' % prefix)
             t.addCommand('cmake %s' % ' '.join(flags),
                          targets=makeFile, cwd=configPath,
-                         out='%s/log/%s_cmake.log' % (prefix, name),
+                         out=self.getLogFolder('%s_cmake.log' % name),
                          environ=environ)
 
         t.addCommand('make -j %d' % self._processors,
                      cwd=t.buildPath,
-                     out='%s/log/%s_make.log' % (prefix, name))
+                     out=self.getLogFolder('%s_make.log' %  name))
 
         t.addCommand('make install',
                      targets=targets,
                      cwd=t.buildPath,
-                     out='%s/log/%s_make_install.log' % (prefix, name),
+                     out=self.getLogFolder('%s_make_install.log' % name),
                      final=True)
 
         if clean:
             t.addCommand('make clean',
                          cwd=t.buildPath,
-                         out='%s/log/%s_make_clean.log' % (prefix, name))
+                         out=self.getLogFolder('%s_make_clean.log' % name))
             t.addCommand('rm %s' % makeFile)
 
         return t
@@ -550,66 +551,6 @@ class Environment:
                      targets="%s/%s" % (self.getPythonPackagesFolder(), target),
                      always=True  # execute pip command always. Pip will handle target existence
                      )
-
-        return t
-
-    def addModule(self, name, **kwargs):
-        """Add a new module to our built Python .
-        Params in kwargs:
-            targets: targets that should be generated after building the module.
-            flags: special flags passed to setup.py 
-            deps: dependencies of this modules.
-            default: True if this module is build by default.
-        """
-        # Use reasonable defaults.
-        targets = kwargs.get('targets', [name])
-        flags = kwargs.get('flags', [])
-        default = kwargs.get('default', True)
-        neededProgs = kwargs.get('neededProgs', [])
-        libChecks = kwargs.get('libChecks', [])
-
-        if default or name in sys.argv[2:]:
-            # Check that we have the necessary programs and libraries in place.
-            for prog in neededProgs:
-                assert progInPath(prog), ("Cannot find necessary program: %s\n"
-                                          "Please install and try again" % prog)
-            for lib in libChecks:
-                checkLib(lib)
-        
-        deps = kwargs.get('deps', [])
-        deps.append('python')
-
-        prefix = self.getSoftware()
-        flags.append('--prefix=%s' % prefix)
-
-        modArgs = {'urlSuffix': 'python'}
-        modArgs.update(kwargs)
-        t = self._addDownloadUntar(name, **modArgs)
-        self._addTargetDeps(t, deps)
-
-        def path(x):
-            if '/' in x:
-                return x
-            else:
-                return '%s/%s' % (self.getPythonPackagesFolder(), x)
-
-        environ = {
-            'PYTHONHOME': prefix,
-            'LD_LIBRARY_PATH': '%s/lib:%s' % (prefix, os.environ.get('LD_LIBRARY_PATH', '')),
-            'PATH': '%s/bin:%s' % (prefix, os.environ['PATH']),
-            'CPPFLAGS': '-I%s/include' % prefix,
-            'LDFLAGS': '-L%s/lib %s' % (prefix, os.environ.get('LDFLAGS', ''))}
-
-        envStr = ' '.join('%s="%s"' % (k, v) for k, v in environ.items())
-
-        t.addCommand('%(env)s '
-                     '%(root)s/bin/python setup.py install %(flags)s > '
-                     '%(root)s/log/%(name)s.log 2>&1' % {
-                         'env': envStr, 'root': prefix, 'name': name,
-                         'flags': ' '.join(flags)},
-                     targets=[path(tg) for tg in targets],
-                     cwd=t.buildPath,
-                     final=True)
 
         return t
 
@@ -641,11 +582,6 @@ class Environment:
 
         self._packages[name].append((name, version))
 
-        # Special case: our "package" is a python module that we want to use
-        # from elsewhere.
-        if kwargs.get('pythonMod', False):
-            return self.addModule(name, **kwargs)
-        
         environ = (self.updateCudaEnviron(name)
                    if kwargs.get('updateCuda', False) else None)
 
@@ -896,3 +832,9 @@ class Link:
     
         os.symlink(packageFolder, packageLink)
         print("Created link: %s" % linkText)
+
+def mkdir(path):
+    """ Creates a folder if it does not exists"""
+    if not exists(path):
+        os.makedirs(path)
+    return path

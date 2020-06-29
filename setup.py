@@ -29,7 +29,7 @@ setup(
     name='scipion-app',  # Required
     version=__version__,  # Required
     description='Scipion application. For processing cryo electron microscopy '
-                'images and hibrid modelling',  # Required
+                'images and hybrid modelling',  # Required
     long_description=long_description,  # Optional
     url='https://github.com/scipion-em/scipion-app',  # Optional
     author='Scipion team',  # Optional

@@ -413,14 +413,16 @@ MODE can be:
 
     view | show NAME       Opens a file with Scipion's showj, or a directory with Browser.
     
-    template [TEMPLATE]    Shows all the *.json.template files found in the config folder
+    %s [TEMPLATE]    Shows all the *.json.template files found in the config folder
                            and all templates provided by plugins. If TEMPLATE 
                            (a path to a template or a template name) is provided, 
                            then that template is used. 
                            
-    checkupdates [ARGS]    Checks for Scipion updates. Use with flag -h or --help to see usage.
+    %s [ARGS]          Updates scipion. Use with flag -h or --help to see usage.
 
-""")
+""" % (MODE_DEMO[1], MODE_UPDATE))
+        # TODO: Use single source of MODES in help text above, like done with MODE_UPDATE..maybe using a dict?
+
         if mode == MODE_HELP:
             sys.exit(0)
         else:

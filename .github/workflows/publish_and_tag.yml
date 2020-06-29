@@ -1,6 +1,7 @@
-# This is a basic workflow to help you get started with Actions
+# Workflow to send master to pypi and tag  the branch:
+# You need to edit FOLDER_WITH_VERSION with the folder that has the __version__ value. 
 
-name: master to pypi with comments
+name: master to pypi with comments and tag
 
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -9,6 +10,8 @@ on:
   push:
     branches: [ master ]
 
+env:
+  FOLDER_WITH_VERSION: scipion
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   deploy:
@@ -32,3 +35,8 @@ jobs:
       run: |
         python setup.py sdist
         twine upload dist/* -c "${{ secrets.PYPI_COMMENT }}"
+    - name: Get version and tag
+      run: |
+        export PACKAGE_VERSION=$(python -c "import $FOLDER_WITH_VERSION; print('v'+$FOLDER_WITH_VERSION.__version__);")
+        git tag $PACKAGE_VERSION
+        git push origin $PACKAGE_VERSION

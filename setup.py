@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
-
+from scipion import __version__
 from scipion.constants import SCIPION_EP
 
 here = path.abspath(path.dirname(__file__))
@@ -27,9 +27,9 @@ with open('requirements.txt') as f:
 
 setup(
     name='scipion-app',  # Required
-    version='3.0.1a2',  # Required
+    version=__version__,  # Required
     description='Scipion application. For processing cryo electron microscopy '
-                'images and hibrid modelling',  # Required
+                'images and hybrid modelling',  # Required
     long_description=long_description,  # Optional
     url='https://github.com/scipion-em/scipion-app',  # Optional
     author='Scipion team',  # Optional

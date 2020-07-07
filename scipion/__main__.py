@@ -415,18 +415,22 @@ MODE can be:
 
     view | show NAME       Opens a file with Scipion's showj, or a directory with Browser.
     
-    template [TEMPLATE]    Shows all the *.json.template files found in the config folder
+    %s [TEMPLATE]    Shows all the *.json.template files found in the config folder
                            and all templates provided by plugins. If TEMPLATE 
                            (a path to a template or a template name) is provided, 
-                           then that template is used. 
-                           
-    update [ARGS]          Check for updates to scipion-em, scipion-pyworkflow 
-                           and scipion-app and update them. OPTIONS can be:
+                           then that template is used.
+
+    %s [ARGS]          Check for updates of scipion-em, scipion-pyworkflow 
+                           and scipion-app and updates them. OPTIONS can be:
                               -h or --help: to see usage.
                               -dry : only check the status of scipion-em, scipion-pyworkflow 
                                      and scipion-app
 
-""")
+""" % (MODE_DEMO[1], MODE_UPDATE))
+
+           
+
+
         if mode == MODE_HELP:
             sys.exit(0)
         else:

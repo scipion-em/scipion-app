@@ -246,6 +246,8 @@ def main():
     # Check mode
     if mode == MODE_MANAGER:
         from pyworkflow.gui.project import ProjectManagerWindow
+        from scipion.install.update_manager import UpdateManager
+        UpdateManager.getPackagesStatus(printAll=False)
         ProjectManagerWindow().show()
 
     elif mode == MODE_LAST:
@@ -351,8 +353,8 @@ def main():
 
     elif mode == MODE_UPDATE:
         # Once more: local import to avoid importing pyworkflow, triegered by install.__init__ (Plugin Manager)
-        from scipion.install.update_manager import UpdateManager
-        UpdateManager().runUpdateManager(sys.argv[:])
+        from scipion.install.update_manager import updateManagerParser
+        updateManagerParser(sys.argv[:])
     # Else HELP or wrong argument
     else:
         sys.stdout.write("""\
@@ -418,7 +420,11 @@ MODE can be:
                            (a path to a template or a template name) is provided, 
                            then that template is used. 
                            
-    checkupdates [ARGS]    Checks for Scipion updates. Use with flag -h or --help to see usage.
+    update [ARGS]          Check for updates to scipion-em, scipion-pyworkflow 
+                           and scipion-app and update them. OPTIONS can be:
+                              -h or --help: to see usage.
+                              -dry : only check the status of scipion-em, scipion-pyworkflow 
+                                     and scipion-app
 
 """)
         if mode == MODE_HELP:

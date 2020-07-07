@@ -246,6 +246,8 @@ def main():
     # Check mode
     if mode == MODE_MANAGER:
         from pyworkflow.gui.project import ProjectManagerWindow
+        from scipion.install.update_manager import UpdateManager
+        UpdateManager.getPackagesStatus(printAll=False)
         ProjectManagerWindow().show()
 
     elif mode == MODE_LAST:
@@ -351,8 +353,8 @@ def main():
 
     elif mode == MODE_UPDATE:
         # Once more: local import to avoid importing pyworkflow, triegered by install.__init__ (Plugin Manager)
-        from scipion.install.update_manager import UpdateManager
-        UpdateManager().runUpdateManager(sys.argv[:])
+        from scipion.install.update_manager import updateManagerParser
+        updateManagerParser(sys.argv[:])
     # Else HELP or wrong argument
     else:
         sys.stdout.write("""\
@@ -413,14 +415,22 @@ MODE can be:
 
     view | show NAME       Opens a file with Scipion's showj, or a directory with Browser.
     
-    template [TEMPLATE]    Shows all the *.json.template files found in the config folder
+    %s [TEMPLATE]    Shows all the *.json.template files found in the config folder
                            and all templates provided by plugins. If TEMPLATE 
                            (a path to a template or a template name) is provided, 
-                           then that template is used. 
-                           
-    checkupdates [ARGS]    Checks for Scipion updates. Use with flag -h or --help to see usage.
+                           then that template is used.
 
-""")
+    %s [ARGS]          Check for updates of scipion-em, scipion-pyworkflow 
+                           and scipion-app and updates them. OPTIONS can be:
+                              -h or --help: to see usage.
+                              -dry : only check the status of scipion-em, scipion-pyworkflow 
+                                     and scipion-app
+
+""" % (MODE_DEMO[1], MODE_UPDATE))
+
+           
+
+
         if mode == MODE_HELP:
             sys.exit(0)
         else:

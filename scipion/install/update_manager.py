@@ -2,9 +2,9 @@
 # **************************************************************************
 # *
 # * Authors:    J. Jimenez de la Morena (jjimenez@cnb.csic.es)
+# *             Yunior C. Fonseca Reyna (cfonseca@cnb.csic.es)
 # *
-# *  [1] SciLifeLab, Stockholm University
-# *  [2] Unidad de Bioinformatica of Centro Nacional de Biotecnologia, CSIC
+# *  [1] Unidad de Bioinformatica of Centro Nacional de Biotecnologia, CSIC
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -25,123 +25,116 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-
+"""
+This module is responsible for updating scipion-em, scipion-pyworkflow and
+scipion-app if a higher version of these is released
+"""
 import argparse
-import optparse
-
-from pip._internal.commands.list import ListCommand
-import pip._internal.utils.misc as piputils
 from pip._internal.commands import create_command
+
+from pyworkflow.utils import redStr, greenStr
 from scipion.constants import MODE_UPDATE
 
-Y_COMMAND = '-y'
+DRY_COMMAND = '-dry'
 SCIPION_NAME = 'Scipion'
 
+
+def updateManagerParser(args):
+    """
+     Create the parser for the "update" command
+    """
+    parser = argparse.ArgumentParser(prog=args[1:],
+                                     formatter_class=argparse.RawTextHelpFormatter)
+    subparsers = parser.add_subparsers()
+    parser_f = subparsers.add_parser(MODE_UPDATE,
+                                     description='description: update {}.'.format(
+                                         SCIPION_NAME),
+                                     formatter_class=argparse.RawTextHelpFormatter,
+                                     usage="{} [-h/--help] [{}]".format(
+                                         ' '.join(args[:2]), DRY_COMMAND)
+                                     )
+    parser_f.add_argument(DRY_COMMAND,
+                          help='only check status {}.'.format(SCIPION_NAME),
+                          action="store_true")
+
+    parsedArgs = parser.parse_args(args[1:])
+    outdatedPackages = UpdateManager.getPackagesStatus()
+    if not outdatedPackages:
+        print('{} is up to date.'.format(SCIPION_NAME))
+    elif not parsedArgs.dry:
+        UpdateManager.updateScipion(outdatedPackages)
+
+
 class UpdateManager:
+    """
+    Class responsible for updating scipion-em, scipion-pyworkflow and
+    scipion-app if a higher version of these is released
+    """
+    import pyworkflow
+    import pwem
+    import scipion
 
-    pluginName = 'scipion-app'
-
-    @classmethod
-    def runUpdateManager(cls, args):
-        # create the top-level parser
-        parser = argparse.ArgumentParser(prog=args[1:],
-                                         formatter_class=argparse.RawTextHelpFormatter)
-        subparsers = parser.add_subparsers()
-        # create the parser for the "update" command
-        parser_f = subparsers.add_parser(MODE_UPDATE,
-                                         description='description: update {}.'.format(SCIPION_NAME),
-                                         formatter_class=argparse.RawTextHelpFormatter,
-                                         usage="{} [-h/--help] [{}]".format(' '.join(args[:2]), Y_COMMAND)
-                                         )
-        parser_f.add_argument(Y_COMMAND,
-                              help='force to update {}.'.format(SCIPION_NAME),
-                              action="store_true")
-
-        parsedArgs = parser.parse_args(args[1:])
-        if cls.isScipionUpToDate():
-            print('{} is up to date.'.format(SCIPION_NAME))
-        else:
-            print('A new update is available for {}.'.format(SCIPION_NAME))
-            if parsedArgs.y:
-                cls.updateScipion()
-                print('Updating...')
-            else:
-                answer = input('Would you like to update it now? [Y/n]\n')
-                if answer in ['', 'y', 'Y']:
-                    cls.updateScipion()
-                    print('Updating...')
+    packageNames = [('scipion-pyworkflow', pyworkflow.__version__),
+                    ('scipion-em', pwem.__version__),
+                    ('scipion-app', scipion.__version__)]
 
     @classmethod
-    def getUpToDatePluginList(cls):
-        return [x.project_name for x in cls.getUpToDatePackages()]
+    def getPackagesStatus(cls, printAll=True):
+        """
+        Check for scipion-app, scipion-pyworkflow and scipion-em updates
+        return: a list of modules to be updated
+        """
+        outdatedPackages = []
+        for package in cls.packageNames:
+            needToUpdate, version = cls.getPackageState(package[0],
+                                                            package[1])
+            if needToUpdate:
+                outdatedPackages.append((package[0], version))
+                print(
+                    redStr('The package %s is out of date. Your version is %s, '
+                           'the latest is %s.' % (package[0], package[1],
+                                                  version)))
+            elif printAll:
+                print(greenStr('The package %s is up to date.  Your version '
+                               'is %s' % (package[0], version)))
+
+        return outdatedPackages
 
     @classmethod
-    def isScipionUpToDate(cls):
-        print('Looking for updates...')
-        return cls.pluginName in cls.getUpToDatePluginList()
+    def getPackageState(cls, packageName, version):
+        """
+        Check if a package needs to be updated or not
+        args: packageName: the package name
+              version: version of the installed package
+        return: (True, version) if the the package needs to be updated, otherwise
+                (False, version)
+
+        """
+        from outdated import check_outdated
+        try:
+            checkOutdated = check_outdated(packageName, version)
+        except Exception as ex:
+            print(redStr('%s :%s' % (packageName, ex)))
+            return False, version
+
+        return checkOutdated
 
     @classmethod
-    def getUpToDatePackages(cls):
-        options = optparse.Values({
-            'skip_requirements_regex': '',
-            'retries': 5, 'pre': False,
-            'version': None,
-            'include_editable': True,
-            'disable_pip_version_check': False,
-            'log': None,
-            'trusted_hosts': [],
-            'outdated': False,
-            'no_input': False,
-            'local': False,
-            'timeout': 15,
-            'proxy': '',
-            'uptodate': True,
-            'help': None,
-            'cache_dir': '',
-            'no_color': False,
-            'user': False,
-            'client_cert': None,
-            'quiet': 0,
-            'not_required': None,
-            'no_python_version_warning': False,
-            'extra_index_urls': [],
-            'isolated_mode': False,
-            'exists_action': [],
-            'no_index': False,
-            'index_url': 'https://pypi.org/simple',
-            'find_links': [],
-            'path': None,
-            'require_venv': False,
-            'list_format': 'columns',
-            'editable': False,
-            'verbose': 0,
-            'cert': None})
-        distributions = piputils.get_installed_distributions(
-            local_only=options.local,
-            user_only=options.user,
-            editables_only=options.editable,
-            include_editables=options.include_editable,
-            paths=options.path)
-        return cls.genListCommand().get_uptodate(distributions, options)
-
-    @classmethod
-    def updateScipion(cls):
+    def updateScipion(cls, outdatedPackages):
+        """
+        Update a module from which there is released a higher version
+        """
         kwargs = {'isolated': False}
-        cmd_args = [cls.pluginName,
-                    '--upgrade',
-                    '-vvv']  # highest level of verbosity
 
-        command = create_command('install', **kwargs)
-        status = command.main(cmd_args)
-        if status == 0:
-            print('Scipion was correctly updated.')
-        else:
-            print('Something went wrong during the update.')
+        for packageName in outdatedPackages:
+            cmd_args = [packageName[0],
+                        '--upgrade',
+                        '-vvv']  # highest level of verbosity
 
-    @staticmethod
-    def genListCommand():
-        _args = ()
-        _kw = {'summary': 'List installed packages.', 'name': 'list', 'isolated': False}
-        return ListCommand(*_args, **_kw)
-
-
+            command = create_command('install', **kwargs)
+            status = command.main(cmd_args)
+            if status == 0:
+                print('%s was correctly updated.' % packageName[0])
+            else:
+                print('Something went wrong during the update of %s.'
+                      % packageName[0])

@@ -113,10 +113,8 @@ class UpdateManager:
         from outdated import check_outdated
         try:
             checkOutdated = check_outdated(packageName, version)
-        except Exception:
-            print(redStr('%s : Version %s is greater than the latest version '
-                         'on PyPI: %s' % (packageName, version,
-                                          checkOutdated[0])))
+        except Exception as ex:
+            print(redStr('%s :%s' % (packageName, ex)))
             return False, version
 
         return checkOutdated

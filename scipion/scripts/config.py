@@ -76,6 +76,7 @@ def main(args=None):
              "TO BE DEPRECATED, use unattended param instead")
     add('--unattended', action='store_true',
         help="Scipion will skipping questions")
+    add('-p', help='Prints the config variables associated to that plugin')
 
     add(COMPARE_PARAM, action='store_true',
         help="Check that the configurations seems reasonably well set up.")
@@ -86,6 +87,20 @@ def main(args=None):
         sys.exit(parser.format_help())
 
     unattended = options.notify or options.unattended
+
+    if options.p:
+        import pyworkflow.utils as pwutils
+        plugin = pwutils.Config.getDomain().importFromPlugin(options.p,
+                                                             'Plugin')
+        if plugin is not None:
+            plugin._defineVariables()
+
+            print("Variables defined by plugin '%s':\n" % options.p)
+
+            for k, v in plugin._vars.items():
+                print("%s = %s" % (k, v))
+
+        sys.exit(0)
 
     try:
         # where templates are

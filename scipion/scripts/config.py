@@ -76,7 +76,7 @@ def main(args=None):
              "TO BE DEPRECATED, use unattended param instead")
     add('--unattended', action='store_true',
         help="Scipion will skipping questions")
-    add('-p', help='Prints the config variables associated to that plugin')
+    add('-p', help='Prints the config variables associated to plugin P')
 
     add(COMPARE_PARAM, action='store_true',
         help="Check that the configurations seems reasonably well set up.")
@@ -90,15 +90,22 @@ def main(args=None):
 
     if options.p:
         import pyworkflow.utils as pwutils
-        plugin = pwutils.Config.getDomain().importFromPlugin(options.p,
-                                                             'Plugin')
+        pluginName = options.p
+        plugin = (pwutils.Config.getDomain().
+                  importFromPlugin(pluginName, 'Plugin'))
+
         if plugin is not None:
             plugin._defineVariables()
 
-            print("Variables defined by plugin '%s':\n" % options.p)
-
+            print("Variables defined by plugin '%s':\n" % pluginName)
             for k, v in plugin._vars.items():
                 print("%s = %s" % (k, v))
+            print("\nThese variables can be added/edited in '%s'"
+                  % os.environ[SCIPION_CONFIG])
+        else:
+            print("No plugin found with name '%s'. Module name is expected,\n"
+                  "i.e. 'scipion3 config -p xmipp3' shows the config variables "
+                  "defined in 'scipion-em-xmipp' plugin." % pluginName)
 
         sys.exit(0)
 

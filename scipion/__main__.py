@@ -395,6 +395,7 @@ MODE can be:
                              --show: list the available tests
                              --help: show all the available options
                              --grep <pattern> : filter the list using the <pattern> 
+                             --run: run the list off tests. Affected by --grep
                            For example, to run the "test_object" test:
                              scipion test tests.model.test_object
 

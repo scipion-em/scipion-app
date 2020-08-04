@@ -1,5 +1,2 @@
-numpy
-bibtexparser
-matplotlib
 requests
-Pillow
+scipion-em

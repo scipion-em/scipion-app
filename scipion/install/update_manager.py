@@ -127,7 +127,6 @@ class UpdateManager:
             print("Cannot check update status of %s (%s)" % (packageName, version))
             return False, version
         except Exception as ex:
-            print(ex.__class__)
             print(redStr('%s :%s' % (packageName, ex)))
             return False, version
 

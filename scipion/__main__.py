@@ -280,8 +280,6 @@ def main():
     #     runScript('scipion install %s' % ' '.join(sys.argv[2:]))
 
     elif mode in PLUGIN_MODES:
-        os.chdir(Vars.SCIPION_HOME)
-
         os.environ.update(VARS)
         from scipion.install import installPluginMethods
         installPluginMethods()

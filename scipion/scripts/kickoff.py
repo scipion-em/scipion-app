@@ -32,11 +32,10 @@ Template may look like this, separator is "~" and within it you can define:
 ~title|value|type~
 Template string sits at the end of the file ready for a running streaming demo.
 """
-
+import subprocess
 import sys
 import os
 import re
-import glob
 import tkinter as tk
 import tkinter.font as tkFont
 import traceback
@@ -54,6 +53,10 @@ from scipion.constants import SCIPION_EP
 
 # Custom labels
 from scipion.utils import getExternalJsonTemplates
+
+FLAG_PARAM = "--"
+NOGUI_FLAG = FLAG_PARAM +"nogui"
+
 
 START_BUTTON = "Start"
 LEN_LABEL_IN_CHARS = 30
@@ -169,11 +172,11 @@ class KickoffView(tk.Frame):
     def _fillContent(self, frame):
         # Add project name
         self.template.genProjectName()
-        self._addPair(PROJECT_NAME, 1, frame, value=self.template.projectName, pady=(10, 30))
+        self._addPair(PROJECT_NAME, PROJECT_NAME, 1, frame, value=self.template.projectName, pady=(10, 30))
         # Add template params
         self._addTemplateFieldsToForm(frame)
 
-    def _addPair(self, text, r, lf, widget='entry', traceCallback=None,  mouseBind=False, value=None, pady=2):
+    def _addPair(self, text, title, r, lf, widget='entry', traceCallback=None,  mouseBind=False, value=None, pady=2):
         label = tk.Label(lf, text=text, bg='white', font=self.bigFont)
         label.grid(row=r, column=0, padx=(10, 5), pady=pady, sticky='nes')
 
@@ -196,13 +199,16 @@ class KickoffView(tk.Frame):
         elif widget == 'label':
             widget = tk.Label(lf, font=self.bigFont, textvariable=var)
 
-        self.vars[text] = var
+        self.vars[title] = var
         widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=pady)
 
     def _addTemplateFieldsToForm(self, labelFrame):
         row = 3
         for field in self.template.params.values():
-            self._addPair(field.getTitle(), row, labelFrame, value=field.getValue())
+            alias = field.getAlias()
+            text = field.getTitle() if alias is None else "%s (%s)" % (field.getTitle(),alias)
+
+            self._addPair(text, field.getTitle(), row, labelFrame, value=field.getValue())
             row += 1
 
     def _getVar(self, varKey):
@@ -316,7 +322,13 @@ def assignAllParams(template):
     template.parseContent()
     if len(sys.argv) > 2:
         attrList = sys.argv[2:]
-        for aliasAttr, valAttr in (attr.split('=') for attr in attrList):
+
+        for attr in attrList:
+            # skipp --params
+            if attr.startswith(FLAG_PARAM):
+                continue
+
+            aliasAttr, valAttr = attr.split('=')
             try:
                 paramsSetted += template.setParamValue(aliasAttr, valAttr)
             except Exception as e:
@@ -355,11 +367,21 @@ def createProjectFromWorkflow(workflow, projectName):
 
     # Schedule the project
     scheduleProjectScript = os.path.join(scriptsPath, 'schedule.py')
-    os.system("python -m %s python %s %s" % (scipion, scheduleProjectScript, projectName))
+    print("Scheduling project %s" % projectName)
+    subprocess.Popen(["python", "-m",scipion, "python" , scheduleProjectScript, projectName])
 
-    # Launch scipion
-    os.system("python -m %s project %s" % (scipion, projectName))
+    if launchGUI():
+        # Launch scipion
+        subprocess.Popen(["python", "-m", scipion, projectName])
 
+def launchGUI():
+    """Checks if project GUI has to be launched. Only if --noGUI param is found in sys.argv it will return False"""
+    for arg in sys.argv:
+        if (NOGUI_FLAG) == arg.lower():
+            return False
+
+    # Not found, launch GUI
+    return True
 
 def main():
     templates = getTemplates()

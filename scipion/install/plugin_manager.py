@@ -27,7 +27,6 @@
 from tkinter import *
 import threading
 
-from pyworkflow import LAST_VERSION
 from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
 from pyworkflow.utils.log import ScipionLogger
@@ -1005,11 +1004,14 @@ class PluginManagerWindow(gui.Window):
             pluginsVars = dict()
             for plugin in pluginDict.values():
                 if plugin.isInstalled():
-                    pluginsVars.update (plugin.getPluginClass().getVars())
+                    pluginsVars.update(plugin.getPluginClass().getVars())
 
             sortedVars = sorted(pluginsVars)
-            for var in sortedVars:
-                msg = msg +  '{} = {}\n'.format(var, pluginsVars[var])
+            if sortedVars:
+                for var in sortedVars:
+                    msg = msg + '{} = {}\n'.format(var, pluginsVars[var])
+            else:
+                msg = "There are no variables to display"
             pwgui.showInfo("Plugin variables", msg, tk.Frame())
 
     def onHelp(self):
@@ -1033,42 +1035,42 @@ class PluginHelp(gui.Window):
     def createHelp(self):
         helpFrame = tk.Frame(self.root)
         helpFrame.grid(row=0, column=0, sticky='news')
-        photo = PhotoImage(file=gui.findResource(Icon.CHECKED))
+        photo = PhotoImage(file=pw.findResource(Icon.CHECKED))
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=0, column=0, sticky='sw', padx=10, pady=5)
         btn = Label(helpFrame, text='INSTALLED Plugin/Binary')
         btn.grid(row=0, column=1, sticky='sw', padx=0, pady=5)
 
-        photo = PhotoImage(file=gui.findResource(Icon.UNCHECKED))
+        photo = PhotoImage(file=pw.findResource(Icon.UNCHECKED))
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=1, column=0, sticky='sw', padx=10, pady=5)
         btn = Label(helpFrame, text='UNINSTALLED Plugin/Binary')
         btn.grid(row=1, column=1, sticky='sw', padx=0, pady=5)
 
-        photo = PhotoImage(file=gui.findResource(Icon.INSTALL))
+        photo = PhotoImage(file=pw.findResource(Icon.INSTALL))
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=2, column=0, sticky='sw', padx=10, pady=5)
         btn = Label(helpFrame, text='Plugin/Binary TO INSTALL')
         btn.grid(row=2, column=1, sticky='sw', padx=0, pady=5)
 
-        photo = PhotoImage(file=gui.findResource(Icon.UNINSTALL))
+        photo = PhotoImage(file=pw.findResource(Icon.UNINSTALL))
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=3, column=0, sticky='sw', padx=10, pady=5)
         btn = Label(helpFrame, text='Plugin/Binary TO UNINSTALL')
         btn.grid(row=3, column=1, sticky='sw', padx=0, pady=5)
 
-        photo = PhotoImage(file=gui.findResource(Icon.TO_INSTALL))
+        photo = PhotoImage(file=pw.findResource(Icon.TO_INSTALL))
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=4, column=0, sticky='sw', padx=10, pady=5)
         btn = Label(helpFrame, text='Execute the selected operations')
         btn.grid(row=4, column=1, sticky='sw', padx=0, pady=5)
 
-        photo = PhotoImage(file=gui.findResource(Icon.DELETE_OPERATION))
+        photo = PhotoImage(file=pw.findResource(Icon.DELETE_OPERATION))
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=5, column=0, sticky='sw', padx=10, pady=5)

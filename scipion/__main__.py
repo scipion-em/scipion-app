@@ -179,7 +179,7 @@ class Vars:
     SCIPION_CONFIG = scipionConfig
     SCIPION_LOCAL_CONFIG = scipionLocalConfig
     SCIPION_PROTOCOLS = protocols
-    SCIPION_HOSTS = hosts
+    SCIPION_HOSTS = os.environ.get('SCIPION_HOSTS', hosts)
 
     # Paths to apps or scripts
     PW_APPS = join(getModuleFolder("pyworkflow"), 'apps')

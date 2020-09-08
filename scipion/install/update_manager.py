@@ -30,9 +30,11 @@ This module is responsible for updating scipion-em, scipion-pyworkflow and
 scipion-app if a higher version of these is released
 """
 import argparse
+from threading import Thread
+
 from pip._internal.commands import create_command
 
-from pyworkflow.utils import redStr, greenStr
+from pyworkflow.utils import redStr, greenStr, os
 from scipion.constants import MODE_UPDATE
 
 DRY_COMMAND = '-dry'
@@ -84,21 +86,26 @@ class UpdateManager:
         Check for scipion-app, scipion-pyworkflow and scipion-em updates
         return: a list of modules to be updated
         """
-        outdatedPackages = []
-        for package in cls.packageNames:
-            needToUpdate, version = cls.getPackageState(package[0],
-                                                            package[1])
-            if needToUpdate:
-                outdatedPackages.append((package[0], version))
-                print(
-                    redStr('The package %s is out of date. Your version is %s, '
-                           'the latest is %s.' % (package[0], package[1],
-                                                  version)))
-            elif printAll:
-                print(greenStr('The package %s is up to date.  Your version '
-                               'is %s' % (package[0], version)))
+        def check():
+            outdatedPackages = []
+            for package in cls.packageNames:
+                
+                needToUpdate, version = cls.getPackageState(package[0],
+                                                                package[1])
+                if needToUpdate:
+                    outdatedPackages.append((package[0], version))
+                    print(
+                        redStr('The package %s is out of date. Your version is %s, '
+                               'the latest is %s.' % (package[0], package[1],
+                                                      version)))
+                elif printAll:
+                    print(greenStr('The package %s is up to date.  Your version '
+                                   'is %s' % (package[0], version)))
+    
+            return outdatedPackages
 
-        return outdatedPackages
+        thread = Thread(target=check)
+        thread.start()
 
     @classmethod
     def getPackageState(cls, packageName, version):
@@ -110,9 +117,15 @@ class UpdateManager:
                 (False, version)
 
         """
+        # Ignore autocheck of outeaded package that happens at import time
+        os.environ["OUTDATED_IGNORE"] = "1"
         from outdated import check_outdated
+        from requests.exceptions import ConnectionError
         try:
             checkOutdated = check_outdated(packageName, version)
+        except ConnectionError as connError:
+            print("Cannot check update status of %s (%s)" % (packageName, version))
+            return False, version
         except Exception as ex:
             print(redStr('%s :%s' % (packageName, ex)))
             return False, version

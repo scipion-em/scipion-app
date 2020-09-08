@@ -180,7 +180,7 @@ class Vars:
     SCIPION_CONFIG = scipionConfig
     SCIPION_LOCAL_CONFIG = scipionLocalConfig
     SCIPION_PROTOCOLS = protocols
-    SCIPION_HOSTS = hosts
+    SCIPION_HOSTS = os.environ.get('SCIPION_HOSTS', hosts)
 
     # Paths to apps or scripts
     PW_APPS = join(getModuleFolder("pyworkflow"), 'apps')
@@ -281,8 +281,6 @@ def main():
     #     runScript('scipion install %s' % ' '.join(sys.argv[2:]))
 
     elif mode in PLUGIN_MODES:
-        os.chdir(Vars.SCIPION_HOME)
-
         os.environ.update(VARS)
         from scipion.install import installPluginMethods
         installPluginMethods()

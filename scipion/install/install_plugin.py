@@ -199,7 +199,7 @@ def installPluginMethods():
                 pluginSrc = p[0]
                 pluginName = ""
                 if os.path.exists(pluginSrc):
-                    pluginName = os.path.basename(pluginSrc.rstrip('/'))
+                    pluginName = os.path.basename(os.path.abspath(pluginSrc).rstrip('/'))
                 else:  # we assume it is a git url
                     m = re.match('https://github.com/(.*)/(.*).git', pluginSrc)
                     if m:

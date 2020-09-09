@@ -74,10 +74,11 @@ def config2Dict(configFile, varDict):
         # For each section
         for sectionName, section in config.items():
             for variable, value in section.items():
-                varDict[variable] = expandvars(value)
+                # Expanding user and avoiding comments
+                cleanValue = value.split('#')[0]
+                varDict[variable] = expandvars(cleanValue).strip()
 
     return varDict
-
 
 def envOn(varName):
     value = os.environ.get(varName, '').lower()

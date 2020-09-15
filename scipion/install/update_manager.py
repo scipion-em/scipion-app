@@ -126,6 +126,11 @@ class UpdateManager:
         except ConnectionError as connError:
             print("Cannot check update status of %s (%s)" % (packageName, version))
             return False, version
+        except ValueError:
+            # We intentionally skip this error
+            # When working in devel mode with an increased version not yet release this Value error
+            # happens: --> example: Version 3.0.2 is greater than the latest version on PyPI: 3.0.1
+            return  False, version
         except Exception as ex:
             print(redStr('%s :%s' % (packageName, ex)))
             return False, version

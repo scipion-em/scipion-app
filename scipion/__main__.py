@@ -40,8 +40,8 @@ from scipion.utils import (getScipionHome, getInstallPath,
                            getScriptsPath, getTemplatesPath, getModuleFolder)
 from .scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
 from scipion.constants import MODE_UPDATE
+from scipion import __version__
 
-__version__ = 'v3.0'
 __nickname__ = DEVEL
 __releasedate__ = ''
 
@@ -49,7 +49,7 @@ __releasedate__ = ''
 # *********************  Helper functions *****************************
 def getVersion(long=True):
     if long:
-        return "%s (%s) %s" % (__version__, __releasedate__, __nickname__)
+        return "v%s (%s) %s" % (__version__, __releasedate__, __nickname__)
     else:
         return __version__
 
@@ -57,7 +57,7 @@ def getVersion(long=True):
 def printVersion():
     """ Print Scipion version """
     # Print the version and some more info
-    print('Scipion %s\n' % getVersion())
+    print('Scipion %s' % getVersion())
 
 
 def config2Dict(configFile, varDict):

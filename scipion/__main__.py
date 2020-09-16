@@ -40,8 +40,8 @@ from scipion.utils import (getScipionHome, getInstallPath,
                            getScriptsPath, getTemplatesPath, getModuleFolder)
 from .scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
 from scipion.constants import MODE_UPDATE
+from scipion import __version__
 
-__version__ = 'v3.0'
 __nickname__ = DEVEL
 __releasedate__ = ''
 
@@ -49,7 +49,7 @@ __releasedate__ = ''
 # *********************  Helper functions *****************************
 def getVersion(long=True):
     if long:
-        return "%s (%s) %s" % (__version__, __releasedate__, __nickname__)
+        return "v%s (%s) %s" % (__version__, __releasedate__, __nickname__)
     else:
         return __version__
 
@@ -57,7 +57,7 @@ def getVersion(long=True):
 def printVersion():
     """ Print Scipion version """
     # Print the version and some more info
-    print('Scipion %s\n' % getVersion())
+    print('Scipion %s' % getVersion())
 
 
 def config2Dict(configFile, varDict):
@@ -74,10 +74,11 @@ def config2Dict(configFile, varDict):
         # For each section
         for sectionName, section in config.items():
             for variable, value in section.items():
-                varDict[variable] = expandvars(value)
+                # Expanding user and avoiding comments
+                cleanValue = value.split('#')[0]
+                varDict[variable] = expandvars(cleanValue).strip()
 
     return varDict
-
 
 def envOn(varName):
     value = os.environ.get(varName, '').lower()
@@ -179,7 +180,7 @@ class Vars:
     SCIPION_CONFIG = scipionConfig
     SCIPION_LOCAL_CONFIG = scipionLocalConfig
     SCIPION_PROTOCOLS = protocols
-    SCIPION_HOSTS = hosts
+    SCIPION_HOSTS = os.environ.get('SCIPION_HOSTS', hosts)
 
     # Paths to apps or scripts
     PW_APPS = join(getModuleFolder("pyworkflow"), 'apps')
@@ -280,8 +281,6 @@ def main():
     #     runScript('scipion install %s' % ' '.join(sys.argv[2:]))
 
     elif mode in PLUGIN_MODES:
-        os.chdir(Vars.SCIPION_HOME)
-
         os.environ.update(VARS)
         from scipion.install import installPluginMethods
         installPluginMethods()
@@ -395,6 +394,7 @@ MODE can be:
                              --show: list the available tests
                              --help: show all the available options
                              --grep <pattern> : filter the list using the <pattern> 
+                             --run: run the list off tests. Affected by --grep
                            For example, to run the "test_object" test:
                              scipion test tests.model.test_object
 

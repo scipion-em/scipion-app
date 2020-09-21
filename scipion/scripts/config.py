@@ -32,6 +32,7 @@ import optparse
 from pathlib import Path
 
 from configparser import ConfigParser  # Python 3
+from shutil import copyfile
 
 from scipion.utils import getTemplatesPath
 
@@ -189,32 +190,27 @@ def createConf(fpath, ftemplate, unattended=False):
     # Read the template configuration file.
     print(yellow("* Creating configuration file: %s" % fpath))
     print("Please edit it to reflect the configuration of your system.\n")
-    cf = ConfigParser()
-    cf.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
-    assert cf.read(ftemplate) != [], 'Missing file: %s' % ftemplate
 
-    # Commented once BUILD is no longer in the template.
-    # To be confirmed if this will remain once plugins are tested.
-    # # Update with our guesses.
-    # if 'BUILD' in cf.sections():
-    #     for options in [guessJava(), guessMPI()]:
-    #         for key in options:
-    #             if key in cf.options('BUILD'):
-    #                 cf.set('BUILD', key, options[key])
+    if not os.path.exists(ftemplate):
+        raise FileNotFoundError('Missing file: %s' % ftemplate)
 
     # Special case for scipion config
     if getTemplateName(SCIPION_CONF) in ftemplate:
 
-        addPyworkflowVariables(cf)
+        cf = ConfigParser()
+        cf.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
 
+        addPyworkflowVariables(cf)
         addPluginsVariables(cf)
 
         # Collecting protocol Usage Statistics
         checkNotify(cf, fpath, unattended=unattended)
 
-    # Create the actual configuration file.
-    cf.write(open(fpath, 'w'))
-
+        # Create the actual configuration file.
+        cf.write(open(fpath, 'w'))
+    else:
+        # For host.conf and protocols.conf, just copy files
+        copyfile(ftemplate, fpath)
 
 def addVariablesToSection(cf, section, vars, exclude=[]):
     """ Add all the variables in vars to the config "cf" at the section passed
@@ -325,12 +321,17 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
     ct = ConfigParser()
     ct.optionxform = str
 
+    suggestUpdate = True # Flag to suggest --update
+
     # Special case for scipion config... get values from objects
     if getTemplateName(SCIPION_CONF) in ftemplate:
-        # This will be the place to "exlude some variables"
+        # This will be the place to "exclude some variables"
         addPyworkflowVariables(ct)
         addPluginsVariables(ct)
     else:
+        # Cancel update for others than SCIPION_CONF
+        update = False
+        suggestUpdate = False
         assert ct.read(ftemplate) != [], 'Missing file %s' % ftemplate
 
     df = dict([(s, set(cf.options(s))) for s in cf.sections()])
@@ -373,8 +374,8 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
                 print("In section %s, option %s exists in the configuration "
                       "file but not in the template." % (red(s), red(o)))
             for o in dt[s] - df[s]:
-                print("In section %s, option %s exists in the template but not in the configuration file. Use %s "
-                      "parameter to update local config files." % (yellow(s), yellow(o), UPDATE_PARAM))
+                suggestion = "" if not suggestUpdate else  " Use %s parameter to update local config files." % UPDATE_PARAM
+                print("In section %s, option %s exists in the template but not in the configuration file.%s" % (yellow(s), yellow(o), suggestion))
 
                 if update:
                     if o == 'SCIPION_NOTIFY':

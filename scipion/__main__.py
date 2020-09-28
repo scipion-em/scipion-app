@@ -35,6 +35,8 @@ import os
 from os.path import join, exists, expanduser, expandvars
 
 from configparser import ConfigParser  # Python 3
+from threading import Thread
+
 from scipion.constants import *
 from scipion.utils import (getScipionHome, getInstallPath,
                            getScriptsPath, getTemplatesPath, getModuleFolder)
@@ -248,7 +250,11 @@ def main():
     if mode == MODE_MANAGER:
         from pyworkflow.gui.project import ProjectManagerWindow
         from scipion.install.update_manager import UpdateManager
-        UpdateManager.getPackagesStatus(printAll=False)
+
+        # Check update status in a thread.
+        thread = Thread(target=lambda : UpdateManager.getPackagesStatus(printAll=False))
+        thread.start()
+
         ProjectManagerWindow().show()
 
     elif mode == MODE_LAST:

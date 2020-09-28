@@ -86,26 +86,22 @@ class UpdateManager:
         Check for scipion-app, scipion-pyworkflow and scipion-em updates
         return: a list of modules to be updated
         """
-        def check():
-            outdatedPackages = []
-            for package in cls.packageNames:
-                
-                needToUpdate, version = cls.getPackageState(package[0],
-                                                                package[1])
-                if needToUpdate:
-                    outdatedPackages.append((package[0], version))
-                    print(
-                        redStr('The package %s is out of date. Your version is %s, '
-                               'the latest is %s.' % (package[0], package[1],
-                                                      version)))
-                elif printAll:
-                    print(greenStr('The package %s is up to date.  Your version '
-                                   'is %s' % (package[0], version)))
-    
-            return outdatedPackages
+        outdatedPackages = []
+        for package in cls.packageNames:
 
-        thread = Thread(target=check)
-        thread.start()
+            needToUpdate, version = cls.getPackageState(package[0],
+                                                            package[1])
+            if needToUpdate:
+                outdatedPackages.append((package[0], version))
+                print(
+                    redStr('The package %s is out of date. Your version is %s, '
+                           'the latest is %s.' % (package[0], package[1],
+                                                  version)))
+            elif printAll:
+                print(greenStr('The package %s is up to date.  Your version '
+                               'is %s' % (package[0], version)))
+
+        return outdatedPackages
 
     @classmethod
     def getPackageState(cls, packageName, version):

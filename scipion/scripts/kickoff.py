@@ -49,7 +49,7 @@ import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
 from pyworkflow.template import TemplateList
-from scipion.constants import SCIPION_EP
+from scipion.constants import SCIPION_EP, MODE_PROJECT
 
 # Custom labels
 from scipion.utils import getExternalJsonTemplates
@@ -372,7 +372,7 @@ def createProjectFromWorkflow(workflow, projectName):
 
     if launchGUI():
         # Launch scipion
-        subprocess.Popen(["python", "-m", scipion, projectName])
+        subprocess.Popen(["python", "-m", scipion,  MODE_PROJECT, projectName])
 
 def launchGUI():
     """Checks if project GUI has to be launched. Only if --noGUI param is found in sys.argv it will return False"""

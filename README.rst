@@ -1,6 +1,6 @@
-=====================
-Scipion UNSTABLE REPO
-=====================
+===========
+Scipion app
+===========
 
 **Scipion** is an image processing framework to obtain 3D models of
 macromolecular complexes using Electron Microscopy (3DEM). It integrates

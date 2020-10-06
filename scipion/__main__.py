@@ -238,6 +238,10 @@ def main():
     # Prepare the environment
     os.environ.update(VARS)
 
+    # Set default VIEWERS value for scipion if not defined:
+    if not os.environ.get("VIEWERS", None):
+        os.environ["VIEWERS"] = '{"Volume":["pwem.viewers.DataViewer"]}'
+
     # Trigger Config initialization once environment is ready
     import pyworkflow
     pwVARS = pyworkflow.Config.getVars()

@@ -11,7 +11,7 @@
    - wrong regular expression for replacing some variables in script template
    - parsing of the resulting dendrogram
    - some additional validations and removed unused code
-- Bugfixes and inprovements in Xmipp protocols:
+- Bugfixes and improvements in Xmipp protocols:
    - Protocols screen-classes merged into one: compare-reprojections
    - Complete refactoring of operate-particles and operate-volumes protocols (previously called 2D and 3D calculator). Tests added
 - Picking and Viewer: 

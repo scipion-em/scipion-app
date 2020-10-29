@@ -7,8 +7,10 @@ import os
 from scipion.utils import getInstallPath, getScriptsPath
 from scipion.constants import PLUGIN_MANAGER_PY, PYTHON, KICKOFF
 
+
 def launchPluginManager():
     os.system("%s %s" % (PYTHON, os.path.join(getInstallPath(), PLUGIN_MANAGER_PY)))
+
 
 def launchTemplates():
     os.system("%s %s" % (PYTHON, os.path.join(getScriptsPath(), KICKOFF)))

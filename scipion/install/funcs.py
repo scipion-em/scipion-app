@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -35,7 +35,6 @@ from subprocess import STDOUT, call
 from pyworkflow import Config
 import pwem
 
-
 try:
     unicode = unicode
 except NameError:  # 'unicode' is undefined, must be Python 3
@@ -46,7 +45,7 @@ except NameError:  # 'unicode' is undefined, must be Python 3
 MACOSX = (platform.system() == 'Darwin')
 WINDOWS = (platform.system() == 'Windows')
 LINUX = (platform.system() == 'Linux')
-VOID_TGZ="void.tgz"
+VOID_TGZ = "void.tgz"
 
 
 def ansi(n):
@@ -55,6 +54,8 @@ def ansi(n):
 
 
 black, red, green, yellow, blue, magenta, cyan, white = map(ansi, range(30, 38))
+
+
 # We don't take them from pyworkflow.utils because this has to run
 # with all python versions (and so it is simplified).
 
@@ -93,7 +94,7 @@ Continue anyway? (y/n)""" % lib)
 
 
 class Command:
-    def __init__(self, env, cmd, targets=None,  **kwargs):
+    def __init__(self, env, cmd, targets=None, **kwargs):
         self._env = env
         self._cmd = cmd
 
@@ -126,7 +127,7 @@ class Command:
                 if not self._env.showOnly:
                     os.chdir(self._cwd)
                 print(cyan("cd %s" % self._cwd))
-    
+
             # Actually allow self._cmd to be a list or a
             # '\n'-separated list of commands, and run them all.
             if isinstance(self._cmd, basestring):
@@ -135,17 +136,17 @@ class Command:
                 cmds = [self._cmd]  # a function call
             else:
                 cmds = self._cmd  # already a list of whatever
-    
+
             for cmd in cmds:
                 if self._out is not None:
                     cmd += ' > %s 2>&1' % self._out
                     # TODO: more general, this only works for bash.
-        
+
                 print(cyan(cmd))
-        
+
                 if self._env.showOnly:
                     continue  # we don't really execute the command here
-        
+
                 if callable(cmd):  # cmd could be a function: call it
                     cmd()
                 else:  # if not, it's a command: make a system call
@@ -246,10 +247,10 @@ class Environment:
         # Find if the -j arguments was passed to get the number of processors
         if '-j' in self._args:
             j = self._args.index('-j')
-            self._processors = int(self._args[j+1])
+            self._processors = int(self._args[j + 1])
         else:
             self._processors = 1
-            
+
         if LINUX:
             self._libSuffix = 'so'  # Shared libraries extension name
         else:
@@ -264,10 +265,10 @@ class Environment:
 
     def getLibSuffix(self):
         return self._libSuffix
-    
+
     def getProcessors(self):
         return self._processors
-    
+
     @staticmethod
     def getSoftware(*paths):
         return os.path.join(Config.SCIPION_SOFTWARE, *paths)
@@ -304,19 +305,19 @@ class Environment:
 
     @staticmethod
     def getBinFolder(*paths):
-        return  os.path.join(mkdir(Environment.getSoftware('bin')), *paths)
+        return os.path.join(mkdir(Environment.getSoftware('bin')), *paths)
 
     @staticmethod
     def getBin(name):
-        return  Environment.getBinFolder(name)
+        return Environment.getBinFolder(name)
 
     @staticmethod
     def getTmpFolder():
-        return  mkdir(Environment.getSoftware('tmp'))
+        return mkdir(Environment.getSoftware('tmp'))
 
     @staticmethod
     def getLogFolder(*path):
-        return os.path.join(mkdir(Environment.getSoftware('log')),*path)
+        return os.path.join(mkdir(Environment.getSoftware('log')), *path)
 
     @staticmethod
     def getEmFolder():
@@ -350,13 +351,13 @@ class Environment:
                             % name)
 
         self._targetDict[alias] = self._targetDict[name]
-    
+
     def getTarget(self, name):
         return self._targetDict[name]
-    
+
     def hasTarget(self, name):
         return name in self._targetDict
-    
+
     def getTargets(self):
         return self._targetList
 
@@ -394,12 +395,12 @@ class Environment:
         createBuildDir = kwargs.get('createBuildDir', False)
 
         deps = kwargs.get('deps', [])
-        
+
         # Download library tgz
         tarFile = join(downloadDir, tar)
         buildPath = join(downloadDir, buildDir)
         targetPath = join(downloadDir, targetDir)
-        
+
         t = self.addTarget(name, default=kwargs.get('default', True))
         self._addTargetDeps(t, deps)
         t.buildDir = buildDir
@@ -426,14 +427,13 @@ class Environment:
         else:
             tarCmd = self._tarCmd % tar
 
-
         finalTarget = join(downloadDir, kwargs.get('target', buildDir))
         t.addCommand(tarCmd,
                      targets=finalTarget,
                      cwd=downloadDir)
-        
-        return t          
-         
+
+        return t
+
     def addLibrary(self, name, **kwargs):
         """Add library <name> to the construction process.
 
@@ -512,7 +512,7 @@ class Environment:
 
         t.addCommand('make -j %d' % self._processors,
                      cwd=t.buildPath,
-                     out=self.getLogFolder('%s_make.log' %  name))
+                     out=self.getLogFolder('%s_make.log' % name))
 
         t.addCommand('make install',
                      targets=targets,
@@ -602,7 +602,7 @@ class Environment:
             kwargs["createBuildDir"] = True
 
         buildDir = kwargs.get('buildDir',
-                          tar.rsplit('.tar.gz', 1)[0].rsplit('.tgz', 1)[0])
+                              tar.rsplit('.tar.gz', 1)[0].rsplit('.tgz', 1)[0])
         targetDir = kwargs.get('targetDir', buildDir)
 
         libArgs = {'downloadDir': self.getEmFolder(),
@@ -627,13 +627,13 @@ class Environment:
 
             target.addCommand(cmd, targets=normTgt, cwd=target.buildPath,
                               final=True, environ=environ)
-        
+
         target.addCommand(Command(self, Link(extName, targetDir),
                                   targets=[self.getEm(extName),
                                            self.getEm(targetDir)],
                                   cwd=self.getEm('')),
                           final=True)
-        
+
         # Create an alias with the name for that version
         # this imply that the last package version added will be
         # the one installed by default, so the last versions should
@@ -644,7 +644,7 @@ class Environment:
 
     def _showTargetGraph(self, targetList):
         """ Traverse the targets taking into account
-        their dependences and print them in DOT format.
+        their dependencies and print them in DOT format.
         """
         print('digraph libraries {')
         for tgt in targetList:
@@ -746,7 +746,7 @@ class Environment:
                 self._showTargetTree(targetList)
         else:
             self._executeTargets(targetList)
-        
+
     def updateCudaEnviron(self, package):
         """ Update the environment adding CUDA_LIB and/or CUDA_BIN to support
         packages that uses CUDA.
@@ -755,7 +755,7 @@ class Environment:
         packUpper = package.upper()
         cudaLib = os.environ.get(packUpper + '_CUDA_LIB')
         cudaBin = os.environ.get(packUpper + '_CUDA_BIN')
-    
+
         if cudaLib is None:
             cudaLib = pwem.Config.CUDA_LIB
             cudaBin = pwem.Config.CUDA_BIN
@@ -769,11 +769,11 @@ class Environment:
 
         elif cudaLib is not None and cudaBin is None:
             raise Exception("CUDA_LIB (or %s_CUDA_LIB) is defined, but not "
-                            "CUDA_BIN (or %s_CUDA_BIN), please excecute "
+                            "CUDA_BIN (or %s_CUDA_BIN), please execute "
                             "scipion config --update" % (packUpper, packUpper))
         elif cudaBin is not None and cudaLib is None:
             raise Exception("CUDA_BIN (or %s_CUDA_BIN) is defined, but not "
-                            "CUDA_LIB (or %s_CUDA_LIB), please excecute "
+                            "CUDA_LIB (or %s_CUDA_LIB), please execute "
                             "scipion config --update" % (packUpper, packUpper))
         elif os.path.exists(cudaLib) and os.path.exists(cudaBin):
             environ.update({'LD_LIBRARY_PATH': cudaLib + ":" +
@@ -796,19 +796,20 @@ class Environment:
         return name in self._packages
 
     def getPackage(self, name):
-        return  self._packages.get(name, None)
+        return self._packages.get(name, None)
+
 
 class Link:
     def __init__(self, packageLink, packageFolder):
         self._packageLink = packageLink
         self._packageFolder = packageFolder
-        
+
     def __call__(self):
         self.createPackageLink(self._packageLink, self._packageFolder)
-        
+
     def __str__(self):
         return "Link '%s -> %s'" % (self._packageLink, self._packageFolder)
-        
+
     def createPackageLink(self, packageLink, packageFolder):
         """ Create a link to packageFolder in packageLink, validate
         that packageFolder exists and if packageLink exists it is 
@@ -816,12 +817,12 @@ class Link:
         This function is supposed to be executed in software/em folder.
         """
         linkText = "'%s -> %s'" % (packageLink, packageFolder)
-        
+
         if not exists(packageFolder):
             print(red("Creating link %s, but '%s' does not exist!!!\n"
                       "INSTALLATION FAILED!!!" % (linkText, packageFolder)))
             sys.exit(1)
-    
+
         if exists(packageLink):
             if islink(packageLink):
                 os.remove(packageLink)
@@ -829,9 +830,10 @@ class Link:
                 print(red("Creating link %s, but '%s' exists and is not a link!!!\n"
                           "INSTALLATION FAILED!!!" % (linkText, packageLink)))
                 sys.exit(1)
-    
+
         os.symlink(packageFolder, packageLink)
         print("Created link: %s" % linkText)
+
 
 def mkdir(path):
     """ Creates a folder if it does not exists"""

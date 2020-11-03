@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -36,7 +36,6 @@ from shutil import copyfile
 
 from scipion.utils import getTemplatesPath
 
-
 PYWORKFLOW_SECTION = "PYWORKFLOW"
 SCIPION_CONF = 'scipion'
 BACKUPS = 'backups'
@@ -46,7 +45,6 @@ MISSING_VAR = "None"
 SCIPION_NOTIFY = 'SCIPION_NOTIFY'
 SCIPION_CONFIG = 'SCIPION_CONFIG'
 SCIPION_LOCAL_CONFIG = 'SCIPION_LOCAL_CONFIG'
-
 
 UPDATE_PARAM = '--update'
 COMPARE_PARAM = '--compare'
@@ -118,8 +116,8 @@ def main(args=None):
         # Global installation configuration files.
         for fpath, tmplt in [
             (scipionConfigFile, SCIPION_CONF),
-            (getConfigPathFromConfigFile(scipionConfigFile,PROTOCOLS),  PROTOCOLS),
-            (getConfigPathFromConfigFile(scipionConfigFile,HOSTS), HOSTS)]:
+            (getConfigPathFromConfigFile(scipionConfigFile, PROTOCOLS), PROTOCOLS),
+            (getConfigPathFromConfigFile(scipionConfigFile, HOSTS), HOSTS)]:
             if not exists(fpath) or options.overwrite:
                 print(fpath, tmplt)
                 createConf(fpath, join(templates_dir, getTemplateName(tmplt)),
@@ -212,6 +210,7 @@ def createConf(fpath, ftemplate, unattended=False):
         # For host.conf and protocols.conf, just copy files
         copyfile(ftemplate, fpath)
 
+
 def addVariablesToSection(cf, section, vars, exclude=[]):
     """ Add all the variables in vars to the config "cf" at the section passed
     it cleans the path to avoid long absolute repetitive paths"""
@@ -225,7 +224,7 @@ def addVariablesToSection(cf, section, vars, exclude=[]):
         if varValue == pwem.Config.EM_ROOT:
             varValue = varValue.replace(pwem.Config.SCIPION_HOME, "")
             if varValue.startswith(os.path.sep):
-                varValue = varValue [1:]
+                varValue = varValue[1:]
 
         elif varValue.startswith(pwem.Config.EM_ROOT):
             varValue = varValue.replace(pwem.Config.EM_ROOT, "%(EM_ROOT)s")
@@ -252,10 +251,10 @@ def addPyworkflowVariables(cf):
     # Once more we need a local import to prevent the Config to be wrongly initialized
     import pyworkflow as pw
 
-    exclude = ["SCIPION_CONFIG","SCIPION_CWD", "SCIPION_LOCAL_CONFIG",
+    exclude = ["SCIPION_CONFIG", "SCIPION_CWD", "SCIPION_LOCAL_CONFIG",
                "SCIPION_HOME", "SCIPION_PROTOCOLS", "SCIPION_HOSTS"]
     # Load pyworkflow variables from the config
-    addVariablesToSection(cf, PYWORKFLOW_SECTION, pw.Config.getVars(), exclude )
+    addVariablesToSection(cf, PYWORKFLOW_SECTION, pw.Config.getVars(), exclude)
 
 
 def addPluginsVariables(cf):
@@ -321,7 +320,7 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
     ct = ConfigParser()
     ct.optionxform = str
 
-    suggestUpdate = True # Flag to suggest --update
+    suggestUpdate = True  # Flag to suggest --update
 
     # Special case for scipion config... get values from objects
     if getTemplateName(SCIPION_CONF) in ftemplate:
@@ -374,8 +373,9 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
                 print("In section %s, option %s exists in the configuration "
                       "file but not in the template." % (red(s), red(o)))
             for o in dt[s] - df[s]:
-                suggestion = "" if not suggestUpdate else  " Use %s parameter to update local config files." % UPDATE_PARAM
-                print("In section %s, option %s exists in the template but not in the configuration file.%s" % (yellow(s), yellow(o), suggestion))
+                suggestion = "" if not suggestUpdate else " Use %s parameter to update local config files." % UPDATE_PARAM
+                print("In section %s, option %s exists in the template but not in the configuration file.%s" % (
+                yellow(s), yellow(o), suggestion))
 
                 if update:
                     if o == 'SCIPION_NOTIFY':
@@ -524,7 +524,8 @@ def getConfigPathFromConfigFile(scipionConfigFile, configFile):
     :param scipionConfigFile path to the config file to derive the folder name from
     :param configFile: name of the template: protocols or hosts so far
     :return theoretical path for the template at the same path as the config file"""
-    return  os.path.join(os.path.dirname(scipionConfigFile), configFile + ".conf")
+    return os.path.join(os.path.dirname(scipionConfigFile), configFile + ".conf")
+
 
 if __name__ == '__main__':
     main()

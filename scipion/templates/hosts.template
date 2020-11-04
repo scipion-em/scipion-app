@@ -20,7 +20,7 @@ SUBMIT_TEMPLATE = #!/bin/bash
     # Use as working dir the path where qsub was launched
     WORKDIR=$PBS_O_WORKDIR
     #################################
-    ### Set environment varible to know running mode is non interactive
+    ### Set environment variable to know running mode is non interactive
     export XMIPP_IN_QUEUE=1
     ### Switch to the working directory;
     cd $WORKDIR

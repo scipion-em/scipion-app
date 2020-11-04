@@ -8,7 +8,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -55,8 +55,7 @@ from scipion.constants import SCIPION_EP, MODE_PROJECT
 from scipion.utils import getExternalJsonTemplates
 
 FLAG_PARAM = "--"
-NOGUI_FLAG = FLAG_PARAM +"nogui"
-
+NOGUI_FLAG = FLAG_PARAM + "nogui"
 
 START_BUTTON = "Start"
 LEN_LABEL_IN_CHARS = 30
@@ -176,7 +175,7 @@ class KickoffView(tk.Frame):
         # Add template params
         self._addTemplateFieldsToForm(frame)
 
-    def _addPair(self, text, title, r, lf, widget='entry', traceCallback=None,  mouseBind=False, value=None, pady=2):
+    def _addPair(self, text, title, r, lf, widget='entry', traceCallback=None, mouseBind=False, value=None, pady=2):
         label = tk.Label(lf, text=text, bg='white', font=self.bigFont)
         label.grid(row=r, column=0, padx=(10, 5), pady=pady, sticky='nes')
 
@@ -206,7 +205,7 @@ class KickoffView(tk.Frame):
         row = 3
         for field in self.template.params.values():
             alias = field.getAlias()
-            text = field.getTitle() if alias is None else "%s (%s)" % (field.getTitle(),alias)
+            text = field.getTitle() if alias is None else "%s (%s)" % (field.getTitle(), alias)
 
             self._addPair(text, field.getTitle(), row, labelFrame, value=field.getValue())
             row += 1
@@ -357,7 +356,6 @@ def launchTemplate(template):
 
 
 def createProjectFromWorkflow(workflow, projectName):
-
     scipion = SCIPION_EP
     scriptsPath = pw.join('project', 'scripts')
 
@@ -368,20 +366,22 @@ def createProjectFromWorkflow(workflow, projectName):
     # Schedule the project
     scheduleProjectScript = os.path.join(scriptsPath, 'schedule.py')
     print("Scheduling project %s" % projectName)
-    subprocess.Popen(["python", "-m",scipion, "python" , scheduleProjectScript, projectName])
+    subprocess.Popen(["python", "-m", scipion, "python", scheduleProjectScript, projectName])
 
     if launchGUI():
         # Launch scipion
-        subprocess.Popen(["python", "-m", scipion,  MODE_PROJECT, projectName])
+        subprocess.Popen(["python", "-m", scipion, MODE_PROJECT, projectName])
+
 
 def launchGUI():
     """Checks if project GUI has to be launched. Only if --noGUI param is found in sys.argv it will return False"""
     for arg in sys.argv:
-        if (NOGUI_FLAG) == arg.lower():
+        if NOGUI_FLAG == arg.lower():
             return False
 
     # Not found, launch GUI
     return True
+
 
 def main():
     templates = getTemplates()
@@ -390,6 +390,7 @@ def main():
         launchTemplate(chosenTemplate)
     else:
         sys.exit(3)
+
 
 if __name__ == "__main__":
     main()

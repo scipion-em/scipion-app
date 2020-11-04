@@ -8,7 +8,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -90,7 +90,7 @@ class UpdateManager:
         for package in cls.packageNames:
 
             needToUpdate, version = cls.getPackageState(package[0],
-                                                            package[1])
+                                                        package[1])
             if needToUpdate:
                 outdatedPackages.append((package[0], version))
                 print(
@@ -113,7 +113,7 @@ class UpdateManager:
                 (False, version)
 
         """
-        # Ignore autocheck of outeaded package that happens at import time
+        # Ignore autocheck of outdated package that happens at import time
         os.environ["OUTDATED_IGNORE"] = "1"
         from outdated import check_outdated
         from requests.exceptions import ConnectionError
@@ -126,7 +126,7 @@ class UpdateManager:
             # We intentionally skip this error
             # When working in devel mode with an increased version not yet release this Value error
             # happens: --> example: Version 3.0.2 is greater than the latest version on PyPI: 3.0.1
-            return  False, version
+            return False, version
         except Exception as ex:
             print(redStr('%s :%s' % (packageName, ex)))
             return False, version

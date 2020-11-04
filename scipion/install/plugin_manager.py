@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -214,7 +214,7 @@ class Operation:
                 if plugin is not None:
                     installed = plugin.installPipModule()
                     if installed:
-                        plugin.installBin({'args':['-j', processors]})
+                        plugin.installBin({'args': ['-j', processors]})
             elif self.objStatus == PluginStates.UNINSTALL:
                 plugin = PluginInfo(self.objName, self.objName, remote=False)
                 if plugin is not None:

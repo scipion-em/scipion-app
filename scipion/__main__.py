@@ -44,14 +44,12 @@ from .scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
 from scipion.constants import MODE_UPDATE
 from scipion import __version__
 
-__nickname__ = DEVEL
-__releasedate__ = ''
-
+__nickname__ = "Eugenius"
 
 # *********************  Helper functions *****************************
 def getVersion(long=True):
     if long:
-        return "v%s (%s) %s" % (__version__, __releasedate__, __nickname__)
+        return "v%s - %s" % (__version__, __nickname__)
     else:
         return __version__
 

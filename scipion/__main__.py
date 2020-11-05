@@ -305,6 +305,12 @@ def main():
         main(sys.argv[2:])
 
     elif mode == MODE_VERSION:
+        # Print main packages version
+        import pyworkflow
+        import pwem
+
+        print("pyworkflow - %s" % pyworkflow. __version__)
+        print("pwem - %s" % pwem.__version__)
         # Just exit, Scipion version will be printed anyway
         sys.exit(0)
 

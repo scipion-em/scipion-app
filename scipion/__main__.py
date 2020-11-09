@@ -44,14 +44,12 @@ from .scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
 from scipion.constants import MODE_UPDATE
 from scipion import __version__
 
-__nickname__ = DEVEL
-__releasedate__ = ''
-
+__nickname__ = "Eugenius"
 
 # *********************  Helper functions *****************************
 def getVersion(long=True):
     if long:
-        return "v%s (%s) %s" % (__version__, __releasedate__, __nickname__)
+        return "v%s - %s" % (__version__, __nickname__)
     else:
         return __version__
 
@@ -307,6 +305,12 @@ def main():
         main(sys.argv[2:])
 
     elif mode == MODE_VERSION:
+        # Print main packages version
+        import pyworkflow
+        import pwem
+
+        print("pyworkflow - %s" % pyworkflow. __version__)
+        print("pwem - %s" % pwem.__version__)
         # Just exit, Scipion version will be printed anyway
         sys.exit(0)
 

@@ -226,13 +226,13 @@ class PluginInfo(object):
             if len(scipionVersions) != 0:
                 releases[release] = releaseData
                 if any([v == parse_version(CORE_VERSION)
-                          for v in scipionVersions]):
+                        for v in scipionVersions]):
                     if parse_version(latestCompRelease) < parse_version(release):
                         latestCompRelease = release
             else:
                 print(yellowStr("WARNING: %s's release %s did not specify a "
-                             "compatible Scipion version. Please, remove this "
-                             "release from pypi") % (self.pipName, release))
+                                "compatible Scipion version. Please, remove this "
+                                "release from pypi") % (self.pipName, release))
 
         releases['latest'] = latestCompRelease
         return releases
@@ -484,6 +484,7 @@ class PluginRepository(object):
         - withBins: If true, will add binary info for the plugins installed
         - with Updates: If true, will check if the installed plugins have new
                     releases."""
+
         def ansi(n):
             """Return function that escapes text with ANSI color n."""
             return lambda txt: '\x1b[%dm%s\x1b[0m' % (n, txt)
@@ -504,8 +505,8 @@ class PluginRepository(object):
                 if withBins and not plugin.isInstalled():
                     continue
                 printStr += "{0:30} {1:10} [{2}]".format(name,
-                                                            plugin.pipVersion,
-                                                            'X' if plugin.isInstalled() else ' ')
+                                                         plugin.pipVersion,
+                                                         'X' if plugin.isInstalled() else ' ')
                 if withUpdates and plugin.isInstalled():
                     if plugin.latestRelease != plugin.pipVersion:
                         printStr += yellow('\t(%s available)' % plugin.latestRelease)

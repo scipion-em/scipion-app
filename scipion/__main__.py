@@ -10,7 +10,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -44,14 +44,12 @@ from .scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
 from scipion.constants import MODE_UPDATE
 from scipion import __version__
 
-__nickname__ = DEVEL
-__releasedate__ = ''
-
+__nickname__ = "Eugenius"
 
 # *********************  Helper functions *****************************
 def getVersion(long=True):
     if long:
-        return "v%s (%s) %s" % (__version__, __releasedate__, __nickname__)
+        return "v%s - %s" % (__version__, __nickname__)
     else:
         return __version__
 
@@ -68,7 +66,7 @@ def config2Dict(configFile, varDict):
     """
     # If config file exists
     if exists(configFile):
-        #read the file
+        # read the file
         config = ConfigParser()
         config.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
         config.read(configFile)
@@ -82,13 +80,16 @@ def config2Dict(configFile, varDict):
 
     return varDict
 
+
 def envOn(varName):
     value = os.environ.get(varName, '').lower()
     return value in ['1', 'true', 'on', 'yes']
 
+
 def getMode():
     """ :returns the mode scipion has to be launched """
     return MODE_MANAGER if len(sys.argv) == 1 else sys.argv[1]
+
 
 # Auxiliary functions to run commands in our environment, one of our
 # scripts, or one of our "apps"
@@ -135,7 +136,7 @@ scipionHome = getScipionHome()
 # Default values for configuration files.
 scipionConfig = join(scipionHome, 'config', 'scipion.conf')
 scipionLocalConfig = expanduser(os.environ.get('SCIPION_LOCAL_CONFIG',
-                                             '~/.config/scipion/scipion.conf'))
+                                               '~/.config/scipion/scipion.conf'))
 
 # Allow the user to override them (and remove them from sys.argv).
 while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
@@ -202,9 +203,8 @@ try:
     if 'SCIPION_NOGUI' in os.environ:
         # This cannot work since pyworkflow is not imported and can not be imported here
         # Due to a wrong/early initialisation of the config
-        #PYTHONPATH_LIST.insert(0, join(pyworkflow.Config.getPyworkflowPath(), 'gui', 'no-tkinter'))
+        # PYTHONPATH_LIST.insert(0, join(pyworkflow.Config.getPyworkflowPath(), 'gui', 'no-tkinter'))
         print("SCIPION_NOGUI variable not implemented for this version. Please contact us if you need this.")
-
 
     # Load VARS dictionary, all items here will go to the environment
     VARS['SCIPION_DOMAIN'] = Vars.SCIPION_DOMAIN
@@ -225,8 +225,9 @@ except Exception as e:
     if len(sys.argv) == 1 or sys.argv[1] != MODE_CONFIG:
         print('Error reading config: %s\n' % e)
         print('Please check the configuration file %s and '
-                         'try again.\n' % Vars.SCIPION_CONFIG)
+              'try again.\n' % Vars.SCIPION_CONFIG)
         sys.exit(1)
+
 
 def main():
     printVersion()
@@ -240,7 +241,7 @@ def main():
 
     # Set default VIEWERS value for scipion if not defined:
     if not os.environ.get("VIEWERS", None):
-        os.environ["VIEWERS"] = '{"Volume":["pwem.viewers.DataViewer"]}'
+        os.environ["VIEWERS"] = '{"Volume":["pwem.viewers.DataViewer"], "VolumeMask":["pwem.viewers.DataViewer"]}'
 
     # Trigger Config initialization once environment is ready
     import pyworkflow
@@ -256,7 +257,7 @@ def main():
         from scipion.install.update_manager import UpdateManager
 
         # Check update status in a thread.
-        thread = Thread(target=lambda : UpdateManager.getPackagesStatus(printAll=False))
+        thread = Thread(target=lambda: UpdateManager.getPackagesStatus(printAll=False))
         thread.start()
 
         ProjectManagerWindow().show()
@@ -270,7 +271,7 @@ def main():
         os.environ.update(VARS)
         from pyworkflow.apps.pw_project import openProject
         openProject('here')
-        
+
     elif mode == MODE_PROJECT:
         os.environ.update(VARS)
         from pyworkflow.apps.pw_project import openProject
@@ -304,6 +305,12 @@ def main():
         main(sys.argv[2:])
 
     elif mode == MODE_VERSION:
+        # Print main packages version
+        import pyworkflow
+        import pwem
+
+        print("pyworkflow - %s" % pyworkflow. __version__)
+        print("pwem - %s" % pwem.__version__)
         # Just exit, Scipion version will be printed anyway
         sys.exit(0)
 
@@ -313,7 +320,7 @@ def main():
         protocolApp = sys.argv[2]
         # This should be (projectPath, protocolDb and protocolId)
         runApp(protocolApp, args=sys.argv[3:])
-        
+
     elif mode == MODE_PROTOCOLS:
         runApp('pw_protocol_list.py', args=sys.argv[2:])
 
@@ -332,9 +339,9 @@ def main():
     elif mode == MODE_RUN:
         # Run any command with the environment of scipion loaded.
         runCmd('emprogram ' + ' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
-        
+
     elif mode == MODE_PYTHON:
-        runScript(' '.join(['"%s"' % arg for arg in sys.argv[2:]]), 
+        runScript(' '.join(['"%s"' % arg for arg in sys.argv[2:]]),
                   chdir=False)
 
     elif mode == MODE_TUTORIAL:
@@ -350,18 +357,18 @@ def main():
     # scipion will load the specified environment
     elif (mode.startswith('xmipp') or
           mode.startswith('relion') or
-          mode.startswith('e2') or 
+          mode.startswith('e2') or
           mode.startswith('sx') or
           mode.startswith('b')):
         # To avoid Ghost activation warning
         from pwem import EM_PROGRAM_ENTRY_POINT
-        runCmd(EM_PROGRAM_ENTRY_POINT,  sys.argv[1:])
+        runCmd(EM_PROGRAM_ENTRY_POINT, sys.argv[1:])
 
     elif mode == MODE_INSPECT:
         runScript(join(Vars.SCIPION_INSTALL, 'inspect-plugins.py'), sys.argv[2:])
 
     elif mode == MODE_UPDATE:
-        # Once more: local import to avoid importing pyworkflow, triegered by install.__init__ (Plugin Manager)
+        # Once more: local import to avoid importing pyworkflow, trigerred by install.__init__ (Plugin Manager)
         from scipion.install.update_manager import updateManagerParser
         updateManagerParser(sys.argv[:])
     # Else HELP or wrong argument
@@ -386,7 +393,7 @@ MODE can be:
 
     manager                Opens the manager with a list of all projects.
 
-    inspect                inspect a python module and check if it looks loke a scipion plugin. 
+    inspect                inspect a python module and check if it looks like a scipion plugin. 
     
     printenv               Prints the environment variables used by the application.
 
@@ -438,9 +445,6 @@ MODE can be:
 
 """ % (MODE_DEMO[1], MODE_UPDATE))
 
-           
-
-
         if mode == MODE_HELP:
             sys.exit(0)
         else:
@@ -453,5 +457,6 @@ if __name__ == '__main__':
         main()
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         sys.exit('Error at main: %s\n' % e)

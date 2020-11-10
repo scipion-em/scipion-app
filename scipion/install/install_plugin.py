@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -40,6 +40,7 @@ from pyworkflow.utils import redStr
 #  *                                                                      *
 #  ************************************************************************
 from pyworkflow import Config
+
 MODE_INSTALL_PLUGIN = 'installp'
 MODE_UNINSTALL_PLUGIN = 'uninstallp'
 MODE_LIST_BINS = 'listb'
@@ -73,8 +74,8 @@ def installPluginMethods():
                                           usage="%s  [-h] [--noBin] [-p pluginName [pipVersion ...]]" %
                                                 invokeCmd,
                                           epilog="Example: %s -p scipion-em-motioncorr 1.0.6 "
-                                                "-p scipion-em-relion -p scipion-em-eman2 \n\n" %
-                                                invokeCmd,
+                                                 "-p scipion-em-relion -p scipion-em-eman2 \n\n" %
+                                                 invokeCmd,
                                           add_help=False)
     installParser.add_argument('-h', '--help', action='store_true', help='show help')
     installParser.add_argument('--noBin', action='store_true',
@@ -256,7 +257,6 @@ def installPluginMethods():
             numberProcessor = parsedArgs.j
             pinfo = PluginInfo(name=pluginTargetName, plugin=pmodule, remote=False)
             pinfo.installBin({'args': [binTarget, '-j', numberProcessor]})
-
 
     elif parsedArgs.mode == MODE_UNINSTALL_BINS:
 

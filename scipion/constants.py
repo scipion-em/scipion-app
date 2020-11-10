@@ -35,9 +35,6 @@ MODE_UPDATE = 'update'
 PLUGIN_MODES = [MODE_UNINSTALL_PLUGIN, MODE_INSTALL_PLUGIN,
                 MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
 
-
-DEVEL = 'devel'
-
 # Entry points
 SCIPION_EP = "scipion"
 

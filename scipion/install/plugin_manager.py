@@ -66,21 +66,22 @@ class PluginTree(ttk.Treeview):
         self.im_success = gui.getImage(Icon.INSTALLED)
         self.im_errors = gui.getImage(Icon.FAILURE)
 
-        self.tag_configure(PluginStates.UNCHECKED, image=self.im_unchecked)
-        self.tag_configure(PluginStates.CHECKED, image=self.im_checked)
-        self.tag_configure(PluginStates.INSTALL, image=self.im_install)
-        self.tag_configure(PluginStates.UNINSTALL, image=self.im_uninstall)
-        self.tag_configure(PluginStates.TO_INSTALL, image=self.im_to_install)
-        self.tag_configure(PluginStates.INSTALLED, image=self.im_installed)
-        self.tag_configure(PluginStates.PRECESSING, image=self.im_processing)
-        self.tag_configure(PluginStates.FAILURE, image=self.im_failure)
-        self.tag_configure(PluginStates.TO_UPDATE, image=self.im_to_update)
-        self.tag_configure(PluginStates.SUCCESS, image=self.im_success)
-        self.tag_configure(PluginStates.ERRORS, image=self.im_errors)
-        helv36 = tkFont.Font(family="Helvetica", size=10, weight="bold")
+        standardFont = getDefaultFont()
+        self.tag_configure(PluginStates.UNCHECKED, image=self.im_unchecked, font=standardFont)
+        self.tag_configure(PluginStates.CHECKED, image=self.im_checked, font=standardFont)
+        self.tag_configure(PluginStates.INSTALL, image=self.im_install, font=standardFont)
+        self.tag_configure(PluginStates.UNINSTALL, image=self.im_uninstall, font=standardFont)
+        self.tag_configure(PluginStates.TO_INSTALL, image=self.im_to_install, font=standardFont)
+        self.tag_configure(PluginStates.INSTALLED, image=self.im_installed, font=standardFont)
+        self.tag_configure(PluginStates.PRECESSING, image=self.im_processing, font=standardFont)
+        self.tag_configure(PluginStates.FAILURE, image=self.im_failure, font=standardFont)
+        self.tag_configure(PluginStates.TO_UPDATE, image=self.im_to_update, font=standardFont)
+        self.tag_configure(PluginStates.SUCCESS, image=self.im_success, font=standardFont)
+        self.tag_configure(PluginStates.ERRORS, image=self.im_errors, font=standardFont)
+        toUpdateFont = getNamedFont(FONT_BOLD)
         self.tag_configure(PluginStates.AVAILABLE_RELEASE,
                            image=self.im_availableRelease,
-                           font=helv36)
+                           font=toUpdateFont)
         self.selectedItem = None
 
     def insert(self, parent, index, iid=None, **kw):
@@ -427,6 +428,15 @@ class PluginBrowser(tk.Frame):
         self._col += 1
         return btn
 
+    def _getStandardTreeStyle(self):
+        styleName = 'style.Treeview'
+        font = getDefaultFont()
+        font.metrics()
+        fontheight = font.metrics()['linespace']
+        style = ttk.Style()
+        style.configure(styleName, rowheight=fontheight)
+        return styleName
+
     def _fillLeftPanel(self, leftFrame):
         """
         Fill the left Panel with the plugins list
@@ -434,13 +444,8 @@ class PluginBrowser(tk.Frame):
         gui.configureWeigths(leftFrame)
 
         # This 5! lines are only to set the row height!! Should be centralized
-        font = getDefaultFont()
-        font.metrics()
-        fontheight = font.metrics()['linespace']
-        style = ttk.Style()
-        style.configure('Plugins.Treeview', rowheight=fontheight)
 
-        self.tree = PluginTree(leftFrame, show="tree", style="Plugins.Treeview")
+        self.tree = PluginTree(leftFrame, show="tree", style=self._getStandardTreeStyle())
         self.tree.grid(row=0, column=0, sticky='news')
 
         self.yscrollbar = ttk.Scrollbar(leftFrame, orient='vertical',
@@ -555,7 +560,8 @@ class PluginBrowser(tk.Frame):
         """
         Create a right top panel
         """
-        self.topPanelTree = ttk.Treeview(topPanel, show='tree', cursor='hand2')
+        self.topPanelTree = ttk.Treeview(topPanel, show='tree', cursor='hand2',
+                                         style=self._getStandardTreeStyle())
         self.topPanelTree.grid(row=0, column=0, sticky='news')
 
         # configure vertical scroollbar
@@ -589,7 +595,7 @@ class PluginBrowser(tk.Frame):
         gui.configureWeigths(toolBarFrame)
 
         # Fill the operation tab
-        self.operationTree = PluginTree(opPanel, show="tree")
+        self.operationTree = PluginTree(opPanel, show="tree", style=self._getStandardTreeStyle())
         self.operationTree.grid(row=1, column=0, sticky='news')
         yscrollbar = ttk.Scrollbar(opPanel, orient='vertical',
                                    command=self.operationTree.yview)

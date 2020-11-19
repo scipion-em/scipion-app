@@ -66,6 +66,13 @@ class PluginTree(ttk.Treeview):
         self.im_success = gui.getImage(Icon.INSTALLED)
         self.im_errors = gui.getImage(Icon.FAILURE)
 
+        self.im_pluginName = gui.getImage(Icon.PLUGIN_PACKAGE)
+        self.im_pluginVersion = gui.getImage(Icon.PLUGIN_VERSION)
+        self.im_pluginReleaseDate = gui.getImage(Icon.PLUGIN_RELEASE_DATE)
+        self.im_pluginDescription = gui.getImage(Icon.PLUGIN_DESCRIPTION)
+        self.im_pluginUrl = gui.getImage(Icon.HOME)
+        self.im_pluginAuthors = gui.getImage(Icon.PLUGIN_AUTHORS)
+
         standardFont = getDefaultFont()
         self.tag_configure(PluginStates.UNCHECKED, image=self.im_unchecked, font=standardFont)
         self.tag_configure(PluginStates.CHECKED, image=self.im_checked, font=standardFont)
@@ -78,6 +85,13 @@ class PluginTree(ttk.Treeview):
         self.tag_configure(PluginStates.TO_UPDATE, image=self.im_to_update, font=standardFont)
         self.tag_configure(PluginStates.SUCCESS, image=self.im_success, font=standardFont)
         self.tag_configure(PluginStates.ERRORS, image=self.im_errors, font=standardFont)
+        self.tag_configure(PluginInformation.PLUGIN_URL, image=self.im_pluginUrl, font=standardFont, foreground='blue')
+        self.tag_configure(PluginInformation.PLUGIN_NAME, image=self.im_pluginName, font=standardFont)
+        self.tag_configure(PluginInformation.PLUGIN_VERSION, image=self.im_pluginVersion, font=standardFont)
+        self.tag_configure(PluginInformation.PLUGIN_RELEASE_DATE, image=self.im_pluginReleaseDate, font=standardFont)
+        self.tag_configure(PluginInformation.PLUGIN_DESCRIPTION,  image=self.im_pluginDescription, font=standardFont)
+        self.tag_configure(PluginInformation.PLUGIN_AUTHORS, image=self.im_pluginAuthors, font=standardFont)
+
         toUpdateFont = getNamedFont(FONT_BOLD)
         self.tag_configure(PluginStates.AVAILABLE_RELEASE,
                            image=self.im_availableRelease,
@@ -99,7 +113,13 @@ class PluginTree(ttk.Treeview):
                   PluginStates.TO_UPDATE in kw["tags"] or
                   PluginStates.SUCCESS in kw["tags"] or
                   PluginStates.FAILURE in kw["tags"] or
-                  PluginStates.ERRORS in kw["tags"]):
+                  PluginStates.ERRORS in kw["tags"] or
+                  PluginInformation.PLUGIN_NAME in kw['tags'] or
+                  PluginInformation.PLUGIN_VERSION in kw['tags'] or
+                  PluginInformation.PLUGIN_RELEASE_DATE in kw['tags'] or
+                  PluginInformation.PLUGIN_DESCRIPTION in kw['tags'] or
+                  PluginInformation.PLUGIN_URL in kw['tags'] or
+                  PluginInformation.PLUGIN_AUTHORS in kw['tags']):
             kw["tags"] = (PluginStates.UNCHECKED,)
         ttk.Treeview.insert(self, parent, index, iid, **kw)
 
@@ -328,9 +348,9 @@ class PluginBrowser(tk.Frame):
     def _lunchProgressBar(self, parent):
         self.progressbarLabel = ttk.Label(parent, text='Loading Plugins...',
                                           background='white')
-        self.progressbarLabel.place(x=450, y=65, width=200)
+        self.progressbarLabel.place(x=480, y=65, width=200)
         self.progressbar = ttk.Progressbar(parent)
-        self.progressbar.place(x=450, y=80, width=200)
+        self.progressbar.place(x=450, y=85 + cfgFontSize, width=200)
         self.progressbar.step(1)
         self.progressbar.start(200)
 
@@ -413,7 +433,8 @@ class PluginBrowser(tk.Frame):
         self._col += 1
         self.numberProcessors = tk.StringVar()
         self.numberProcessors.set('4')
-        processorsEntry = tk.Entry(frame, textvariable=self.numberProcessors)
+        processorsEntry = tk.Entry(frame, textvariable=self.numberProcessors,
+                                   font=getDefaultFont())
         processorsEntry.grid(row=0, column=self._col, sticky='ew', padx=5)
 
     def _addButton(self, frame, text, image, tooltip, state, command):
@@ -560,7 +581,7 @@ class PluginBrowser(tk.Frame):
         """
         Create a right top panel
         """
-        self.topPanelTree = ttk.Treeview(topPanel, show='tree', cursor='hand2',
+        self.topPanelTree = PluginTree(topPanel, show='tree', cursor='hand2',
                                          style=self._getStandardTreeStyle())
         self.topPanelTree.grid(row=0, column=0, sticky='news')
 
@@ -841,11 +862,10 @@ class PluginBrowser(tk.Frame):
             pluginUrl = plugin.getHomePage()
             pluginAuthor = plugin.getAuthor()
 
-            self.topPanelTree.tag_configure('pluginUrl', foreground='blue')
-
             self.topPanelTree.insert('', 'end', pluginName,
-                                     text='Name:              ' + pluginName,
-                                     values='pluginName')
+                                     text='  ' + pluginName,
+                                     values='pluginName',
+                                     tags=('pluginName',))
             if PluginStates.AVAILABLE_RELEASE in self.tree.item(pluginName,
                                                                 'tags'):
                 pluginVersion = (plugin.getPipVersion() + '  *(Version ' +
@@ -854,29 +874,27 @@ class PluginBrowser(tk.Frame):
                 self.topPanelTree.tag_configure('pluginVersion',
                                                 foreground=Color.RED_COLOR)
             else:
-                self.topPanelTree.tag_configure('pluginVersion',
-                                                foreground='black')
+                self.topPanelTree.tag_configure('pluginVersion', foreground='black')
             self.topPanelTree.insert('', 'end', pluginVersion,
-                                     text='Version:            '
-                                          + pluginVersion,
+                                     text='  ' + pluginVersion,
                                      values='pluginVersion',
                                      tags=('pluginVersion',))
             self.topPanelTree.insert('', 'end', pluginUploadedDate,
-                                     text='Release date:    '
-                                          + pluginUploadedDate.split('T')[0],
+                                     text='  ' + pluginUploadedDate.split('T')[0],
                                      values='pluginUploadedDate',
                                      tags=('pluginUploadedDate',))
             self.topPanelTree.insert('', 'end', pluginDescription,
-                                     text='Description:      '
-                                          + pluginDescription,
-                                     values='pluginDescription')
+                                     text='  ' + pluginDescription,
+                                     values='pluginDescription',
+                                     tags=('pluginDescription',))
             self.topPanelTree.insert('', 'end', pluginUrl,
-                                     text='URL:                 ' + pluginUrl,
-                                     values='pluginUrl', tags=('pluginUrl',))
+                                     text='  ' + pluginUrl,
+                                     values='pluginUrl', tags=('pluginURL',))
             self.topPanelTree.insert('', 'end', pluginAuthor,
-                                     text='Author:             '
+                                     text='  '
                                           + pluginAuthor,
-                                     values='pluginAuthor')
+                                     values='pluginAuthor',
+                                     tags=('pluginAuthor',))
 
     def reloadInstalledPlugin(self, pluginName):
         """

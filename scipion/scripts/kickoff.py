@@ -39,12 +39,13 @@ import re
 import tkinter as tk
 import tkinter.font as tkFont
 import traceback
+import time
 
 import pyworkflow as pw
 import pyworkflow.utils as pwutils
 from pyworkflow.gui import Message, dialog
 from pyworkflow.plugin import SCIPION_JSON_TEMPLATES, Template
-from pyworkflow.project import ProjectSettings
+from pyworkflow.project import ProjectSettings, Project
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
@@ -54,8 +55,16 @@ from scipion.constants import SCIPION_EP, MODE_PROJECT
 # Custom labels
 from scipion.utils import getExternalJsonTemplates
 
+ENTRY = 'entry'
+LABEL = 'label'
+CHECKBUTTON = 'Checkbutton'
+YES = "Yes"
+NO = "No"
+
 FLAG_PARAM = "--"
 NOGUI_FLAG = FLAG_PARAM + "nogui"
+NOSCHEDULE_FLAG = FLAG_PARAM + "noschedule"
+
 
 START_BUTTON = "Start"
 LEN_LABEL_IN_CHARS = 30
@@ -66,8 +75,10 @@ BUTTON_ALIGN_PATTERN = "{:^%s}" % LEN_BUTTON_IN_CHARS
 FIELD_SEP = '~'
 VIEW_WIZARD = 'wizardview'
 
-# Session id
+# Project name files
 PROJECT_NAME = 'Project name'
+DO_NOT_SCHEDULE = "Cancel schedule"
+DO_NOT_SHOW_GUI = "Don't show the project"
 
 # Project regex to validate the session id name
 PROJECT_PATTERN = "^\w{2}\d{4,6}-\d+$"
@@ -171,11 +182,14 @@ class KickoffView(tk.Frame):
     def _fillContent(self, frame):
         # Add project name
         self.template.genProjectName()
-        self._addPair(PROJECT_NAME, PROJECT_NAME, 1, frame, value=self.template.projectName, pady=(10, 30))
+        self._addPair(PROJECT_NAME, PROJECT_NAME, 1, frame, value=self.template.projectName)
+        self._addPair(DO_NOT_SCHEDULE, DO_NOT_SCHEDULE, 2, frame, widget=CHECKBUTTON, value=flag2Value(NOSCHEDULE_FLAG))
+        self._addPair(DO_NOT_SHOW_GUI, DO_NOT_SHOW_GUI, 3, frame, widget=CHECKBUTTON, value=flag2Value(NOGUI_FLAG), pady=(5, 30))
+
         # Add template params
         self._addTemplateFieldsToForm(frame)
 
-    def _addPair(self, text, title, r, lf, widget='entry', traceCallback=None, mouseBind=False, value=None, pady=2):
+    def _addPair(self, text, title, r, lf, widget=ENTRY, traceCallback=None, mouseBind=False, value=None, pady=2):
         label = tk.Label(lf, text=text, bg='white', font=self.bigFont)
         label.grid(row=r, column=0, padx=(10, 5), pady=pady, sticky='nes')
 
@@ -187,7 +201,7 @@ class KickoffView(tk.Frame):
         if value is not None:
             var.set(value)
 
-        if widget == 'entry':
+        if widget == ENTRY:
             widget = tk.Entry(lf, width=30, font=self.bigFont,
                               textvariable=var)
             if traceCallback:
@@ -195,14 +209,17 @@ class KickoffView(tk.Frame):
                     widget.bind("<Button-1>", traceCallback, "eee")
                 else:  # call callback on type
                     var.trace('w', traceCallback)
-        elif widget == 'label':
+        elif widget == LABEL:
             widget = tk.Label(lf, font=self.bigFont, textvariable=var)
+        elif widget == CHECKBUTTON:
+            widget = tk.Checkbutton(lf, text="", font=self.bigFont, variable=var,
+                        onvalue=YES, offvalue=NO, bg="white")
 
         self.vars[title] = var
         widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=pady)
 
     def _addTemplateFieldsToForm(self, labelFrame):
-        row = 3
+        row = 5
         for field in self.template.params.values():
             alias = field.getAlias()
             text = field.getTitle() if alias is None else "%s (%s)" % (field.getTitle(), alias)
@@ -241,6 +258,12 @@ class KickoffView(tk.Frame):
 
             # Set parent with the data
             self.windows.template = self.template
+            if self._getValue(DO_NOT_SCHEDULE) == YES :
+                sys.argv.append(NOSCHEDULE_FLAG)
+
+            if self._getValue(DO_NOT_SHOW_GUI) == YES :
+                sys.argv.append(NOGUI_FLAG)
+
             self.windows.action = START_BUTTON
             self.windows.root.quit()
             self.windows.root.withdraw()
@@ -359,29 +382,56 @@ def createProjectFromWorkflow(workflow, projectName):
     scipion = SCIPION_EP
     scriptsPath = pw.join('project', 'scripts')
 
+    # Clean the project name as pyworkflow will do
+    projectName = Project.cleanProjectName(projectName)
+
     # Create the project
+    print("Creating project %s" % projectName)
     createProjectScript = os.path.join(scriptsPath, 'create.py')
     os.system("python -m %s  python %s %s %s" % (scipion, createProjectScript, projectName, workflow))
+    # Wait 2 seconds to avoid activity
+    time.sleep(2)
 
-    # Schedule the project
-    scheduleProjectScript = os.path.join(scriptsPath, 'schedule.py')
-    print("Scheduling project %s" % projectName)
-    subprocess.Popen(["python", "-m", scipion, "python", scheduleProjectScript, projectName])
+    if scheduleProject():
+
+
+        # Schedule the project
+        scheduleProjectScript = os.path.join(scriptsPath, 'schedule.py')
+        print("Scheduling project %s" % projectName)
+        subprocess.Popen(["python", "-m", scipion, "python", scheduleProjectScript, projectName])
+        # Wait 5 seconds to avoid activity
+        time.sleep(5)
 
     if launchGUI():
+
+        print("Showing project %s" % projectName)
         # Launch scipion
         subprocess.Popen(["python", "-m", scipion, MODE_PROJECT, projectName])
 
+def flag2Value(flag):
+    # Remove the flag from sys.argsv
+    value = getFlagArg(flag)
+
+    if value:
+        sys.argv.remove(flag)
+
+    return YES if value else NO
 
 def launchGUI():
     """Checks if project GUI has to be launched. Only if --noGUI param is found in sys.argv it will return False"""
+    return not getFlagArg(NOGUI_FLAG)
+
+def scheduleProject():
+    return not getFlagArg(NOSCHEDULE_FLAG)
+
+def getFlagArg(flag):
+    """Checks if a flag exists (True) or not (False)"""
     for arg in sys.argv:
-        if NOGUI_FLAG == arg.lower():
-            return False
+        if flag == arg.lower():
+            return True
 
-    # Not found, launch GUI
-    return True
-
+    # Flag not found
+    return False
 
 def main():
     templates = getTemplates()

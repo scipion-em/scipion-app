@@ -634,7 +634,8 @@ class PluginBrowser(tk.Frame):
         self.terminal.grid(row=0, column=0, sticky='news')
         gui.configureWeigths(self.terminal)
 
-        self.Textlog = TextFileViewer(self.terminal, font=getDefaultFont())
+        self.Textlog = TextFileViewer(self.terminal, font=getDefaultFont(),
+                                      height=10)
         self.Textlog.grid(row=0, column=0, sticky='news')
         logSufix = '_' + time.strftime("%d_%m_%y_%H_%M_%S")
         pluginLogName = PLUGIN_LOG_NAME + logSufix
@@ -648,6 +649,8 @@ class PluginBrowser(tk.Frame):
         self.fileLogErr = open(self.file_errors_path, 'w')
         self.plug_log = ScipionLogger(self.file_log_path)
         self.plug_errors_log = ScipionLogger(self.file_errors_path)
+        # Create two tabs where the log and errors will appears
+        self.Textlog.createWidgets([self.file_log_path, self.file_errors_path])
 
     def _onPluginTreeClick(self, event):
         """ check or uncheck a plugin or binary box when clicked """
@@ -705,8 +708,6 @@ class PluginBrowser(tk.Frame):
         self.cancelOpsBtn.config(state='disable')
         # Disable the TreeView
         self.tree.disable()
-        # Create two tabs where the log and errors will appears
-        self.Textlog.createWidgets([self.file_log_path, self.file_errors_path])
         if event is not None:
             self.threadOp = threading.Thread(name="plugin-manager",
                                              target=self._applyOperations,
@@ -715,7 +716,7 @@ class PluginBrowser(tk.Frame):
 
             self.threadRefresh = threading.Thread(name="refresh_log",
                                                   target=self._refreshLogsComponent,
-                                                  args=(3,))
+                                                  args=(2,))
             self.threadRefresh.start()
 
     def _refreshLogsComponent(self, wait=3):
@@ -725,7 +726,12 @@ class PluginBrowser(tk.Frame):
         import time
         while self.threadOp.is_alive():
             time.sleep(wait)
-            self.Textlog.refreshAll(goEnd=True)
+            # Taking the vertical scroll position
+            vsPos = self.Textlog.taList[0].getVScroll()
+            if vsPos[1] == 1.0:
+                self.Textlog.refreshAll(goEnd=True)
+            else:
+                self.Textlog.refreshAll(goEnd=False)
 
     def _applyOperations(self, operation=None):
         """
@@ -747,12 +753,8 @@ class PluginBrowser(tk.Frame):
             item = op.getObjName()
             try:
                 self.operationTree.processing_item(item)
-                self.operationTree.update()
                 op.runOperation(self.numberProcessors.get())
                 self.operationTree.installed_item(item)
-                self.operationTree.update()
-                self.Textlog.refreshAll(goEnd=True)
-                self.Textlog.update()
                 if (op.getObjStatus() == PluginStates.INSTALL or
                         op.getObjStatus() == PluginStates.TO_UPDATE):
                     if op.getObjType() == PluginStates.PLUGIN:
@@ -773,8 +775,6 @@ class PluginBrowser(tk.Frame):
                              op.getObjName())
                 self.plug_log.info(redStr(strErr), False)
                 self.plug_errors_log.error(redStr(strErr), False)
-                self.Textlog.refreshAll(goEnd=True)
-                self.Textlog.update()
         self.operationList.clearOperations()
         sys.stdout.flush()
         sys.stderr.flush()

@@ -248,7 +248,7 @@ def main(justinit=False):
     pwVARS = pyworkflow.Config.getVars()
     VARS.update(pwVARS)
 
-    if justInit:
+    if justinit:
         return
 
     # Update the environment now with pyworkflow values.

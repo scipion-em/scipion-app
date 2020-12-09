@@ -229,7 +229,7 @@ except Exception as e:
         sys.exit(1)
 
 
-def main():
+def main(justinit=False):
     printVersion()
     # See in which "mode" the script is called. By default, it's MODE_MANAGER.
     n = len(sys.argv)
@@ -247,6 +247,9 @@ def main():
     import pyworkflow
     pwVARS = pyworkflow.Config.getVars()
     VARS.update(pwVARS)
+
+    if justInit:
+        return
 
     # Update the environment now with pyworkflow values.
     os.environ.update(VARS)

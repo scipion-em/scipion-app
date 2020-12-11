@@ -80,6 +80,8 @@ def main(args=None):
     add(COMPARE_PARAM, action='store_true',
         help="Check that the configurations seems reasonably well set up.")
 
+    add('--show', action='store_true', help="Show the config files used in the default editor")
+
     options, args = parser.parse_args(args)
 
     if args:  # no args which aren't options
@@ -107,7 +109,14 @@ def main(args=None):
                   "defined in 'scipion-em-xmipp' plugin." % pluginName)
 
         sys.exit(0)
-
+    elif options.show:
+        from pyworkflow.gui.text import _open_cmd
+        scipionConf = os.environ[SCIPION_CONFIG]
+        homeConf = os.environ[SCIPION_LOCAL_CONFIG]
+        _open_cmd(scipionConf)
+        if homeConf != scipionConf and os.path.exists(homeConf):
+            _open_cmd(os.environ[SCIPION_LOCAL_CONFIG])
+        sys.exit(0)
     try:
         # where templates are
         templates_dir = getTemplatesPath()

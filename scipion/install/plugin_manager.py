@@ -637,7 +637,7 @@ class PluginBrowser(tk.Frame):
         self.Textlog = TextFileViewer(self.terminal, font=getDefaultFont(),
                                       height=10)
         self.Textlog.grid(row=0, column=0, sticky='news')
-        logSufix = '_' + time.strftime("%d_%m_%y_%H_%M_%S")
+        logSufix = '_' + time.strftime("%y%m%d_%H%M%S")
         pluginLogName = PLUGIN_LOG_NAME + logSufix
         pluginErrorsLogName = PLUGIN_ERRORS_LOG_NAME + logSufix
         self.file_log_path = os.path.join(Config.getLogsFolder(),

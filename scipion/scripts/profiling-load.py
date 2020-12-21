@@ -1,6 +1,7 @@
 import os
 import sys
 import tempfile
+from datetime import datetime
 
 from scipion.__main__ import main
 
@@ -8,9 +9,26 @@ from scipion.__main__ import main
 main(justinit=True)
 
 import pyworkflow
-from  pyworkflow.object import Pointer
 from pyworkflowtests.protocols import ProtOutputTest
 from pyworkflow.project import Manager, Project
+
+class Timer(object):
+    """ Simple Timer base in datetime.now and timedelta. """
+
+    def tic(self):
+        self._dt = datetime.now()
+
+    def getElapsedTime(self):
+        return datetime.now() - self._dt
+
+    def toc(self, message='Elapsed:'):
+        print(message, self.getElapsedTime())
+
+    def __enter__(self):
+        self.tic()
+
+    def __exit__(self, type, value, traceback):
+        self.toc()
 
 # Create a new project
 manager = Manager()
@@ -42,11 +60,9 @@ elif len(sys.argv) == 1:
 
         currentProt._store()
     
-
-
-project = Project(pyworkflow.Config.getDomain(), projectFolder)
-project.load()
-
+with Timer():
+    project = Project(pyworkflow.Config.getDomain(), projectFolder)
+    project.load()
 
 
 

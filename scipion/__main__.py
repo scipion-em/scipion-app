@@ -296,7 +296,7 @@ def main(justinit=False):
 
     elif mode in PLUGIN_MODES:
         os.environ.update(VARS)
-        from scipion.install import installPluginMethods
+        from scipion.install.install_plugin import installPluginMethods
         installPluginMethods()
 
     elif mode == MODE_PLUGINS:

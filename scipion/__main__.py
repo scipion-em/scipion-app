@@ -40,7 +40,7 @@ from threading import Thread
 from scipion.constants import *
 from scipion.utils import (getScipionHome, getInstallPath,
                            getScriptsPath, getTemplatesPath, getModuleFolder)
-from .scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
+from scipion.scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
 from scipion.constants import MODE_UPDATE
 from scipion import __version__
 

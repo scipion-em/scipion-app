@@ -29,7 +29,7 @@ import threading
 
 from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
-from pyworkflow.utils.log import ScipionLogger
+from pyworkflow.utils.log import getRotatingFileLogger
 from pyworkflow.gui import *
 import pyworkflow.gui.dialog as pwgui
 from scipion.install.plugin_funcs import PluginRepository, PluginInfo, NULL_VERSION
@@ -647,8 +647,8 @@ class PluginBrowser(tk.Frame):
 
         self.fileLog = open(self.file_log_path, 'w')
         self.fileLogErr = open(self.file_errors_path, 'w')
-        self.plug_log = ScipionLogger(self.file_log_path)
-        self.plug_errors_log = ScipionLogger(self.file_errors_path)
+        self.plug_log = getRotatingFileLogger("plugins_stdout", self.file_log_path)
+        self.plug_errors_log = getRotatingFileLogger("plugin_strerr", self.file_errors_path)
         # Create two tabs where the log and errors will appears
         self.Textlog.createWidgets([self.file_log_path, self.file_errors_path])
 

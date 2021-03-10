@@ -272,6 +272,7 @@ def main():
 
     elif mode == MODE_TESTS or mode == MODE_TEST:
         os.environ.update(VARS)
+        import pwem.tests
         from pyworkflow.apps.pw_run_tests import Tester
         Tester().main(sys.argv[2:])
 

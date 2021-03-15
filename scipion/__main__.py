@@ -40,7 +40,7 @@ from threading import Thread
 from scipion.constants import *
 from scipion.utils import (getScipionHome, getInstallPath,
                            getScriptsPath, getTemplatesPath, getModuleFolder)
-from .scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
+from scipion.scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
 from scipion.constants import MODE_UPDATE
 from scipion import __version__
 
@@ -279,7 +279,6 @@ def main():
 
     elif mode == MODE_TESTS or mode == MODE_TEST:
         os.environ.update(VARS)
-        import pwem.tests
         from pyworkflow.apps.pw_run_tests import Tester
         Tester().main(sys.argv[2:])
 

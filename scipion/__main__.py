@@ -398,12 +398,12 @@ MODE can be:
     inspect                inspect a python module and check if it looks like a scipion plugin. 
     
     printenv               Prints the environment variables used by the application.
+    
+    protocols              Displays a list of the included Scipion protocols.
 
     project NAME           Opens the specified project. The name 'last' opens the last project.
     
     runprotocol [ARGS ...] Run the specified Scipion protocol.
-
-    protocols              Displays a list of the included Scipion protocols.
     
     last                   Same as 'project last'
 

@@ -399,11 +399,11 @@ MODE can be:
     
     printenv               Prints the environment variables used by the application.
     
-    protocols              Displays a list of the included Scipion protocols.
+    protocols              Displays a list of the available Scipion protocols.
+        
+    runprotocol [ARGS ...] Run the specified Scipion protocol.
 
     project NAME           Opens the specified project. The name 'last' opens the last project.
-    
-    runprotocol [ARGS ...] Run the specified Scipion protocol.
     
     last                   Same as 'project last'
 

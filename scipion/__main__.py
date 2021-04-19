@@ -390,6 +390,8 @@ MODE can be:
     uninstallp             Uninstalls Scipion plugins from a terminal. Use with flag --help to see usage.
     
     installb               Installs Plugin Binaries. Use with flag --help to see usage.
+    
+    uninstallb             Uninstalls Plugin Binaries. Use with flag --help to see usage.
 
     manager                Opens the manager with a list of all projects.
 
@@ -398,7 +400,11 @@ MODE can be:
     printenv               Prints the environment variables used by the application.
 
     project NAME           Opens the specified project. The name 'last' opens the last project.
+    
+    runprotocol [ARGS ...] Run the specified Scipion protocol.
 
+    protocols              Displays a list of the included Scipion protocols.
+    
     last                   Same as 'project last'
 
     run COMMAND [ARG ...]  Runs COMMAND within the Scipion environment.
@@ -427,6 +433,12 @@ MODE can be:
                            Or to upload it:
                              scipion testdata --upload xmipp_tutorial
                              
+    update                 Updates main packages version
+                             
+    version                Prints main packages version
+    
+    demo | template        Displays a GUI which allows to run the available Scipion workflow demos 
+    
     tutorial [NAME]        Creates a new protocol with a tutorial workflow loaded.
                            If NAME is empty, the list of available tutorials are shown.
 

@@ -379,39 +379,39 @@ Usage: scipion [--config PATH] [MODE] [ARGUMENTS]
     --config               Path to a full config file
                     
 MODE can be:
-    help                   Prints this help message.
+    %s                   Prints this help message.
 
-    config                 Checks and/or writes Scipion's global and local configuration.
+    %s                 Checks and/or writes Scipion's global and local configuration.
     
-    plugins                Launches the plugin manager window.
+    %s                Launches the plugin manager window.
     
-    installp               Installs Scipion plugins from a terminal. Use flag --help to see usage.
+    %s               Installs Scipion plugins from a terminal. Use flag --help to see usage.
     
-    uninstallp             Uninstalls Scipion plugins from a terminal. Use with flag --help to see usage.
+    %s             Uninstalls Scipion plugins from a terminal. Use with flag --help to see usage.
     
-    installb               Installs Plugin Binaries. Use with flag --help to see usage.
+    %s               Installs Plugin Binaries. Use with flag --help to see usage.
     
-    uninstallb             Uninstalls Plugin Binaries. Use with flag --help to see usage.
+    %s             Uninstalls Plugin Binaries. Use with flag --help to see usage.
 
-    manager                Opens the manager with a list of all projects.
+    %s                Opens the manager with a list of all projects.
 
-    inspect                inspect a python module and check if it looks like a scipion plugin. 
+    %s                inspect a python module and check if it looks like a scipion plugin. 
     
-    printenv               Prints the environment variables used by the application.
+    %s               Prints the environment variables used by the application.
     
-    protocols              Displays a list of the available Scipion protocols.
+    %s              Displays a list of the available Scipion protocols.
         
-    runprotocol [ARGS ...] Run the specified Scipion protocol.
+    %s [ARGS ...] Run the specified Scipion protocol.
 
-    project NAME           Opens the specified project. The name 'last' opens the last project.
+    %s NAME           Opens the specified project. The name 'last' opens the last project.
     
-    last                   Same as 'project last'
+    %s                   Same as 'project last'
 
-    run COMMAND [ARG ...]  Runs COMMAND within the Scipion environment.
+    %s COMMAND [ARG ...]  Runs COMMAND within the Scipion environment.
     
-    python [ARG ...]       Shortcut for 'scipion run python ...'
+    %s [ARG ...]       Shortcut for 'scipion run python ...'
 
-    test OPTION            Runs/Lists test(s).
+    %s OPTION            Runs/Lists test(s).
                            OPTION can be:
                              <name>: name of the test to run
                              --show: list the available tests
@@ -421,7 +421,7 @@ MODE can be:
                            For example, to run the "test_object" test:
                              scipion test tests.model.test_object
 
-    testdata OPTION        Gets(puts) tests data, from(to) the server to(from) the $SCIPION_TESTS folder.
+    %s OPTION        Gets(puts) tests data, from(to) the server to(from) the $SCIPION_TESTS folder.
                            OPTIONS can be:
                              --download: copy dataset from remote location to local
                              --upload: copy dataset from local to remote
@@ -433,16 +433,16 @@ MODE can be:
                            Or to upload it:
                              scipion testdata --upload xmipp_tutorial
                              
-    update                 Updates main packages version
+    %s                 Updates main packages version
                              
-    version                Prints main packages version
+    %s                Prints main packages version
     
-    demo | template        Displays a GUI which allows to run the available Scipion workflow demos 
+    %s | %s        Displays a GUI which allows to run the available Scipion workflow demos 
     
-    tutorial [NAME]        Creates a new protocol with a tutorial workflow loaded.
+    %s [NAME]        Creates a new protocol with a tutorial workflow loaded.
                            If NAME is empty, the list of available tutorials are shown.
 
-    view | show NAME       Opens a file with Scipion's showj, or a directory with Browser.
+    %s | %s NAME       Opens a file with Scipion's showj, or a directory with Browser.
     
     %s [TEMPLATE]    Shows all the *.json.template files found in the config folder
                            and all templates provided by plugins. If TEMPLATE 
@@ -455,7 +455,12 @@ MODE can be:
                               -dry : only check the status of scipion-em, scipion-pyworkflow 
                                      and scipion-app
 
-""" % (MODE_DEMO[1], MODE_UPDATE))
+""" % (MODE_HELP, MODE_CONFIG, MODE_PLUGINS, MODE_INSTALL_PLUGIN, MODE_UNINSTALL_PLUGIN,
+       MODE_INSTALL_BINS, MODE_UNINSTALL_BINS, MODE_MANAGER, MODE_INSPECT,
+       MODE_ENV, MODE_PROTOCOLS, MODE_RUNPROTOCOL, MODE_PROJECT, MODE_LAST,
+       MODE_RUN, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_UPDATE, MODE_VERSION,
+       *MODE_DEMO, MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
+       MODE_DEMO[1], MODE_UPDATE))
 
         if mode == MODE_HELP:
             sys.exit(0)

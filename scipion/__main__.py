@@ -433,16 +433,14 @@ MODE can be:
                            Or to upload it:
                              scipion testdata --upload xmipp_tutorial
                              
-    %s                 Updates main packages version
-                             
     %s                Prints main packages version
     
-    %s | %s        Displays a GUI which allows to run the available Scipion workflow demos 
+    %s | %s         Displays a GUI which allows to run the available Scipion workflow demos 
     
     %s [NAME]        Creates a new protocol with a tutorial workflow loaded.
                            If NAME is empty, the list of available tutorials are shown.
 
-    %s | %s NAME       Opens a file with Scipion's showj, or a directory with Browser.
+    %s | %s FILE       Opens a file with Scipion's showj, or a directory with Browser.
     
     %s [TEMPLATE]    Shows all the *.json.template files found in the config folder
                            and all templates provided by plugins. If TEMPLATE 
@@ -458,7 +456,7 @@ MODE can be:
 """ % (MODE_HELP, MODE_CONFIG, MODE_PLUGINS, MODE_INSTALL_PLUGIN, MODE_UNINSTALL_PLUGIN,
        MODE_INSTALL_BINS, MODE_UNINSTALL_BINS, MODE_MANAGER, MODE_INSPECT,
        MODE_ENV, MODE_PROTOCOLS, MODE_RUNPROTOCOL, MODE_PROJECT, MODE_LAST,
-       MODE_RUN, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_UPDATE, MODE_VERSION,
+       MODE_RUN, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_VERSION,
        *MODE_DEMO, MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
        MODE_DEMO[1], MODE_UPDATE))
 

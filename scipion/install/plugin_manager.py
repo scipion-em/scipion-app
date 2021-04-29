@@ -247,8 +247,7 @@ class Operation:
         else:
             plugin = PluginInfo(self.objParent, self.objParent, remote=False)
             if self.objStatus == PluginStates.INSTALL:
-                if handleBins:
-                    plugin.installBin({'args': [self.objText, '-j', processors]})
+                plugin.installBin({'args': [self.objText, '-j', processors]})
             else:
                 plugin.uninstallBins([self.objText])
 

@@ -223,10 +223,12 @@ class Operation:
         """
         return self.objParent
 
-    def runOperation(self, processors):
+    def runOperation(self, processors, handleBins=True):
         """
         This method install or uninstall a plugin/binary operation
+
         :param processors: number of processors to compilation
+        :param handleBins: deal with binaries installation/uninstallation if true (default)
         """
         if self.objType == PluginStates.PLUGIN:
             if (self.objStatus == PluginStates.INSTALL or
@@ -234,17 +236,18 @@ class Operation:
                 plugin = pluginDict.get(self.objName, None)
                 if plugin is not None:
                     installed = plugin.installPipModule()
-                    if installed:
+                    if installed and handleBins:
                         plugin.installBin({'args': ['-j', processors]})
             elif self.objStatus == PluginStates.UNINSTALL:
                 plugin = PluginInfo(self.objName, self.objName, remote=False)
                 if plugin is not None:
-                    plugin.uninstallBins()
+                    if handleBins:
+                        plugin.uninstallBins()
                     plugin.uninstallPip()
         else:
             plugin = PluginInfo(self.objParent, self.objParent, remote=False)
             if self.objStatus == PluginStates.INSTALL:
-                if plugin is not None:
+                if plugin is not None and handleBins:
                     plugin.installBin({'args': [self.objText, '-j', processors]})
             else:
                 plugin.uninstallBins([self.objText])
@@ -427,6 +430,16 @@ class PluginBrowser(tk.Frame):
                                             Message.CANCEL_SELECTED_OPERATION, 'disable',
                                             self._deleteSelectedOperation)
 
+        # Add option to cancel binaries installation
+        self._col += 1
+        self.skipBinaries = tk.BooleanVar()
+        self.skipBinaries.set(False)
+        installBinsEntry = tk.Checkbutton(frame, variable=self.skipBinaries,
+                                          font=getDefaultFont(), text="Skip binaries")
+        installBinsEntry.grid(row=0, column=self._col, sticky='ew', padx=5)
+
+        # Number of processors to use when compiling
+        self._col += 1
         tk.Label(frame, text='Number of processors:').grid(row=0,
                                                            column=self._col,
                                                            padx=5)
@@ -436,6 +449,7 @@ class PluginBrowser(tk.Frame):
         processorsEntry = tk.Entry(frame, textvariable=self.numberProcessors,
                                    font=getDefaultFont())
         processorsEntry.grid(row=0, column=self._col, sticky='ew', padx=5)
+
 
     def _addButton(self, frame, text, image, tooltip, state, command):
         btn = IconButton(frame, text, image, command=command,
@@ -753,7 +767,7 @@ class PluginBrowser(tk.Frame):
             item = op.getObjName()
             try:
                 self.operationTree.processing_item(item)
-                op.runOperation(self.numberProcessors.get())
+                op.runOperation(self.numberProcessors.get(), not self.skipBinaries.get())
                 self.operationTree.installed_item(item)
                 if (op.getObjStatus() == PluginStates.INSTALL or
                         op.getObjStatus() == PluginStates.TO_UPDATE):

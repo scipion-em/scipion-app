@@ -1,0 +1,12 @@
+-------
+v3.0.8
+-------
+
+User mode:
+    -Skip binaries when installing or uninstalling plugins using the Plugin Manager
+
+Developers mode:
+
+    - remove dataset initialization
+
+

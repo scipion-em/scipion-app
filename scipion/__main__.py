@@ -283,7 +283,10 @@ def main():
         Tester().main(sys.argv[2:])
 
     elif mode == MODE_TEST_DATA:
-        runApp('pw_sync_data.py', args=sys.argv[2:])
+        os.environ.update(VARS)
+        from pyworkflow.apps.pw_sync_data import main
+        sys.argv = sys.argv[1:]
+        main()
 
     elif mode in MODE_VIEWER:
         runApp('pw_viewer.py', args=sys.argv[2:], chdir=False)

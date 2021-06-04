@@ -300,7 +300,9 @@ def main():
         installPluginMethods()
 
     elif mode == MODE_PLUGINS:
-        runScript(join(Vars.SCIPION_INSTALL, PLUGIN_MANAGER_PY))
+        os.environ.update(VARS)
+        from scipion.install.plugin_manager import PluginManager
+        PluginManager("Plugin manager", None).show()
 
     elif mode == MODE_CONFIG:
         from .scripts.config import main

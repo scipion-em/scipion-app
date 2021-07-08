@@ -3,10 +3,12 @@ v3.0.8
 -------
 
 User mode:
-    -Skip binaries when installing or uninstalling plugins using the Plugin Manager
+    - Skip binaries when installing or uninstalling plugins using the Plugin Manager
+    - Plugin manager properly locks context menu when installation is active
 
 Developers mode:
 
-    - remove dataset initialization
+    - Remove dataset initialization
+    - Plugin manager loads in the same main process (useful for straight debug)
 
 

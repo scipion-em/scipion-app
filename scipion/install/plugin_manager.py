@@ -65,6 +65,7 @@ class PluginTree(ttk.Treeview):
         self.im_undo = gui.getImage(Icon.ACTION_UNDO)
         self.im_success = gui.getImage(Icon.INSTALLED)
         self.im_errors = gui.getImage(Icon.FAILURE)
+        self.im_waiting = gui.getImage(Icon.WAITING)
 
         self.im_pluginName = gui.getImage(Icon.PLUGIN_PACKAGE)
         self.im_pluginVersion = gui.getImage(Icon.PLUGIN_VERSION)
@@ -83,6 +84,7 @@ class PluginTree(ttk.Treeview):
         self.tag_configure(PluginStates.PRECESSING, image=self.im_processing, font=standardFont)
         self.tag_configure(PluginStates.FAILURE, image=self.im_failure, font=standardFont)
         self.tag_configure(PluginStates.TO_UPDATE, image=self.im_to_update, font=standardFont)
+        self.tag_configure(PluginStates.WAITING, image=self.im_waiting, font=standardFont)
         self.tag_configure(PluginStates.SUCCESS, image=self.im_success, font=standardFont)
         self.tag_configure(PluginStates.ERRORS, image=self.im_errors, font=standardFont)
         self.tag_configure(PluginInformation.PLUGIN_URL, image=self.im_pluginUrl, font=standardFont, foreground='blue')
@@ -151,7 +153,7 @@ class PluginTree(ttk.Treeview):
 
     def processing_item(self, item):
         """change the box item to processing item"""
-        self.item(item, tags=(PluginStates.PRECESSING,))
+        self.item(item, tags=(PluginStates.WAITING,))
 
     def installed_item(self, item):
         """change the box item to processing item"""
@@ -524,28 +526,29 @@ class PluginBrowser(tk.Frame):
         threadLoadPlugin.start()
 
     def _popup(self, event):
-        try:
-            x, y, widget = event.x, event.y, event.widget
-            self.tree.selectedItem = self.tree.identify_row(y)
-            self.popup_menu.selection = self.tree.set(
-                self.tree.identify_row(event.y))
-            tags = self.tree.item(self.tree.selectedItem, "tags")
-            self.popup_menu.entryconfigure(0, state=tk.DISABLED)
-            self.popup_menu.entryconfigure(1, state=tk.DISABLED)
-            self.popup_menu.entryconfigure(2, state=tk.DISABLED)
-            self.popup_menu.entryconfigure(4, state=tk.DISABLED)
-            # Activate the menu if the new plugin release is available
-            if tags[0] == PluginStates.AVAILABLE_RELEASE:
-                self.popup_menu.entryconfigure(0, state=tk.NORMAL)
-            elif tags[0] == PluginStates.CHECKED:
-                self.popup_menu.entryconfigure(2, state=tk.NORMAL)
-            elif tags[0] == PluginStates.UNCHECKED:
-                self.popup_menu.entryconfigure(1, state=tk.NORMAL)
-            else:
-                self.popup_menu.entryconfigure(4, state=tk.NORMAL)
-            self.popup_menu.post(event.x_root, event.y_root)
-        finally:
-            self.popup_menu.grab_release()
+        if self.tree.is_enabled():
+            try:
+                x, y, widget = event.x, event.y, event.widget
+                self.tree.selectedItem = self.tree.identify_row(y)
+                self.popup_menu.selection = self.tree.set(
+                    self.tree.identify_row(event.y))
+                tags = self.tree.item(self.tree.selectedItem, "tags")
+                self.popup_menu.entryconfigure(0, state=tk.DISABLED)
+                self.popup_menu.entryconfigure(1, state=tk.DISABLED)
+                self.popup_menu.entryconfigure(2, state=tk.DISABLED)
+                self.popup_menu.entryconfigure(4, state=tk.DISABLED)
+                # Activate the menu if the new plugin release is available
+                if tags[0] == PluginStates.AVAILABLE_RELEASE:
+                    self.popup_menu.entryconfigure(0, state=tk.NORMAL)
+                elif tags[0] == PluginStates.CHECKED:
+                    self.popup_menu.entryconfigure(2, state=tk.NORMAL)
+                elif tags[0] == PluginStates.UNCHECKED:
+                    self.popup_menu.entryconfigure(1, state=tk.NORMAL)
+                else:
+                    self.popup_menu.entryconfigure(4, state=tk.NORMAL)
+                self.popup_menu.post(event.x_root, event.y_root)
+            finally:
+                self.popup_menu.grab_release()
 
     def _popupFocusOut(self, event=None):
         self.popup_menu.unpost()
@@ -935,7 +938,7 @@ class PluginBrowser(tk.Frame):
                             self.tree.insert(pluginName, "end",
                                              binaryName + "[" + pluginName + "]",
                                              text=binaryName, tags=tag,
-                                             values='binary')
+                                             values=PluginStates.BINARY)
                 tag = PluginStates.CHECKED
                 if plugin.latestRelease != plugin.pipVersion:
                     tag = PluginStates.AVAILABLE_RELEASE

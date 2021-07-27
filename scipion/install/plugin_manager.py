@@ -65,6 +65,7 @@ class PluginTree(ttk.Treeview):
         self.im_undo = gui.getImage(Icon.ACTION_UNDO)
         self.im_success = gui.getImage(Icon.INSTALLED)
         self.im_errors = gui.getImage(Icon.FAILURE)
+        self.im_waiting = gui.getImage(Icon.WAITING)
 
         self.im_pluginName = gui.getImage(Icon.PLUGIN_PACKAGE)
         self.im_pluginVersion = gui.getImage(Icon.PLUGIN_VERSION)
@@ -83,6 +84,7 @@ class PluginTree(ttk.Treeview):
         self.tag_configure(PluginStates.PRECESSING, image=self.im_processing, font=standardFont)
         self.tag_configure(PluginStates.FAILURE, image=self.im_failure, font=standardFont)
         self.tag_configure(PluginStates.TO_UPDATE, image=self.im_to_update, font=standardFont)
+        self.tag_configure(PluginStates.WAITING, image=self.im_waiting, font=standardFont)
         self.tag_configure(PluginStates.SUCCESS, image=self.im_success, font=standardFont)
         self.tag_configure(PluginStates.ERRORS, image=self.im_errors, font=standardFont)
         self.tag_configure(PluginInformation.PLUGIN_URL, image=self.im_pluginUrl, font=standardFont, foreground='blue')
@@ -151,7 +153,7 @@ class PluginTree(ttk.Treeview):
 
     def processing_item(self, item):
         """change the box item to processing item"""
-        self.item(item, tags=(PluginStates.PRECESSING,))
+        self.item(item, tags=(PluginStates.WAITING,))
 
     def installed_item(self, item):
         """change the box item to processing item"""
@@ -223,10 +225,12 @@ class Operation:
         """
         return self.objParent
 
-    def runOperation(self, processors):
+    def runOperation(self, processors, handleBins=True):
         """
         This method install or uninstall a plugin/binary operation
+
         :param processors: number of processors to compilation
+        :param handleBins: deal with binaries installation/uninstallation if true (default)
         """
         if self.objType == PluginStates.PLUGIN:
             if (self.objStatus == PluginStates.INSTALL or
@@ -234,18 +238,18 @@ class Operation:
                 plugin = pluginDict.get(self.objName, None)
                 if plugin is not None:
                     installed = plugin.installPipModule()
-                    if installed:
+                    if installed and handleBins:
                         plugin.installBin({'args': ['-j', processors]})
             elif self.objStatus == PluginStates.UNINSTALL:
                 plugin = PluginInfo(self.objName, self.objName, remote=False)
                 if plugin is not None:
-                    plugin.uninstallBins()
+                    if handleBins:
+                        plugin.uninstallBins()
                     plugin.uninstallPip()
         else:
             plugin = PluginInfo(self.objParent, self.objParent, remote=False)
             if self.objStatus == PluginStates.INSTALL:
-                if plugin is not None:
-                    plugin.installBin({'args': [self.objText, '-j', processors]})
+                plugin.installBin({'args': [self.objText, '-j', processors]})
             else:
                 plugin.uninstallBins([self.objText])
 
@@ -427,6 +431,16 @@ class PluginBrowser(tk.Frame):
                                             Message.CANCEL_SELECTED_OPERATION, 'disable',
                                             self._deleteSelectedOperation)
 
+        # Add option to cancel binaries installation
+        self._col += 1
+        self.skipBinaries = tk.BooleanVar()
+        self.skipBinaries.set(False)
+        installBinsEntry = tk.Checkbutton(frame, variable=self.skipBinaries,
+                                          font=getDefaultFont(), text="Skip binaries")
+        installBinsEntry.grid(row=0, column=self._col, sticky='ew', padx=5)
+
+        # Number of processors to use when compiling
+        self._col += 1
         tk.Label(frame, text='Number of processors:').grid(row=0,
                                                            column=self._col,
                                                            padx=5)
@@ -436,6 +450,7 @@ class PluginBrowser(tk.Frame):
         processorsEntry = tk.Entry(frame, textvariable=self.numberProcessors,
                                    font=getDefaultFont())
         processorsEntry.grid(row=0, column=self._col, sticky='ew', padx=5)
+
 
     def _addButton(self, frame, text, image, tooltip, state, command):
         btn = IconButton(frame, text, image, command=command,
@@ -511,28 +526,29 @@ class PluginBrowser(tk.Frame):
         threadLoadPlugin.start()
 
     def _popup(self, event):
-        try:
-            x, y, widget = event.x, event.y, event.widget
-            self.tree.selectedItem = self.tree.identify_row(y)
-            self.popup_menu.selection = self.tree.set(
-                self.tree.identify_row(event.y))
-            tags = self.tree.item(self.tree.selectedItem, "tags")
-            self.popup_menu.entryconfigure(0, state=tk.DISABLED)
-            self.popup_menu.entryconfigure(1, state=tk.DISABLED)
-            self.popup_menu.entryconfigure(2, state=tk.DISABLED)
-            self.popup_menu.entryconfigure(4, state=tk.DISABLED)
-            # Activate the menu if the new plugin release is available
-            if tags[0] == PluginStates.AVAILABLE_RELEASE:
-                self.popup_menu.entryconfigure(0, state=tk.NORMAL)
-            elif tags[0] == PluginStates.CHECKED:
-                self.popup_menu.entryconfigure(2, state=tk.NORMAL)
-            elif tags[0] == PluginStates.UNCHECKED:
-                self.popup_menu.entryconfigure(1, state=tk.NORMAL)
-            else:
-                self.popup_menu.entryconfigure(4, state=tk.NORMAL)
-            self.popup_menu.post(event.x_root, event.y_root)
-        finally:
-            self.popup_menu.grab_release()
+        if self.tree.is_enabled():
+            try:
+                x, y, widget = event.x, event.y, event.widget
+                self.tree.selectedItem = self.tree.identify_row(y)
+                self.popup_menu.selection = self.tree.set(
+                    self.tree.identify_row(event.y))
+                tags = self.tree.item(self.tree.selectedItem, "tags")
+                self.popup_menu.entryconfigure(0, state=tk.DISABLED)
+                self.popup_menu.entryconfigure(1, state=tk.DISABLED)
+                self.popup_menu.entryconfigure(2, state=tk.DISABLED)
+                self.popup_menu.entryconfigure(4, state=tk.DISABLED)
+                # Activate the menu if the new plugin release is available
+                if tags[0] == PluginStates.AVAILABLE_RELEASE:
+                    self.popup_menu.entryconfigure(0, state=tk.NORMAL)
+                elif tags[0] == PluginStates.CHECKED:
+                    self.popup_menu.entryconfigure(2, state=tk.NORMAL)
+                elif tags[0] == PluginStates.UNCHECKED:
+                    self.popup_menu.entryconfigure(1, state=tk.NORMAL)
+                else:
+                    self.popup_menu.entryconfigure(4, state=tk.NORMAL)
+                self.popup_menu.post(event.x_root, event.y_root)
+            finally:
+                self.popup_menu.grab_release()
 
     def _popupFocusOut(self, event=None):
         self.popup_menu.unpost()
@@ -753,7 +769,7 @@ class PluginBrowser(tk.Frame):
             item = op.getObjName()
             try:
                 self.operationTree.processing_item(item)
-                op.runOperation(self.numberProcessors.get())
+                op.runOperation(self.numberProcessors.get(), not self.skipBinaries.get())
                 self.operationTree.installed_item(item)
                 if (op.getObjStatus() == PluginStates.INSTALL or
                         op.getObjStatus() == PluginStates.TO_UPDATE):
@@ -922,7 +938,7 @@ class PluginBrowser(tk.Frame):
                             self.tree.insert(pluginName, "end",
                                              binaryName + "[" + pluginName + "]",
                                              text=binaryName, tags=tag,
-                                             values='binary')
+                                             values=PluginStates.BINARY)
                 tag = PluginStates.CHECKED
                 if plugin.latestRelease != plugin.pipVersion:
                     tag = PluginStates.AVAILABLE_RELEASE

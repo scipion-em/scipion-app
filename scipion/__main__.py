@@ -264,8 +264,8 @@ def main():
 
     elif mode in [ MODE_LAST, MODE_HERE, MODE_PROJECT]:
         os.environ.update(VARS)
-        from pyworkflow.utils.log import setUpGUILogging
-        setUpGUILogging()
+        from pyworkflow.utils.log import LoggingConfigurator
+        LoggingConfigurator.setUpGUILogging()
         from pyworkflow.apps.pw_project import openProject
         arg = sys.argv[2] if mode == MODE_PROJECT else mode
         openProject(arg)

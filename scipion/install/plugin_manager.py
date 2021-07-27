@@ -23,19 +23,19 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-
+import logging
+from logging.handlers import RotatingFileHandler
 from tkinter import *
 import threading
 
 from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
-from pyworkflow.utils.log import getRotatingFileLogger
 from pyworkflow.gui import *
 import pyworkflow.gui.dialog as pwgui
 from scipion.install.plugin_funcs import PluginRepository, PluginInfo, NULL_VERSION
 
 from pyworkflow.utils.properties import *
-from pyworkflow.utils import redStr
+from pyworkflow.utils import redStr, makeFilePath
 
 PLUGIN_LOG_NAME = 'Plugin.log'
 PLUGIN_ERRORS_LOG_NAME = 'Plugin.err'
@@ -1122,6 +1122,12 @@ class PluginHelp(gui.Window):
         btn = Label(helpFrame, text='Apply an operation to the selected plugin')
         btn.grid(row=6, column=1, sticky='sw', padx=0, pady=5)
 
+def getRotatingFileLogger(name, path):
+    logger = logging.getLogger(name)
+    makeFilePath(path)
+    handler = RotatingFileHandler(filename=path, maxBytes=100000)
+    handler.setLevel(Config.SCIPION_LOG_LEVEL)
+    return logger
 
 class PluginManager(PluginManagerWindow):
     """

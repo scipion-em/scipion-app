@@ -1,6 +1,10 @@
 v3.0.9
 developers:
-  use its own logger intstead of ScipionLogger for the plugin manager
+    use its own logger intstead of ScipionLogger for the plugin manager
+    Added the variable SCIPION_PRIORITY_PACKAGE_LIST that is used in the view
+    protocols in order to load first the plugins that contains the main
+    protocols.conf sections. This variable is defined as string with the packages names separated by a space.
+    e.g: SCIPION_PRIORITY_PACKAGE_LIST = "pwem tomo cistem"
 
 v3.0.8
 

@@ -67,6 +67,7 @@ NOSCHEDULE_FLAG = FLAG_PARAM + "noschedule"
 
 
 START_BUTTON = "Start"
+IMPORT_BUTTON = "Import"
 LEN_LABEL_IN_CHARS = 30
 LABEL_ALIGN_PATTERN = '{:>%s}' % LEN_LABEL_IN_CHARS
 LEN_BUTTON_IN_CHARS = 12
@@ -100,14 +101,11 @@ class KickoffWindow(ProjectBaseWindow):
         self.generalCfg = settings.getConfig()
 
         ProjectBaseWindow.__init__(self, title, minsize=(800, 350), **kwargs)
-        self.viewFuncs = {VIEW_WIZARD: KickoffView}
         self.template = kwargs.get('template', None)
+        self.importTemplate = kwargs.get('importTemplate', False)
+        self.viewFuncs = {VIEW_WIZARD: KickoffView}
         self.action = Message.LABEL_BUTTON_CANCEL
         self.switchView(VIEW_WIZARD, **kwargs)
-
-    def close(self, e=None):
-        self.root.destroy()
-        sys.exit(0)
 
     def getTemplate(self):
         return self.template
@@ -121,22 +119,35 @@ class KickoffWindow(ProjectBaseWindow):
             self.viewWidget.grid_forget()
             self.viewWidget.destroy()
         # Create the new view: Instantiates KickoffView HERE!.
-        self.viewWidget = self.viewFuncs[newView](self.footer, self, template=self.template)
+        self.viewWidget = self.viewFuncs[newView](self.footer, self,
+                                                  template=self.template,
+                                                  importTemplate=self.importTemplate)
         # Grid in the second row (1)
         self.viewWidget.grid(row=0, column=0, columnspan=10, sticky='news')
         self.footer.rowconfigure(0, weight=1)
         self.footer.columnconfigure(0, weight=1)
         self.view = newView
 
+    def _onClosing(self):
+        self.root.destroy()
+        # JMRT: For some reason when Tkinter has an exception
+        # it does not exit the application as expected and
+        # remains in the mainloop, so here we are forcing
+        # to exit the whole system (only applies for the main window)
+        if not self.importTemplate:
+            sys.exit()
+
 
 class KickoffView(tk.Frame):
-    def __init__(self, parent, windows, template=None, **kwargs):
+    def __init__(self, parent, windows, template=None,
+                 importTemplate=False, **kwargs):
         tk.Frame.__init__(self, parent, bg='white', **kwargs)
         self.windows = windows
         self.root = windows.root
         self.vars = {}
         self.checkvars = []
         self.template = template
+        self.importTemplate = importTemplate
 
         bigSize = pwgui.cfgFontSize + 2
         smallSize = pwgui.cfgFontSize - 2
@@ -158,8 +169,8 @@ class KickoffView(tk.Frame):
 
         # Add the create project button
         btnFrame = tk.Frame(self, bg='white')
-
-        btn = HotButton(btnFrame, text=START_BUTTON,
+        self.actionButton = START_BUTTON if not self.importTemplate else IMPORT_BUTTON
+        btn = HotButton(btnFrame, text=self.actionButton,
                         font=self.bigFontBold,
                         command=self._onReadDataFromTemplateForm)
         btn.grid(row=0, column=1, sticky='ne', padx=10, pady=10)
@@ -177,14 +188,16 @@ class KickoffView(tk.Frame):
 
     def _closeCallback(self):
         self.root.destroy()
-        sys.exit()
+        if not self.importTemplate:
+            sys.exit()
 
     def _fillContent(self, frame):
         # Add project name
         self.template.genProjectName()
         self._addPair(PROJECT_NAME, PROJECT_NAME, 1, frame, value=self.template.projectName)
-        self._addPair(DO_NOT_SCHEDULE, DO_NOT_SCHEDULE, 2, frame, widget=CHECKBUTTON, value=flag2Value(NOSCHEDULE_FLAG))
-        self._addPair(DO_NOT_SHOW_GUI, DO_NOT_SHOW_GUI, 3, frame, widget=CHECKBUTTON, value=flag2Value(NOGUI_FLAG), pady=(5, 30))
+        if not self.importTemplate:
+            self._addPair(DO_NOT_SCHEDULE, DO_NOT_SCHEDULE, 2, frame, widget=CHECKBUTTON, value=flag2Value(NOSCHEDULE_FLAG))
+            self._addPair(DO_NOT_SHOW_GUI, DO_NOT_SHOW_GUI, 3, frame, widget=CHECKBUTTON, value=flag2Value(NOGUI_FLAG), pady=(5, 30))
 
         # Add template params
         self._addTemplateFieldsToForm(frame)
@@ -258,26 +271,26 @@ class KickoffView(tk.Frame):
 
             # Set parent with the data
             self.windows.template = self.template
-            if self._getValue(DO_NOT_SCHEDULE) == YES :
-                sys.argv.append(NOSCHEDULE_FLAG)
+            if not self.importTemplate:
+                if self._getValue(DO_NOT_SCHEDULE) == YES:
+                    sys.argv.append(NOSCHEDULE_FLAG)
+                if self._getValue(DO_NOT_SHOW_GUI) == YES:
+                    sys.argv.append(NOGUI_FLAG)
 
-            if self._getValue(DO_NOT_SHOW_GUI) == YES :
-                sys.argv.append(NOGUI_FLAG)
-
-            self.windows.action = START_BUTTON
+            self.windows.action = self.actionButton
             self.windows.root.quit()
             self.windows.root.withdraw()
             return
 
 
-def getTemplates():
+def getTemplates(fromProjecWindow=False):
     """ Get a template or templates either from arguments
         or from the templates directory.
         If more than one template is found or passed, a dialog is raised
         to choose one.
     """
     templateFolder = getExternalJsonTemplates()
-    customTemplates = len(sys.argv) > 1
+    customTemplates = len(sys.argv) > 1 and not fromProjecWindow
     tempList = TemplateList()
     tempId = None
     if customTemplates:
@@ -303,33 +316,36 @@ def getTemplates():
     return tempList.sortListByPluginName().templates
 
 
-def chooseTemplate(templates):
+def chooseTemplate(templates, parentWindow=None):
+    chosenTemplate = None
     if len(templates) == 1:
         chosenTemplate = templates[0]
     else:
         provider = pwgui.tree.ListTreeProviderTemplate(templates)
-        dlg = dialog.ListDialog(None, "Workflow templates", provider,
+        dlg = dialog.ListDialog(parentWindow, "Workflow templates", provider,
                                 "Select one of the templates.",
                                 selectOnDoubleClick=True)
 
-        if dlg.result == dialog.RESULT_CANCEL:
-            sys.exit()
-        chosenTemplate = dlg.values[0]
+        if dlg.result == dialog.RESULT_YES:
+            chosenTemplate = dlg.values[0]
 
-    print("Template to use: %s" % chosenTemplate)
-    # Replace environment variables
-    chosenTemplate.replaceEnvVariables()
+            print("Template to use: %s" % chosenTemplate)
+            # Replace environment variables
+            chosenTemplate.replaceEnvVariables()
 
+            return chosenTemplate
     return chosenTemplate
 
 
-def resolveTemplate(template):
+def resolveTemplate(template, importTemplate=False):
     """ Resolve a template assigning CML params to the template.
     if not enough, a window will pop pup to ask for missing ones only"""
     if not assignAllParams(template):
-        wizWindow = KickoffWindow(template=template)
+        wizWindow = KickoffWindow(template=template,
+                                  importTemplate=importTemplate)
         wizWindow.show()
-        return wizWindow.action == START_BUTTON
+        actionButton = START_BUTTON if not importTemplate else IMPORT_BUTTON
+        return wizWindow.action == actionButton
     else:
         # All parameters have been assigned and template is fully populated
         return True
@@ -361,8 +377,7 @@ def assignAllParams(template):
     return False
 
 
-def launchTemplate(template):
-    """ Launches a resolved template"""
+def createTemplateFile(template):
     try:
         workflow = template.createTemplateFile()
     except Exception as e:
@@ -370,12 +385,32 @@ def launchTemplate(template):
         errorStr = "Couldn't create the template.\n" + str(e)
         print(errorStr)
         traceback.print_exc()
+    return workflow
 
+
+def launchTemplate(template):
+    """ Launches a resolved template"""
+    workflow = createTemplateFile(template)
     if workflow is not None:
         # Create the project
         if not template.projectName:
             template.genProjectName()
         createProjectFromWorkflow(workflow, template.projectName)
+
+
+def importTemplate(template, window):
+    """
+    Import a resolved template
+    """
+    workflow = createTemplateFile(template)
+    if workflow is not None:
+        try:
+            window.getViewWidget().info('Importing the workflow...')
+            window.project.loadProtocols(workflow)
+            window.getViewWidget().updateRunsGraph(True, reorganize=False)
+            window.getViewWidget().cleanInfo()
+        except Exception as ex:
+            window.showError(str(ex), exception=ex)
 
 
 def createProjectFromWorkflow(workflow, projectName):
@@ -408,6 +443,7 @@ def createProjectFromWorkflow(workflow, projectName):
         # Launch scipion
         subprocess.Popen(["python", "-m", scipion, MODE_PROJECT, projectName])
 
+
 def flag2Value(flag):
     # Remove the flag from sys.argsv
     value = getFlagArg(flag)
@@ -417,12 +453,15 @@ def flag2Value(flag):
 
     return YES if value else NO
 
+
 def launchGUI():
     """Checks if project GUI has to be launched. Only if --noGUI param is found in sys.argv it will return False"""
     return not getFlagArg(NOGUI_FLAG)
 
+
 def scheduleProject():
     return not getFlagArg(NOSCHEDULE_FLAG)
+
 
 def getFlagArg(flag):
     """Checks if a flag exists (True) or not (False)"""
@@ -433,13 +472,12 @@ def getFlagArg(flag):
     # Flag not found
     return False
 
+
 def main():
     templates = getTemplates()
     chosenTemplate = chooseTemplate(templates)
-    if resolveTemplate(chosenTemplate):
+    if chosenTemplate is not None and resolveTemplate(chosenTemplate):
         launchTemplate(chosenTemplate)
-    else:
-        sys.exit(3)
 
 
 if __name__ == "__main__":

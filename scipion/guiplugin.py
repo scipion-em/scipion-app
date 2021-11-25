@@ -4,18 +4,34 @@
 # we will register the menu (only works for the project window and not for the "project list" window.
 # register plugin menus
 import os
+
+from scipion.scripts.kickoff import (getTemplates, chooseTemplate,
+                                     resolveTemplate, launchTemplate,
+                                     importTemplate)
 from scipion.utils import getInstallPath, getScriptsPath
 from scipion.constants import PLUGIN_MANAGER_PY, PYTHON, KICKOFF
 
 
-def launchPluginManager():
+def launchPluginManager(window):
     os.system("%s %s" % (PYTHON, os.path.join(getInstallPath(), PLUGIN_MANAGER_PY)))
 
 
-def launchTemplates():
+def launchTemplates(window):
     os.system("%s %s" % (PYTHON, os.path.join(getScriptsPath(), KICKOFF)))
 
 # Cancel this for now to prevent an early import of Config and a false initialization
-from pyworkflow.gui.project import ProjectManagerWindow
+from pyworkflow.gui.project import ProjectManagerWindow, ProjectWindow
+
 ProjectManagerWindow.registerPluginMenu("Plugin manager", launchPluginManager, None)
 ProjectManagerWindow.registerPluginMenu("Workflow templates", launchTemplates, None)
+
+
+def importFromTemplate(window):
+    templates = getTemplates(fromProjecWindow=True)
+    chosenTemplate = chooseTemplate(templates, parentWindow=window.getRoot())
+    if chosenTemplate is not None and resolveTemplate(chosenTemplate,
+                                                      importTemplate=True):
+        importTemplate(chosenTemplate, window)
+
+
+ProjectWindow.registerPluginMenu("Import workflow template", importFromTemplate, None)

@@ -329,11 +329,11 @@ def chooseTemplate(templates, parentWindow=None):
         if dlg.result == dialog.RESULT_YES:
             chosenTemplate = dlg.values[0]
 
-            print("Template to use: %s" % chosenTemplate)
-            # Replace environment variables
-            chosenTemplate.replaceEnvVariables()
+    if chosenTemplate is not None:
+        print("Template to use: %s" % chosenTemplate)
+        # Replace environment variables
+        chosenTemplate.replaceEnvVariables()
 
-            return chosenTemplate
     return chosenTemplate
 
 

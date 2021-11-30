@@ -1,3 +1,7 @@
+v3.0.10
+users:
+    Added the option to import a tamplate from the project window
+
 v3.0.9
 developers:
     use its own logger intstead of ScipionLogger for the plugin manager

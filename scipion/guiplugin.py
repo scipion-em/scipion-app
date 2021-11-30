@@ -6,7 +6,7 @@
 import os
 
 from scipion.scripts.kickoff import (getTemplates, chooseTemplate,
-                                     resolveTemplate, launchTemplate,
+                                     resolveTemplate,
                                      importTemplate)
 from scipion.utils import getInstallPath, getScriptsPath
 from scipion.constants import PLUGIN_MANAGER_PY, PYTHON, KICKOFF
@@ -27,11 +27,16 @@ ProjectManagerWindow.registerPluginMenu("Workflow templates", launchTemplates, N
 
 
 def importFromTemplate(window):
-    templates = getTemplates(fromProjecWindow=True)
+    argsList = []
+    templates = getTemplates(argsList, fromProjecWindow=True)
     chosenTemplate = chooseTemplate(templates, parentWindow=window.getRoot())
-    if chosenTemplate is not None and resolveTemplate(chosenTemplate,
-                                                      importTemplate=True):
+    if chosenTemplate is not None and resolveTemplate(chosenTemplate, argsList,
+                                                      showScheduleOption=False,
+                                                      schedule=False,
+                                                      showProjectOption=False,
+                                                      showProject=False):
         importTemplate(chosenTemplate, window)
 
 
-ProjectWindow.registerPluginMenu("Import workflow template", importFromTemplate, None)
+ProjectWindow.registerPluginMenu("Import workflow template", importFromTemplate,
+                                 None)

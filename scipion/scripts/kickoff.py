@@ -88,7 +88,8 @@ PROJECT_REGEX = re.compile(PROJECT_PATTERN)
 class KickoffWindow(ProjectBaseWindow):
     """ Windows to manage all projects. """
 
-    def __init__(self, **kwargs):
+    def __init__(self, template, argsList, showScheduleOption, schedule,
+                  showProjectOption, showProject, showProjectName):
         try:
             title = '%s (%s on %s)' % ('Workflow template customizer',
                                        pwutils.getLocalUserName(),
@@ -99,17 +100,18 @@ class KickoffWindow(ProjectBaseWindow):
         settings = ProjectSettings()
         self.generalCfg = settings.getConfig()
 
-        ProjectBaseWindow.__init__(self, title, minsize=(800, 350), **kwargs)
-        self.template = kwargs.get('template', None)
-        self.argsList = kwargs.get('argsList', [])
-        self.showScheduleOption = kwargs.get('showScheduleOption', True)
-        self.schedule = kwargs.get('schedule', True)
-        self.showProjectOption = kwargs.get('showProjectOption', True)
-        self.showProject = kwargs.get('showProject', True)
+        ProjectBaseWindow.__init__(self, title, minsize=(800, 350))
+        self.template = template
+        self.argsList = argsList
+        self.showScheduleOption = showScheduleOption
+        self.schedule = schedule
+        self.showProjectOption = showProjectOption
+        self.showProject = showProject
+        self.showProjectName = showProjectName
 
         self.viewFuncs = {VIEW_WIZARD: KickoffView}
         self.action = Message.LABEL_BUTTON_CANCEL
-        self.switchView(VIEW_WIZARD, **kwargs)
+        self.switchView(VIEW_WIZARD)
 
     def getTemplate(self):
         return self.template
@@ -129,7 +131,9 @@ class KickoffWindow(ProjectBaseWindow):
                                                   showScheduleOption=self.showScheduleOption,
                                                   schedule=self.schedule,
                                                   showProjectOption=self.showProjectOption,
-                                                  showProject=self.showProject)
+                                                  showProject=self.showProject,
+                                                  showProjectName=self.showProjectName)
+
         # Grid in the second row (1)
         self.viewWidget.grid(row=0, column=0, columnspan=10, sticky='news')
         self.footer.rowconfigure(0, weight=1)
@@ -145,7 +149,7 @@ class KickoffWindow(ProjectBaseWindow):
 class KickoffView(tk.Frame):
     def __init__(self, parent, windows, template=None, argsList=[],
                  showScheduleOption=True, schedule=True, showProjectOption=True,
-                 showProject=True, **kwargs):
+                 showProject=True, showProjectName=True, **kwargs):
 
         tk.Frame.__init__(self, parent, bg='white', **kwargs)
         self.windows = windows
@@ -158,6 +162,7 @@ class KickoffView(tk.Frame):
         self.schedule = schedule
         self.showProjectOption = showProjectOption
         self.showProject = showProject
+        self.showProjectName = showProjectName
 
         bigSize = pwgui.cfgFontSize + 2
         smallSize = pwgui.cfgFontSize - 2
@@ -203,7 +208,8 @@ class KickoffView(tk.Frame):
     def _fillContent(self, frame):
         # Add project name
         self.template.genProjectName()
-        self._addPair(PROJECT_NAME, PROJECT_NAME, 1, frame, value=self.template.projectName)
+        self._addPair(PROJECT_NAME, PROJECT_NAME, 1, frame, value=self.template.projectName,
+                      visible=self.showProjectName)
 
         self._addPair(DO_NOT_SCHEDULE, DO_NOT_SCHEDULE, 2, frame,
                       widget=CHECKBUTTON, value=not self.schedule,
@@ -301,23 +307,21 @@ class KickoffView(tk.Frame):
             return
 
 
-def getTemplates(argsList, fromProjecWindow=False):
+def getTemplates(templateName=None):
     """ Get a template or templates either from arguments
         or from the templates directory.
         If more than one template is found or passed, a dialog is raised
         to choose one.
     """
-    templateFolder = getExternalJsonTemplates()
-    customTemplates = len(argsList) > 1 and not fromProjecWindow
     tempList = TemplateList()
     tempId = None
-    if customTemplates:
-        fileTemplate = argsList[1]
-        if os.path.isfile(fileTemplate) and os.path.exists(fileTemplate):
-            t = Template("custom_template", fileTemplate)
+    if templateName:
+        if os.path.isfile(templateName) and os.path.exists(templateName):
+            t = Template("custom_template", templateName)
             tempList.addTemplate(t)
         else:
-            tempId = argsList[1]
+            tempId = templateName
+
     # Try to find all templates from the template folder and the plugins
     if len(tempList.templates) == 0:
         tempList.addScipionTemplates(tempId)
@@ -327,9 +331,9 @@ def getTemplates(argsList, fromProjecWindow=False):
     if not len(tempList.templates):
         raise Exception("No valid file found (*.json.template).\n"
                         "Please, add (at least one) at %s "
-                        "or pass it/them as argument(s).\n"
+                        "or pass it as argument(s).\n"
                         "\n -> Usage: scipion template [PATH.json.template]\n"
-                        "\n see 'scipion help'\n" % templateFolder)
+                        "\n see 'scipion help'\n" % getExternalJsonTemplates())
 
     return tempList.sortListByPluginName().templates
 
@@ -356,20 +360,29 @@ def chooseTemplate(templates, parentWindow=None):
 
 
 def resolveTemplate(template, argsList, showScheduleOption=True, schedule=True,
-                    showProjectOption=True, showProject=True):
+                    showProjectOption=True, showProject=True, showProjectName=True):
     """ Resolve a template assigning CML params to the template.
     if not enough, a window will pop pup to ask for missing ones only"""
+
     if not assignAllParams(argsList, template):
         wizWindow = KickoffWindow(template=template,
                                   argsList=argsList,
                                   showScheduleOption=showScheduleOption,
                                   schedule=schedule,
                                   showProjectOption=showProjectOption,
-                                  showProject=showProject)
+                                  showProject=showProject,
+                                  showProjectName=showProjectName)
         wizWindow.show()
         return wizWindow.action == ACCEPT_BUTTON
     else:
         # All parameters have been assigned and template is fully populated
+        # Add schedule and showProject flags back: removed at flag2value
+        if not schedule:
+            argsList.append(NOSCHEDULE_FLAG)
+
+        if not showProject:
+            argsList.append(NOGUI_FLAG)
+
         return True
 
 
@@ -380,10 +393,9 @@ def assignAllParams(argsList, template):
     """
     paramsSetted = 0
     template.parseContent()
-    if len(argsList) > 2:
-        attrList = argsList[2:]
+    if argsList:
 
-        for attr in attrList:
+        for attr in argsList:
             # skipp --params
             if attr.startswith(FLAG_PARAM):
                 continue
@@ -395,8 +407,7 @@ def assignAllParams(argsList, template):
                 print(pwutils.redStr(e))
                 sys.exit(os.EX_DATAERR)
 
-        return len(template.params) == paramsSetted
-    return False
+    return len(template.params) == paramsSetted
 
 
 def createTemplateFile(template):
@@ -496,9 +507,23 @@ def getFlagArg(argsList, flag):
 
 
 def main():
-    argsList = sys.argv
-    templates = getTemplates(argsList)
+    """ Resolves command line arguments for scipion template"""
+
+    # Remove "template"
+    argsList = sys.argv[1:]
+
+    # Now, there 2 cases:
+    # 1.- it comes with a template name (full path) or id (name)
+    # 2.- is empty
+    templateName = argsList[0] if argsList else None
+    templates = getTemplates(templateName)
+
+    # Remove the name from the args, in case it is passed
+    argsList = argsList[1:]
+
     chosenTemplate = chooseTemplate(templates)
+
+
     if chosenTemplate is not None and resolveTemplate(chosenTemplate, argsList,
                                                       schedule=not flag2Value(argsList, NOSCHEDULE_FLAG),
                                                       showProject=not flag2Value(argsList, NOGUI_FLAG)):

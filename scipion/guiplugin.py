@@ -27,14 +27,14 @@ ProjectManagerWindow.registerPluginMenu("Workflow templates", launchTemplates, N
 
 
 def importFromTemplate(window):
-    argsList = []
-    templates = getTemplates(argsList, fromProjecWindow=True)
+    templates = getTemplates()
     chosenTemplate = chooseTemplate(templates, parentWindow=window.getRoot())
-    if chosenTemplate is not None and resolveTemplate(chosenTemplate, argsList,
+    if chosenTemplate is not None and resolveTemplate(chosenTemplate, [],
                                                       showScheduleOption=False,
                                                       schedule=False,
                                                       showProjectOption=False,
-                                                      showProject=False):
+                                                      showProject=False,
+                                                      showProjectName=False):
         importTemplate(chosenTemplate, window)
 
 

@@ -193,6 +193,9 @@ class Vars:
     SCIPION_PYTHON = PYTHON
     SCIPION_TESTS_CMD = os.environ.get("SCIPION_TESTS_CMD", '%s %s' % (SCIPION_EP, MODE_TESTS))
 
+    # Priority package list
+    SCIPION_PRIORITY_PACKAGE_LIST = "pwem tomo pwchem"
+
 
 # *********************** READ CONFIG FILES ***********************
 try:
@@ -213,6 +216,7 @@ try:
     VARS['SCIPION_PROTOCOLS'] = Vars.SCIPION_PROTOCOLS
     VARS['SCIPION_HOSTS'] = Vars.SCIPION_HOSTS
     VARS['SCIPION_VERSION'] = Vars.SCIPION_VERSION
+    VARS['SCIPION_PRIORITY_PACKAGE_LIST'] = Vars.SCIPION_PRIORITY_PACKAGE_LIST
 
     # Read main config file
     config2Dict(Vars.SCIPION_CONFIG, VARS)

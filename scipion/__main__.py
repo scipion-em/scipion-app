@@ -159,7 +159,7 @@ while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
 # Protocols.conf and hosts.conf, fallback to the template.
 protocols = getConfigPathFromConfigFile(scipionConfig, PROTOCOLS)
 if not exists(protocols):
-    protocols = join(getTemplatesPath(), "protocols.template")
+    protocols = "" # We are not falling back on this template which is outdated. join(getTemplatesPath(), "protocols.template")
 
 hosts = getConfigPathFromConfigFile(scipionConfig, HOSTS)
 if not exists(hosts):

@@ -61,6 +61,6 @@ Model building = [
 	{"tag": "section", "text": "Flexible fitting", "icon": "bookmark.gif", "children": []},
 	{"tag": "section", "text": "Validation", "icon": "bookmark.gif", "children": []},
 	{"tag": "section", "text": "Tools-Calculators", "icon": "bookmark.gif", "children": []},
-	{"tag": "section", "text": "Others", "icon": "bookmark.gif", "children": []},
-	{"tag": "section", "text": "Exports", "icon": "bookmark.gif", "children": []}
+	{"tag": "section", "text": "Exports", "icon": "bookmark.gif", "children": []},
+	{"tag": "section", "text": "Others", "icon": "bookmark.gif", "children": []}
 	]

@@ -124,7 +124,7 @@ def main(args=None):
         scipionConfigFile = os.environ[SCIPION_CONFIG]
         # Global installation configuration files.
 
-        # NOTE: generating a protocols.conf form the template does not make much sense
+        # NOTE: generating a protocols.conf from the template does not make much sense
         # Plugins are dynamically creating sections and the template is currently quite
         # outdated. It doesn't either make sense to update protocols template regularly.
         for fpath, tmplt in [

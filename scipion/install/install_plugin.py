@@ -213,6 +213,7 @@ def installPluginMethods():
                     numberProcessor = parsedArgs.j
                     installed = plugin.installPipModule()
                     if installed and not parsedArgs.noBin:
+                        plugin.getPluginClass()._defineVariables()
                         plugin.installBin({'args': ['-j', numberProcessor]})
         else:
             pluginsToInstall = list(zip(*parsedArgs.plugin))[0]

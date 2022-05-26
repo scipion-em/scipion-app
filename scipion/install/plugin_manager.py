@@ -23,11 +23,11 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-import logging
 from logging.handlers import RotatingFileHandler
 from tkinter import *
 import threading
 
+from pyworkflow import Config
 from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
 from pyworkflow.gui import *
@@ -1134,8 +1134,12 @@ class PluginManager(PluginManagerWindow):
     Windows to hold a frame inside.
     """
     def __init__(self, title, master=None, **kwargs):
+
+        # Trigger plugin's variable definition
+        Config.getDomain().getPlugins()
+
         PluginManagerWindow.__init__(self, title, master, **kwargs)
-        browser = PluginBrowser(self.root, **kwargs)
+        PluginBrowser(self.root, **kwargs)
 
 
 def main():

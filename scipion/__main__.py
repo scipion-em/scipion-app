@@ -76,7 +76,9 @@ def config2Dict(configFile, varDict):
             for variable, value in section.items():
                 # Expanding user and avoiding comments
                 cleanValue = value.split('#')[0]
-                varDict[variable] = expandvars(cleanValue).strip()
+
+                # Give priority to environment variables
+                varDict[variable] = os.environ.get(variable, default=expandvars(cleanValue).strip())
 
     return varDict
 

@@ -24,6 +24,7 @@
 # *
 # **************************************************************************
 from logging.handlers import RotatingFileHandler
+import logging
 from tkinter import *
 import threading
 

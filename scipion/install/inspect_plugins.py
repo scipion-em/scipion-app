@@ -52,7 +52,7 @@ def usage(error=""):
         error = "ERROR: %s\n" % error
 
     print("""%s
-    Usage: scipion python scripts/inspect-plugins.py [PLUGIN-NAME] [info] [--showBase]
+    Usage: scipion python scripts/inspect_plugins.py [PLUGIN-NAME] [info] [--showBase]
         This script loads all Scipion plugins found.
         If a PLUGIN-NAME is passed, it will inspect that plugin
         in more detail.

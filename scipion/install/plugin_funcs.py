@@ -167,9 +167,14 @@ class PluginInfo(object):
 
     def uninstallBins(self, binList=None):
         """Uninstall binaries of the plugin.
-        - binList: if  given, will uninstall the binaries in it. The binList
-                   may contain strings with only the name of the binary or
-                   name and version in the format name-version"""
+
+        :param binList: if  given, will uninstall the binaries in it. The binList
+        may contain strings with only the name of the binary or
+        name and version in the format name-version
+
+        :returns None
+
+        """
         if binList is None:
             binList = self.binVersions
 
@@ -481,9 +486,11 @@ class PluginRepository(object):
 
     def printPluginInfoStr(self, withBins=False, withUpdates=False):
         """Returns string to print in console which plugins are installed.
-        - withBins: If true, will add binary info for the plugins installed
-        - with Updates: If true, will check if the installed plugins have new
-                    releases."""
+
+        :param withBins: If true, will add binary info for the plugins installed
+        :param withUpdates: If true, will check if the installed plugins have new releases.
+
+        :return A string with the plugin information summarized"""
 
         def ansi(n):
             """Return function that escapes text with ANSI color n."""

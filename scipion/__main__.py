@@ -369,7 +369,7 @@ def main():
         runCmd(EM_PROGRAM_ENTRY_POINT, sys.argv[1:])
 
     elif mode == MODE_INSPECT:
-        runScript(join(Vars.SCIPION_INSTALL, 'inspect-plugins.py'), sys.argv[2:])
+        runScript(join(Vars.SCIPION_INSTALL, 'inspect_plugins.py'), sys.argv[2:])
 
     elif mode == MODE_UPDATE:
         # Once more: local import to avoid importing pyworkflow, trigerred by install.__init__ (Plugin Manager)

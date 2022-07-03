@@ -530,11 +530,13 @@ class Environment:
 
     def addPipModule(self, name, version="", pipCmd=None,
                      target=None, default=True, deps=[]):
-        """Add a new module to our built Python .
-        Params in kwargs:
-            name: pip module name
-            version: module version - must be specified to prevent undesired updates.
-            default: True if this module is build by default.
+        """Add a new module to our built Python. Params in kwargs:
+
+            :param name: pip module name
+            :param version: module version - must be specified to prevent undesired updates.
+            :param default: Optional. True if the module has to be installed right after the installation/update of the plugin.
+
+            :returns target containing the pip module definition
         """
 
         target = name if target is None else target
@@ -555,10 +557,11 @@ class Environment:
         return t
 
     def addPackage(self, name, **kwargs):
-        """ Download a package tgz, untar it and create a link in software/em.
-        Params in kwargs:
-            tar: the package tar file, by default the name + .tgz. Pass None or VOID_TGZ if there is no tar file.
-            commands: a list with actions to be executed to install the package
+        """ Download a package tgz, untar it and create a link in software/em. Params in kwargs:
+
+            :param tar: the package tar file, by default the name + .tgz. Pass None or VOID_TGZ if there is no tar file.
+            :param commands: a list with actions to be executed to install the package
+
         """
         # Add to the list of available packages, for reference (used in --help).
         neededProgs = kwargs.get('neededProgs', [])

@@ -31,7 +31,7 @@ import time
 import optparse
 from pathlib import Path
 
-from configparser import ConfigParser  # Python 3
+from configparser import ConfigParser
 from shutil import copyfile
 
 from scipion.utils import getTemplatesPath
@@ -388,7 +388,7 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
             for o in dt[s] - df[s]:
                 suggestion = "" if not suggestUpdate else " Use %s parameter to update local config files." % UPDATE_PARAM
                 print("In section %s, option %s exists in the template but not in the configuration file.%s" % (
-                yellow(s), yellow(o), suggestion))
+                    yellow(s), yellow(o), suggestion))
 
                 if update:
                     if o == 'SCIPION_NOTIFY':

@@ -32,7 +32,6 @@ import importlib
 import inspect
 import traceback
 from collections import OrderedDict
-from future.utils import iteritems
 
 from pwem.protocols import (Prot3D, Prot2D, ProtParticles,
                             ProtMicrographs, ProtImport)
@@ -84,7 +83,7 @@ def getSubmodule(plugin, name, subname):
 
 
 def getFirstLine(doc):
-    """ Get the first non empty line from doc. """
+    """ Get the first non-empty line from doc. """
     if doc:
         for lines in doc.split('\n'):
             l = lines.strip()
@@ -101,7 +100,7 @@ if n > 4:
 if n == 1:  # List all plugins
     plugins = Domain.getPlugins()
     print("Plugins:")
-    for k, v in iteritems(plugins):
+    for k, v in plugins.items():
         print("-", k)
 
     print("Objects")

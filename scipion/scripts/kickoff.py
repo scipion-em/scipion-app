@@ -89,7 +89,7 @@ class KickoffWindow(ProjectBaseWindow):
     """ Windows to manage all projects. """
 
     def __init__(self, template, argsList, showScheduleOption, schedule,
-                  showProjectOption, showProject, showProjectName):
+                 showProjectOption, showProject, showProjectName):
         try:
             title = '%s (%s on %s)' % ('Workflow template customizer',
                                        pwutils.getLocalUserName(),
@@ -252,7 +252,7 @@ class KickoffView(tk.Frame):
             elif widget == CHECKBUTTON:
                 var.set(YES if value else NO)
                 widget = tk.Checkbutton(lf, text="", font=self.bigFont, variable=var,
-                            onvalue=YES, offvalue=NO, bg="white")
+                                        onvalue=YES, offvalue=NO, bg="white")
 
             widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=pady)
 
@@ -287,7 +287,7 @@ class KickoffView(tk.Frame):
                               % (field.getTitle(), field.getValue(),
                                  field.getType()))
 
-        # Do more checks only if there are not previous errors
+        # Do more checks only if there are no previous errors
         if errors:
             errors.insert(0, "*Errors*:")
             self.windows.showError("\n  - ".join(errors))
@@ -522,7 +522,6 @@ def main():
     argsList = argsList[1:]
 
     chosenTemplate = chooseTemplate(templates)
-
 
     if chosenTemplate is not None and resolveTemplate(chosenTemplate, argsList,
                                                       schedule=not flag2Value(argsList, NOSCHEDULE_FLAG),

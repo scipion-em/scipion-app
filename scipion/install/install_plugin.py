@@ -28,7 +28,6 @@ import sys
 import argparse
 import os
 import re
-from future.utils import iteritems
 
 from scipion.install import Environment
 from scipion.install.plugin_funcs import PluginRepository, PluginInfo
@@ -180,7 +179,7 @@ def installPluginMethods():
             env = Environment()
             env.setDefault(False)
             installedPlugins = Config.getDomain().getPlugins()
-            for p, pobj in iteritems(installedPlugins):
+            for p, pobj in installedPlugins.items():
                 try:
                     pobj.Plugin.defineBinaries(env)
                 except Exception as e:

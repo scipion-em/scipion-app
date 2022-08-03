@@ -34,7 +34,7 @@ import sys
 import os
 from os.path import join, exists, expanduser, expandvars
 
-from configparser import ConfigParser  # Python 3
+from configparser import ConfigParser
 from threading import Thread
 
 from scipion.constants import *
@@ -47,6 +47,7 @@ from scipion import __version__
 __nickname__ = "Eugenius"
 
 # *********************  Helper functions *****************************
+
 def getVersion(long=True):
     if long:
         return "v%s - %s" % (__version__, __nickname__)
@@ -161,7 +162,8 @@ while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
 # Protocols.conf and hosts.conf, fallback to the template.
 protocols = getConfigPathFromConfigFile(scipionConfig, PROTOCOLS)
 if not exists(protocols):
-    protocols = join(getTemplatesPath(), "protocols.template")
+    protocols = ""  # We are not falling back on this template which is outdated.
+    # join(getTemplatesPath(), "protocols.template")
 
 hosts = getConfigPathFromConfigFile(scipionConfig, HOSTS)
 if not exists(hosts):
@@ -268,7 +270,7 @@ def main():
 
         ProjectManagerWindow().show()
 
-    elif mode in [ MODE_LAST, MODE_HERE, MODE_PROJECT]:
+    elif mode in [MODE_LAST, MODE_HERE, MODE_PROJECT]:
         os.environ.update(VARS)
         from pyworkflow.utils.log import LoggingConfigurator
         LoggingConfigurator.setUpGUILogging()
@@ -372,7 +374,7 @@ def main():
         runScript(join(Vars.SCIPION_INSTALL, 'inspect_plugins.py'), sys.argv[2:])
 
     elif mode == MODE_UPDATE:
-        # Once more: local import to avoid importing pyworkflow, trigerred by install.__init__ (Plugin Manager)
+        # Once more: local import to avoid importing pyworkflow, triggered by install.__init__ (Plugin Manager)
         from scipion.install.update_manager import updateManagerParser
         updateManagerParser(sys.argv[:])
     # Else HELP or wrong argument
@@ -380,7 +382,7 @@ def main():
         sys.stdout.write("""\
 Usage: scipion [--config PATH] [MODE] [ARGUMENTS]
 
-    --config               Path to a full config file
+    --config               Full path to a config file.
                     
 MODE can be:
     %s                   Prints this help message.
@@ -409,11 +411,11 @@ MODE can be:
 
     %s NAME           Opens the specified project. The name 'last' opens the last project.
     
-    %s                   Same as 'project last'
+    %s                   Same as 'project last'.
 
     %s COMMAND [ARG ...]  Runs COMMAND within the Scipion environment.
     
-    %s [ARG ...]       Shortcut for 'scipion run python ...'
+    %s [ARG ...]       Shortcut for 'scipion run python ...'.
 
     %s OPTION            Runs/Lists test(s).
                            OPTION can be:
@@ -437,9 +439,9 @@ MODE can be:
                            Or to upload it:
                              scipion testdata --upload xmipp_tutorial
                              
-    %s                Prints main packages version
+    %s                Prints main packages version.
     
-    %s | %s         Displays a GUI which allows to run the available Scipion workflow demos 
+    %s | %s        Displays a GUI which allows to run the available Scipion workflow demos. 
     
     %s [NAME]        Creates a new protocol with a tutorial workflow loaded.
                            If NAME is empty, the list of available tutorials are shown.
@@ -461,7 +463,7 @@ MODE can be:
        MODE_INSTALL_BINS, MODE_UNINSTALL_BINS, MODE_MANAGER, MODE_INSPECT,
        MODE_ENV, MODE_PROTOCOLS, MODE_RUNPROTOCOL, MODE_PROJECT, MODE_LAST,
        MODE_RUN, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_VERSION,
-       *MODE_DEMO, MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
+       MODE_DEMO[0], MODE_DEMO[1], MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
        MODE_DEMO[1], MODE_UPDATE))
 
         if mode == MODE_HELP:
@@ -476,6 +478,5 @@ if __name__ == '__main__':
         main()
     except Exception as e:
         import traceback
-
         traceback.print_exc()
         sys.exit('Error at main: %s\n' % e)

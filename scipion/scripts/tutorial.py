@@ -32,7 +32,6 @@ import os
 import sys
 from collections import OrderedDict
 
-import pyworkflow as pw
 import pyworkflow.tests as tests
 from pyworkflow.project import Manager
 from pyworkflow.gui.project import ProjectWindow

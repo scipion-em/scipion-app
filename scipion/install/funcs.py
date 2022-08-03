@@ -35,11 +35,6 @@ from subprocess import STDOUT, call
 from pyworkflow import Config
 import pwem
 
-try:
-    unicode = unicode
-except NameError:  # 'unicode' is undefined, must be Python 3
-    unicode = str
-    basestring = (str, bytes)
 
 # Then we get some OS vars
 MACOSX = (platform.system() == 'Darwin')
@@ -100,7 +95,7 @@ class Command:
 
         if targets is None:
             self._targets = []
-        elif isinstance(targets, basestring):
+        elif isinstance(targets, str):
             self._targets = [targets]
         else:
             self._targets = targets
@@ -130,7 +125,7 @@ class Command:
 
             # Actually allow self._cmd to be a list or a
             # '\n'-separated list of commands, and run them all.
-            if isinstance(self._cmd, basestring):
+            if isinstance(self._cmd, str):
                 cmds = self._cmd.split('\n')  # create list of commands
             elif callable(self._cmd):
                 cmds = [self._cmd]  # a function call
@@ -380,7 +375,7 @@ class Environment:
             target.addDep(targetName)
 
     def _addDownloadUntar(self, name, **kwargs):
-        """ Buid a basic target and add commands for Download and Untar.
+        """ Build a basic target and add commands for Download and Untar.
         This is the base for addLibrary, addModule and addPackage.
         """
         # Use reasonable defaults.
@@ -620,7 +615,7 @@ class Environment:
         target = self._addDownloadUntar(extName, **libArgs)
         commands = kwargs.get('commands', [])
         for cmd, tgt in commands:
-            if isinstance(tgt, basestring):
+            if isinstance(tgt, str):
                 tgt = [tgt]
 
             # Take all package targets relative to package build dir
@@ -642,7 +637,7 @@ class Environment:
                           final=True)
 
         # Create an alias with the name for that version
-        # this imply that the last package version added will be
+        # this implies that the last package version added will be
         # the one installed by default, so the last versions should
         # be the last ones to be inserted
         self.addTargetAlias(extName, name)
@@ -843,7 +838,7 @@ class Link:
 
 
 def mkdir(path):
-    """ Creates a folder if it does not exists"""
+    """ Creates a folder if it does not exist"""
     if not exists(path):
         os.makedirs(path)
     return path

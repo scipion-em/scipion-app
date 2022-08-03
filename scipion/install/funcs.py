@@ -559,8 +559,12 @@ class Environment:
     def addPackage(self, name, **kwargs):
         """ Download a package tgz, untar it and create a link in software/em. Params in kwargs:
 
+
             :param tar: the package tar file, by default the name + .tgz. Pass None or VOID_TGZ if there is no tar file.
             :param commands: a list with actions to be executed to install the package
+            :param buildDir: Optional folder where build/extraction happens. If not passed will be inferred from tgz's name
+            :param neededProgs: Optional, list of programs needed. E.g: make, cmake,...
+            :param version: Optional, version of the package.
 
         """
         # Add to the list of available packages, for reference (used in --help).

@@ -249,7 +249,14 @@ def main():
 
     # Set default VIEWERS value for scipion if not defined:
     if not os.environ.get("VIEWERS", None):
-        os.environ["VIEWERS"] = '{"Volume":["pwem.viewers.DataViewer"], "VolumeMask":["pwem.viewers.DataViewer"]}'
+        defaultViewers = []
+        defaultViewers.append('"Volume":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"VolumeMask":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"SetOfTiltSeries":["imod.viewers.ImodViewer"]')
+        defaultViewers.append('"SetOfLandmarkModels":["imod.viewers.ImodViewer"]')
+        defaultViewers.append('"SetOfTomograms":["imod.viewers.ImodViewer"]')
+
+        os.environ["VIEWERS"] = '{%s}' % ','.join(defaultViewers)
 
     # Trigger Config initialization once environment is ready
     import pyworkflow

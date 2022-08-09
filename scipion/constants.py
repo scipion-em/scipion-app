@@ -14,8 +14,8 @@ MODE_VIEWER = ['viewer', 'view', 'show']
 
 # Installation modes
 MODE_PLUGINS = 'plugins'
-MODE_INSTALL_PLUGIN = 'installp'
-MODE_UNINSTALL_PLUGIN = 'uninstallp'
+MODE_INSTALL_PLUGIN = ['installp', "install"]
+MODE_UNINSTALL_PLUGIN = ['uninstallp', 'uninstall']
 MODE_INSTALL_BINS = 'installb'
 MODE_UNINSTALL_BINS = 'uninstallb'
 MODE_CONFIG = 'config'
@@ -29,8 +29,11 @@ MODE_TUTORIAL = 'tutorial'
 MODE_DEMO = ['demo', 'template']
 MODE_INSPECT = "inspect"
 MODE_UPDATE = 'update'
-PLUGIN_MODES = [MODE_UNINSTALL_PLUGIN, MODE_INSTALL_PLUGIN,
-                MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
+MODE_PIP = 'pip'
+PLUGIN_MODES = [MODE_UNINSTALL_PLUGIN[0], MODE_UNINSTALL_PLUGIN[1],
+                MODE_INSTALL_PLUGIN[1], MODE_INSTALL_PLUGIN[0],
+                MODE_INSTALL_BINS,
+                MODE_UNINSTALL_BINS]
 
 # Entry points
 SCIPION_EP = "scipion"

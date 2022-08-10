@@ -29,6 +29,7 @@ import argparse
 import os
 import re
 
+from scipion.constants import MODE_INSTALL_PLUGIN, MODE_UNINSTALL_PLUGIN
 from scipion.install import Environment
 from scipion.install.plugin_funcs import PluginRepository, PluginInfo
 from pyworkflow.utils import redStr
@@ -40,8 +41,6 @@ from pyworkflow.utils import redStr
 #  ************************************************************************
 from pyworkflow import Config
 
-MODE_INSTALL_PLUGIN = 'installp'
-MODE_UNINSTALL_PLUGIN = 'uninstallp'
 MODE_LIST_BINS = 'listb'
 MODE_INSTALL_BINS = 'installb'
 MODE_UNINSTALL_BINS = 'uninstallb'
@@ -60,16 +59,16 @@ def installPluginMethods():
     pluginRepo = PluginRepository()
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    subparsers = parser.add_subparsers(help='mode "installp", "uninstallp" or "listb"',
+    subparsers = parser.add_subparsers(help='mode "%s", "%s" or "listb"' % (MODE_INSTALL_PLUGIN[1], MODE_UNINSTALL_PLUGIN[1]),
                                        dest='mode',
                                        title='Mode',
-                                       description='available modes are "installp" or "uninstallp"')
+                                       description='available modes are "%s" or "%s"' % (MODE_INSTALL_PLUGIN[1], MODE_UNINSTALL_PLUGIN[1]))
 
     ############################################################################
     #                               Install parser                             #
     ############################################################################
 
-    installParser = subparsers.add_parser("installp", formatter_class=argparse.RawTextHelpFormatter,
+    installParser = subparsers.add_parser(MODE_INSTALL_PLUGIN[1], aliases=[MODE_INSTALL_PLUGIN[0]], formatter_class=argparse.RawTextHelpFormatter,
                                           usage="%s  [-h] [--noBin] [-p pluginName [pipVersion ...]]" %
                                                 invokeCmd,
                                           epilog="Example: %s -p scipion-em-motioncorr 1.0.6 "
@@ -96,8 +95,8 @@ def installPluginMethods():
                                     'paths, will do pip install -e (editable mode). It is expected to find\n'
                                     'the plugin name in the basename of the path or in the repo name. \n'
                                     '(i.e. it needs to match the one specified in setup.py). E.g:\n'
-                                    'scipion installp -p path/to/pluginName --devel \n'
-                                    'scipion installp -p https://github.com/someOrg/pluginName.git --devel')
+                                    'scipion install -p path/to/pluginName --devel \n'
+                                    'scipion install -p https://github.com/someOrg/pluginName.git --devel')
     installParser.add_argument('-j',
                                default='1',
                                metavar='j',
@@ -107,7 +106,7 @@ def installPluginMethods():
     #                             Uninstall parser                             #
     ############################################################################
 
-    uninstallParser = subparsers.add_parser("uninstallp", formatter_class=argparse.RawTextHelpFormatter,
+    uninstallParser = subparsers.add_parser(MODE_UNINSTALL_PLUGIN[1], aliases=[MODE_UNINSTALL_PLUGIN[0]], formatter_class=argparse.RawTextHelpFormatter,
                                             usage="%s  [-h] [-p pluginName [binVersion ...]]" % invokeCmd,
                                             epilog="Example: %s -p scipion-em-eman2 scipion-em-motioncorr \n\n" %
                                                    invokeCmd,
@@ -162,8 +161,10 @@ def installPluginMethods():
 
     modeToParser = {MODE_INSTALL_BINS: installBinParser,
                     MODE_UNINSTALL_BINS: uninstallBinParser,
-                    MODE_INSTALL_PLUGIN: installParser,
-                    MODE_UNINSTALL_PLUGIN: uninstallParser}
+                    MODE_INSTALL_PLUGIN[0]: installParser,
+                    MODE_INSTALL_PLUGIN[1]: installParser,
+                    MODE_UNINSTALL_PLUGIN[0]: uninstallParser,
+                    MODE_UNINSTALL_PLUGIN[1]: uninstallParser}
 
     parsedArgs = parser.parse_args(sys.argv[1:])
     mode = parsedArgs.mode
@@ -189,7 +190,7 @@ def installPluginMethods():
         parserUsed.print_help()
         parserUsed.exit(0)
 
-    elif mode == MODE_INSTALL_PLUGIN:
+    elif mode in MODE_INSTALL_PLUGIN:
         if parsedArgs.checkUpdates:
             print(pluginRepo.printPluginInfoStr(withUpdates=True))
             installParser.exit(0)
@@ -234,7 +235,7 @@ def installPluginMethods():
                         print("WARNING: Plugin %s does not exist." % pluginName)
                         exitWithErrors = True
 
-    elif parsedArgs.mode == MODE_UNINSTALL_PLUGIN:
+    elif parsedArgs.mode in MODE_UNINSTALL_PLUGIN:
 
         for pluginName in parsedArgs.plugin:
             plugin = PluginInfo(pluginName, pluginName, remote=False)

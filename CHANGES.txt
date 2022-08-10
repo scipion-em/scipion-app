@@ -2,6 +2,9 @@ v3.0.11
 users:
    Variables in the environment take priority than those same ones in the config file
    Plugin manager: Installed plugins and its variables are initialized before loading (fixes some installation issues)
+   2 mode alias added: install => installp and uninstall => uninstallp
+   1 mode added: pip => to run any pip command. Shortcut to "scipion3 run pip ..." => Now "scipion3 pip ..."
+
 v3.0.10
 users:
     Added the option to import a tamplate from the project window

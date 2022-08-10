@@ -255,6 +255,7 @@ def main():
         defaultViewers.append('"SetOfTiltSeries":["imod.viewers.ImodViewer"]')
         defaultViewers.append('"SetOfLandmarkModels":["imod.viewers.ImodViewer"]')
         defaultViewers.append('"SetOfTomograms":["imod.viewers.ImodViewer"]')
+        defaultViewers.append('"SetOfSubTomograms":["pwem.viewers.DataViewer"]')
 
         os.environ["VIEWERS"] = '{%s}' % ','.join(defaultViewers)
 
@@ -353,6 +354,10 @@ def main():
         # Run any command with the environment of scipion loaded.
         runCmd('emprogram ' + ' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
 
+    elif mode == MODE_PIP:
+        # Runs pip command inside scipion's environment.
+        runCmd('pip ' + ' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
+
     elif mode == MODE_PYTHON:
         runScript(' '.join(['"%s"' % arg for arg in sys.argv[2:]]),
                   chdir=False)
@@ -398,9 +403,9 @@ MODE can be:
     
     %s                Launches the plugin manager window.
     
-    %s               Installs Scipion plugins from a terminal. Use flag --help to see usage.
+    %s, %s      Installs Scipion plugins from a terminal. Use flag --help to see usage.
     
-    %s             Uninstalls Scipion plugins from a terminal. Use with flag --help to see usage.
+    %s, %s  Uninstalls Scipion plugins from a terminal. Use with flag --help to see usage.
     
     %s               Installs Plugin Binaries. Use with flag --help to see usage.
     
@@ -421,6 +426,8 @@ MODE can be:
     %s                   Same as 'project last'.
 
     %s COMMAND [ARG ...]  Runs COMMAND within the Scipion environment.
+    
+    %s [PIP ARGS ...]     Runs pip within the Scipion environment.
     
     %s [ARG ...]       Shortcut for 'scipion run python ...'.
 
@@ -466,10 +473,13 @@ MODE can be:
                               -dry : only check the status of scipion-em, scipion-pyworkflow 
                                      and scipion-app
 
-""" % (MODE_HELP, MODE_CONFIG, MODE_PLUGINS, MODE_INSTALL_PLUGIN, MODE_UNINSTALL_PLUGIN,
+""" % (MODE_HELP, MODE_CONFIG,
+       MODE_PLUGINS,
+       MODE_INSTALL_PLUGIN[1], MODE_INSTALL_PLUGIN[0],
+       MODE_UNINSTALL_PLUGIN[1], MODE_UNINSTALL_PLUGIN[0],
        MODE_INSTALL_BINS, MODE_UNINSTALL_BINS, MODE_MANAGER, MODE_INSPECT,
        MODE_ENV, MODE_PROTOCOLS, MODE_RUNPROTOCOL, MODE_PROJECT, MODE_LAST,
-       MODE_RUN, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_VERSION,
+       MODE_RUN, MODE_PIP, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_VERSION,
        MODE_DEMO[0], MODE_DEMO[1], MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
        MODE_DEMO[1], MODE_UPDATE))
 

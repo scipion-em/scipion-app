@@ -242,6 +242,10 @@ def addVariablesToSection(cf, section, vars, exclude=[]):
         elif varValue.startswith(pwem.Config.EM_ROOT):
             varValue = varValue.replace(pwem.Config.EM_ROOT, "%(EM_ROOT)s")
 
+        # duplicate %
+        elif "%" in varValue:
+            varValue = varValue.replace("%", "%%")
+
         # If value contains SCIPION_HOME and is not scipion home
         if varValue.startswith(pw.Config.SCIPION_HOME) and varValue != pw.Config.SCIPION_HOME:
             varValue = varValue.replace(pwem.Config.SCIPION_HOME, "${SCIPION_HOME}")

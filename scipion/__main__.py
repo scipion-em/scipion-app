@@ -34,7 +34,7 @@ import sys
 import os
 from os.path import join, exists, expanduser, expandvars
 
-from configparser import ConfigParser  # Python 3
+from configparser import ConfigParser
 from threading import Thread
 
 from scipion.constants import *
@@ -47,6 +47,7 @@ from scipion import __version__
 __nickname__ = "Eugenius"
 
 # *********************  Helper functions *****************************
+
 def getVersion(long=True):
     if long:
         return "v%s - %s" % (__version__, __nickname__)
@@ -76,7 +77,9 @@ def config2Dict(configFile, varDict):
             for variable, value in section.items():
                 # Expanding user and avoiding comments
                 cleanValue = value.split('#')[0]
-                varDict[variable] = expandvars(cleanValue).strip()
+
+                # Give priority to environment variables
+                varDict[variable] = os.environ.get(variable, default=expandvars(cleanValue).strip())
 
     return varDict
 
@@ -159,7 +162,8 @@ while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
 # Protocols.conf and hosts.conf, fallback to the template.
 protocols = getConfigPathFromConfigFile(scipionConfig, PROTOCOLS)
 if not exists(protocols):
-    protocols = join(getTemplatesPath(), "protocols.template")
+    protocols = ""  # We are not falling back on this template which is outdated.
+    # join(getTemplatesPath(), "protocols.template")
 
 hosts = getConfigPathFromConfigFile(scipionConfig, HOSTS)
 if not exists(hosts):
@@ -245,7 +249,15 @@ def main():
 
     # Set default VIEWERS value for scipion if not defined:
     if not os.environ.get("VIEWERS", None):
-        os.environ["VIEWERS"] = '{"Volume":["pwem.viewers.DataViewer"], "VolumeMask":["pwem.viewers.DataViewer"]}'
+        defaultViewers = []
+        defaultViewers.append('"Volume":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"VolumeMask":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"SetOfTiltSeries":["imod.viewers.ImodViewer"]')
+        defaultViewers.append('"SetOfLandmarkModels":["imod.viewers.ImodViewer"]')
+        defaultViewers.append('"SetOfTomograms":["imod.viewers.ImodViewer"]')
+        defaultViewers.append('"SetOfSubTomograms":["pwem.viewers.DataViewer"]')
+
+        os.environ["VIEWERS"] = '{%s}' % ','.join(defaultViewers)
 
     # Trigger Config initialization once environment is ready
     import pyworkflow
@@ -266,7 +278,7 @@ def main():
 
         ProjectManagerWindow().show()
 
-    elif mode in [ MODE_LAST, MODE_HERE, MODE_PROJECT]:
+    elif mode in [MODE_LAST, MODE_HERE, MODE_PROJECT]:
         os.environ.update(VARS)
         from pyworkflow.utils.log import LoggingConfigurator
         LoggingConfigurator.setUpGUILogging()
@@ -342,6 +354,10 @@ def main():
         # Run any command with the environment of scipion loaded.
         runCmd('emprogram ' + ' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
 
+    elif mode == MODE_PIP:
+        # Runs pip command inside scipion's environment.
+        runCmd('pip ' + ' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
+
     elif mode == MODE_PYTHON:
         runScript(' '.join(['"%s"' % arg for arg in sys.argv[2:]]),
                   chdir=False)
@@ -367,10 +383,10 @@ def main():
         runCmd(EM_PROGRAM_ENTRY_POINT, sys.argv[1:])
 
     elif mode == MODE_INSPECT:
-        runScript(join(Vars.SCIPION_INSTALL, 'inspect-plugins.py'), sys.argv[2:])
+        runScript(join(Vars.SCIPION_INSTALL, 'inspect_plugins.py'), sys.argv[2:])
 
     elif mode == MODE_UPDATE:
-        # Once more: local import to avoid importing pyworkflow, trigerred by install.__init__ (Plugin Manager)
+        # Once more: local import to avoid importing pyworkflow, triggered by install.__init__ (Plugin Manager)
         from scipion.install.update_manager import updateManagerParser
         updateManagerParser(sys.argv[:])
     # Else HELP or wrong argument
@@ -378,7 +394,7 @@ def main():
         sys.stdout.write("""\
 Usage: scipion [--config PATH] [MODE] [ARGUMENTS]
 
-    --config               Path to a full config file
+    --config               Full path to a config file.
                     
 MODE can be:
     %s                   Prints this help message.
@@ -387,9 +403,9 @@ MODE can be:
     
     %s                Launches the plugin manager window.
     
-    %s               Installs Scipion plugins from a terminal. Use flag --help to see usage.
+    %s, %s      Installs Scipion plugins from a terminal. Use flag --help to see usage.
     
-    %s             Uninstalls Scipion plugins from a terminal. Use with flag --help to see usage.
+    %s, %s  Uninstalls Scipion plugins from a terminal. Use with flag --help to see usage.
     
     %s               Installs Plugin Binaries. Use with flag --help to see usage.
     
@@ -407,11 +423,13 @@ MODE can be:
 
     %s NAME           Opens the specified project. The name 'last' opens the last project.
     
-    %s                   Same as 'project last'
+    %s                   Same as 'project last'.
 
     %s COMMAND [ARG ...]  Runs COMMAND within the Scipion environment.
     
-    %s [ARG ...]       Shortcut for 'scipion run python ...'
+    %s [PIP ARGS ...]     Runs pip within the Scipion environment.
+    
+    %s [ARG ...]       Shortcut for 'scipion run python ...'.
 
     %s OPTION            Runs/Lists test(s).
                            OPTION can be:
@@ -435,9 +453,9 @@ MODE can be:
                            Or to upload it:
                              scipion testdata --upload xmipp_tutorial
                              
-    %s                Prints main packages version
+    %s                Prints main packages version.
     
-    %s | %s         Displays a GUI which allows to run the available Scipion workflow demos 
+    %s | %s        Displays a GUI which allows to run the available Scipion workflow demos. 
     
     %s [NAME]        Creates a new protocol with a tutorial workflow loaded.
                            If NAME is empty, the list of available tutorials are shown.
@@ -455,11 +473,14 @@ MODE can be:
                               -dry : only check the status of scipion-em, scipion-pyworkflow 
                                      and scipion-app
 
-""" % (MODE_HELP, MODE_CONFIG, MODE_PLUGINS, MODE_INSTALL_PLUGIN, MODE_UNINSTALL_PLUGIN,
+""" % (MODE_HELP, MODE_CONFIG,
+       MODE_PLUGINS,
+       MODE_INSTALL_PLUGIN[1], MODE_INSTALL_PLUGIN[0],
+       MODE_UNINSTALL_PLUGIN[1], MODE_UNINSTALL_PLUGIN[0],
        MODE_INSTALL_BINS, MODE_UNINSTALL_BINS, MODE_MANAGER, MODE_INSPECT,
        MODE_ENV, MODE_PROTOCOLS, MODE_RUNPROTOCOL, MODE_PROJECT, MODE_LAST,
-       MODE_RUN, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_VERSION,
-       *MODE_DEMO, MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
+       MODE_RUN, MODE_PIP, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_VERSION,
+       MODE_DEMO[0], MODE_DEMO[1], MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
        MODE_DEMO[1], MODE_UPDATE))
 
         if mode == MODE_HELP:
@@ -474,6 +495,5 @@ if __name__ == '__main__':
         main()
     except Exception as e:
         import traceback
-
         traceback.print_exc()
         sys.exit('Error at main: %s\n' % e)

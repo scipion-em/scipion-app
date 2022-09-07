@@ -32,7 +32,6 @@ import importlib
 import inspect
 import traceback
 from collections import OrderedDict
-from future.utils import iteritems
 
 from pwem.protocols import (Prot3D, Prot2D, ProtParticles,
                             ProtMicrographs, ProtImport)
@@ -42,6 +41,7 @@ import pyworkflow.utils as pwutils
 
 from scipion.install.plugin_funcs import PluginInfo
 
+ERROR_PREFIX = " error -> %s"
 
 exitWithErrors = False
 
@@ -52,7 +52,7 @@ def usage(error=""):
         error = "ERROR: %s\n" % error
 
     print("""%s
-    Usage: scipion python scripts/inspect-plugins.py [PLUGIN-NAME] [info] [--showBase]
+    Usage: scipion python scripts/inspect_plugins.py [PLUGIN-NAME] [info] [--showBase]
         This script loads all Scipion plugins found.
         If a PLUGIN-NAME is passed, it will inspect that plugin
         in more detail.
@@ -83,7 +83,7 @@ def getSubmodule(plugin, name, subname):
 
 
 def getFirstLine(doc):
-    """ Get the first non empty line from doc. """
+    """ Get the first non-empty line from doc. """
     if doc:
         for lines in doc.split('\n'):
             l = lines.strip()
@@ -100,7 +100,7 @@ if n > 4:
 if n == 1:  # List all plugins
     plugins = Domain.getPlugins()
     print("Plugins:")
-    for k, v in iteritems(plugins):
+    for k, v in plugins.items():
         print("-", k)
 
     print("Objects")
@@ -129,7 +129,7 @@ elif n == 2:
                 msg = " missing"
             else:
                 exitWithErrors = True
-                msg = " error -> %s" % error
+                msg = ERROR_PREFIX % error
 
         else:
             msg = " loaded"
@@ -153,14 +153,13 @@ elif n > 2:
         print("Plugin name: %s, version: %s" % (pluginName, version))
         print("Plugin binaries: %s" % bin)
 
-        # print bibtex
         bib, error2 = getSubmodule(plugin, pluginName, 'bibtex')
         if bib is None:
             if error2 is None:
                 msg = " missing bibtex"
             else:
                 exitWithErrors = True
-                msg = " error -> %s" % error2
+                msg = ERROR_PREFIX % error2
         else:
             print("Plugin references:")
             bibtex = pwutils.parseBibTex(bib.__doc__)
@@ -169,14 +168,13 @@ elif n > 2:
                 text = Protocol()._getCiteText(bibtex[citeStr])
                 print(text)
 
-        # print protocols
         sub, error = getSubmodule(plugin, pluginName, 'protocols')
         if sub is None:
             if error is None:
                 msg = " missing protocols"
             else:
                 exitWithErrors = True
-                msg = " error -> %s" % error
+                msg = ERROR_PREFIX % error
 
         else:
             for name in dir(sub):

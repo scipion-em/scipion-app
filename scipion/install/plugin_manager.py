@@ -23,11 +23,11 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-import logging
 from logging.handlers import RotatingFileHandler
 from tkinter import *
 import threading
 
+from pyworkflow import Config
 from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
 from pyworkflow.gui import *
@@ -220,7 +220,7 @@ class Operation:
 
     def getObjParent(self):
         """
-        Get the object parent in the tree. If the object is a bynary, this
+        Get the object parent in the tree. If the object is a binary, this
         method return None
         """
         return self.objParent
@@ -256,7 +256,7 @@ class Operation:
 
 class OperationList:
     """
-    This class contain a plugins/binaries operations list and allow execute it
+    This class contains a plugins/binaries operations list and allows to execute it
     """
     def __init__(self):
         self.operationList = []
@@ -399,7 +399,7 @@ class PluginBrowser(tk.Frame):
         tabControl = ttk.Notebook(bottomPanel)  # Create Tab Control
         tabControl.grid(row=1, column=0, sticky='news')
 
-        operationTab = ttk.Frame(tabControl)  # Create a operation tab
+        operationTab = ttk.Frame(tabControl)  # Create an operation tab
         operationTab.grid(row=0, column=0, padx=0, pady=0)
         self._fillRightBottomOperationsPanel(operationTab)
         consoleTab = ttk.Frame(tabControl)  # Create a console
@@ -450,7 +450,6 @@ class PluginBrowser(tk.Frame):
         processorsEntry = tk.Entry(frame, textvariable=self.numberProcessors,
                                    font=getDefaultFont())
         processorsEntry.grid(row=0, column=self._col, sticky='ew', padx=5)
-
 
     def _addButton(self, frame, text, image, tooltip, state, command):
         btn = IconButton(frame, text, image, command=command,
@@ -598,7 +597,7 @@ class PluginBrowser(tk.Frame):
         Create a right top panel
         """
         self.topPanelTree = PluginTree(topPanel, show='tree', cursor='hand2',
-                                         style=self._getStandardTreeStyle())
+                                       style=self._getStandardTreeStyle())
         self.topPanelTree.grid(row=0, column=0, sticky='news')
 
         # configure vertical scroollbar
@@ -665,7 +664,7 @@ class PluginBrowser(tk.Frame):
         self.fileLogErr = open(self.file_errors_path, 'w')
         self.plug_log = getRotatingFileLogger("plugins_stdout", self.file_log_path)
         self.plug_errors_log = getRotatingFileLogger("plugin_strerr", self.file_errors_path)
-        # Create two tabs where the log and errors will appears
+        # Create two tabs where the log and errors will appear
         self.Textlog.createWidgets([self.file_log_path, self.file_errors_path])
 
     def _onPluginTreeClick(self, event):
@@ -719,7 +718,7 @@ class PluginBrowser(tk.Frame):
         """
         Execute the operation list
         """
-        # Disable the execute and cancel button
+        # Disable execute and cancel buttons
         self.executeOpsBtn.config(state='disable')
         self.cancelOpsBtn.config(state='disable')
         # Disable the TreeView
@@ -1122,6 +1121,7 @@ class PluginHelp(gui.Window):
         btn = Label(helpFrame, text='Apply an operation to the selected plugin')
         btn.grid(row=6, column=1, sticky='sw', padx=0, pady=5)
 
+
 def getRotatingFileLogger(name, path):
     logger = logging.getLogger(name)
     makeFilePath(path)
@@ -1129,13 +1129,18 @@ def getRotatingFileLogger(name, path):
     handler.setLevel(Config.SCIPION_LOG_LEVEL)
     return logger
 
+
 class PluginManager(PluginManagerWindow):
     """
     Windows to hold a frame inside.
     """
     def __init__(self, title, master=None, **kwargs):
+
+        # Trigger plugin's variable definition
+        Config.getDomain().getPlugins()
+
         PluginManagerWindow.__init__(self, title, master, **kwargs)
-        browser = PluginBrowser(self.root, **kwargs)
+        PluginBrowser(self.root, **kwargs)
 
 
 def main():

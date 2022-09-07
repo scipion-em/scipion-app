@@ -6,7 +6,7 @@ import json
 import pkg_resources
 from pkg_resources import parse_version
 
-from .funcs import Environment, VOID_TGZ
+from .funcs import Environment
 from pwem import Domain
 from pyworkflow.utils import redStr, yellowStr
 from pyworkflow.utils.path import cleanPath
@@ -99,7 +99,7 @@ class PluginInfo(object):
 
     def isInstalled(self):
         """Checks if the current plugin is installed (i.e. has pip package).
-        NOTE: we might wanna change definition of isInstalled, hence the extra function."""
+        NOTE: we might want to change definition of isInstalled, hence the extra function."""
         reload(pkg_resources)
         return self.hasPipPackage()
 
@@ -132,7 +132,7 @@ class PluginInfo(object):
                 installSrc = '-e %s' % self.pluginSourceUrl
                 target = "%s*" % self.pipName
             else:
-                # path doesnt exist, we assume is git and force install
+                # path doesn't exist, we assume is git and force install
                 installSrc = '--upgrade git+%s' % self.pluginSourceUrl
                 target = "%s*" % self.pipName.replace('-', '_')
         else:
@@ -167,9 +167,14 @@ class PluginInfo(object):
 
     def uninstallBins(self, binList=None):
         """Uninstall binaries of the plugin.
-        - binList: if  given, will uninstall the binaries in it. The binList
-                   may contain strings with only the name of the binary or
-                   name and version in the format name-version"""
+
+        :param binList: if  given, will uninstall the binaries in it. The binList
+        may contain strings with only the name of the binary or
+        name and version in the format name-version
+
+        :returns None
+
+        """
         if binList is None:
             binList = self.binVersions
 
@@ -178,7 +183,7 @@ class PluginInfo(object):
             f = os.path.join(binFolder, binVersion)
             if os.path.exists(f):
                 print('Removing %s binaries...' % binVersion)
-                realPath = os.path.realpath(f)  # in case its a link
+                realPath = os.path.realpath(f)  # in case it's a link
                 cleanPath(f, realPath)
                 print('Binary %s has been uninstalled successfully ' % binVersion)
             else:
@@ -481,9 +486,11 @@ class PluginRepository(object):
 
     def printPluginInfoStr(self, withBins=False, withUpdates=False):
         """Returns string to print in console which plugins are installed.
-        - withBins: If true, will add binary info for the plugins installed
-        - with Updates: If true, will check if the installed plugins have new
-                    releases."""
+
+        :param withBins: If true, will add binary info for the plugins installed
+        :param withUpdates: If true, will check if the installed plugins have new releases.
+
+        :return A string with the plugin information summarized"""
 
         def ansi(n):
             """Return function that escapes text with ANSI color n."""

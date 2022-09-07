@@ -30,8 +30,6 @@ This module is responsible for updating scipion-em, scipion-pyworkflow and
 scipion-app if a higher version of these is released
 """
 import argparse
-from threading import Thread
-
 from pip._internal.commands import create_command
 
 from pyworkflow.utils import redStr, greenStr, os
@@ -105,15 +103,16 @@ class UpdateManager:
 
     @classmethod
     def getPackageState(cls, packageName, version):
-        """
-        Check if a package needs to be updated or not
-        args: packageName: the package name
-              version: version of the installed package
-        return: (True, version) if the the package needs to be updated, otherwise
+        """ Check if a package needs to be updated or not
+
+        :param packageName: the package name
+        :param version: version of the installed package
+
+        :return (True, version) if the package needs to be updated, otherwise
                 (False, version)
 
         """
-        # Ignore autocheck of outdated package that happens at import time
+        # Ignore auto-check of outdated package that happens at import time
         os.environ["OUTDATED_IGNORE"] = "1"
         from outdated import check_outdated
         from requests.exceptions import ConnectionError

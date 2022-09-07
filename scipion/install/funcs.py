@@ -35,11 +35,6 @@ from subprocess import STDOUT, call
 from pyworkflow import Config
 import pwem
 
-try:
-    unicode = unicode
-except NameError:  # 'unicode' is undefined, must be Python 3
-    unicode = str
-    basestring = (str, bytes)
 
 # Then we get some OS vars
 MACOSX = (platform.system() == 'Darwin')
@@ -100,7 +95,7 @@ class Command:
 
         if targets is None:
             self._targets = []
-        elif isinstance(targets, basestring):
+        elif isinstance(targets, str):
             self._targets = [targets]
         else:
             self._targets = targets
@@ -130,7 +125,7 @@ class Command:
 
             # Actually allow self._cmd to be a list or a
             # '\n'-separated list of commands, and run them all.
-            if isinstance(self._cmd, basestring):
+            if isinstance(self._cmd, str):
                 cmds = self._cmd.split('\n')  # create list of commands
             elif callable(self._cmd):
                 cmds = [self._cmd]  # a function call
@@ -380,7 +375,7 @@ class Environment:
             target.addDep(targetName)
 
     def _addDownloadUntar(self, name, **kwargs):
-        """ Buid a basic target and add commands for Download and Untar.
+        """ Build a basic target and add commands for Download and Untar.
         This is the base for addLibrary, addModule and addPackage.
         """
         # Use reasonable defaults.
@@ -530,11 +525,13 @@ class Environment:
 
     def addPipModule(self, name, version="", pipCmd=None,
                      target=None, default=True, deps=[]):
-        """Add a new module to our built Python .
-        Params in kwargs:
-            name: pip module name
-            version: module version - must be specified to prevent undesired updates.
-            default: True if this module is build by default.
+        """Add a new module to our built Python. Params in kwargs:
+
+            :param name: pip module name
+            :param version: module version - must be specified to prevent undesired updates.
+            :param default: Optional. True if the module has to be installed right after the installation/update of the plugin.
+
+            :returns target containing the pip module definition
         """
 
         target = name if target is None else target
@@ -555,10 +552,15 @@ class Environment:
         return t
 
     def addPackage(self, name, **kwargs):
-        """ Download a package tgz, untar it and create a link in software/em.
-        Params in kwargs:
-            tar: the package tar file, by default the name + .tgz. Pass None or VOID_TGZ if there is no tar file.
-            commands: a list with actions to be executed to install the package
+        """ Download a package tgz, untar it and create a link in software/em. Params in kwargs:
+
+
+            :param tar: the package tar file, by default the name + .tgz. Pass None or VOID_TGZ if there is no tar file.
+            :param commands: a list with actions to be executed to install the package
+            :param buildDir: Optional folder where build/extraction happens. If not passed will be inferred from tgz's name
+            :param neededProgs: Optional, list of programs needed. E.g: make, cmake,...
+            :param version: Optional, version of the package.
+
         """
         # Add to the list of available packages, for reference (used in --help).
         neededProgs = kwargs.get('neededProgs', [])
@@ -613,7 +615,7 @@ class Environment:
         target = self._addDownloadUntar(extName, **libArgs)
         commands = kwargs.get('commands', [])
         for cmd, tgt in commands:
-            if isinstance(tgt, basestring):
+            if isinstance(tgt, str):
                 tgt = [tgt]
 
             # Take all package targets relative to package build dir
@@ -635,7 +637,7 @@ class Environment:
                           final=True)
 
         # Create an alias with the name for that version
-        # this imply that the last package version added will be
+        # this implies that the last package version added will be
         # the one installed by default, so the last versions should
         # be the last ones to be inserted
         self.addTargetAlias(extName, name)
@@ -836,7 +838,7 @@ class Link:
 
 
 def mkdir(path):
-    """ Creates a folder if it does not exists"""
+    """ Creates a folder if it does not exist"""
     if not exists(path):
         os.makedirs(path)
     return path

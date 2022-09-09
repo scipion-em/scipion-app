@@ -26,6 +26,7 @@ or if they do not exist.
 """
 import sys
 import os
+from datetime import datetime
 from os.path import join, exists, basename
 import time
 import optparse
@@ -40,7 +41,6 @@ PYWORKFLOW_SECTION = "PYWORKFLOW"
 SCIPION_CONF = 'scipion'
 BACKUPS = 'backups'
 HOSTS = 'hosts'
-PROTOCOLS = 'protocols'
 MISSING_VAR = "None"
 SCIPION_NOTIFY = 'SCIPION_NOTIFY'
 SCIPION_CONFIG = 'SCIPION_CONFIG'
@@ -129,7 +129,6 @@ def main(args=None):
         # outdated. It doesn't either make sense to update protocols template regularly.
         for fpath, tmplt in [
             (scipionConfigFile, SCIPION_CONF),
-            (getConfigPathFromConfigFile(scipionConfigFile, PROTOCOLS), PROTOCOLS),
             (getConfigPathFromConfigFile(scipionConfigFile, HOSTS), HOSTS)]:
             if not exists(fpath) or options.overwrite:
                 print(fpath, tmplt)
@@ -186,17 +185,7 @@ def createConf(fpath, ftemplate, unattended=False):
     # Remove from the template the sections in "remove", and if "keep"
     # is used only keep those sections.
 
-    # Create directory and backup if necessary.
-    dname = os.path.dirname(fpath)
-    if not exists(dname):
-        os.makedirs(dname)
-    elif exists(fpath):
-        if not exists(join(dname, BACKUPS)):
-            os.makedirs(join(dname, BACKUPS))
-        backup = join(dname, BACKUPS,
-                      '%s.%d' % (basename(fpath), int(time.time())))
-        print(yellow("* Creating backup: %s" % backup))
-        os.rename(fpath, backup)
+    backup(fpath)
 
     # Read the template configuration file.
     print(yellow("* Creating configuration file: %s" % fpath))
@@ -222,6 +211,28 @@ def createConf(fpath, ftemplate, unattended=False):
     else:
         # For host.conf and protocols.conf, just copy files
         copyfile(ftemplate, fpath)
+
+
+def backup(fpath):
+    """
+    Create directory "backup" if necessary and back up the file.
+
+    :param fpath:
+    :return: None
+
+    """
+    dname = os.path.dirname(fpath)
+
+    if not exists(dname):
+        os.makedirs(dname)
+
+    elif exists(fpath):
+        if not exists(join(dname, BACKUPS)):
+            os.makedirs(join(dname, BACKUPS))
+        backupFn = join(dname, BACKUPS,
+                      '%s.%s' % (basename(fpath), datetime.now().strftime("%Y%m%d%H%M%S")))
+        print(yellow("* Creating backup: %s" % backupFn))
+        os.rename(fpath, backupFn)
 
 
 def addVariablesToSection(cf, section, vars, exclude=[]):
@@ -330,11 +341,11 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
     # is used only check those sections.
 
     # Read the config file fpath and the template ftemplate
-    cf = ConfigParser()
+    cf = ConfigParser(interpolation=None)
     cf.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
     assert cf.read(fpath) != [], 'Missing file %s' % fpath
 
-    ct = ConfigParser()
+    ct = ConfigParser(interpolation=None)
     ct.optionxform = str
 
     suggestUpdate = True  # Flag to suggest --update
@@ -344,6 +355,7 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
         # This will be the place to "exclude some variables"
         addPyworkflowVariables(ct)
         addPluginsVariables(ct)
+        ftemplate = ":MEMORY:"
     else:
         # Cancel update for others than SCIPION_CONF
         update = False
@@ -364,7 +376,7 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
         print(green("All the expected sections and options found in " + fpath))
     else:
         print("Found differences between the configuration file\n  %s\n"
-              "and the template file\n  %s" % (fpath, ftemplate))
+              "and the current defined variables.\n  %s" % (fpath, ftemplate))
         sf = set(df.keys())
         st = set(dt.keys())
         for s in sf - st:
@@ -372,7 +384,7 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
                   "not in the template." % red(s))
 
         for s in st - sf:
-            print("Section %s exists in the template but not in the configuration file. Use %s parameter to update  "
+            print("Section %s is defined but not in the configuration file. Use %s parameter to update  "
                   "local config files." % (yellow(s), UPDATE_PARAM))
 
             if update:
@@ -387,11 +399,11 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
 
         for s in st & sf:
             for o in df[s] - dt[s]:
-                print("In section %s, option %s exists in the configuration "
-                      "file but not in the template." % (red(s), red(o)))
+                print("In section %s, variable %s exists in the configuration "
+                      "file but not defined by any package." % (red(s), red(o)))
             for o in dt[s] - df[s]:
                 suggestion = "" if not suggestUpdate else " Use %s parameter to update local config files." % UPDATE_PARAM
-                print("In section %s, option %s exists in the template but not in the configuration file.%s" % (
+                print("In section %s, variable %s is defined by a package but not in the configuration file.%s" % (
                     yellow(s), yellow(o), suggestion))
 
                 if update:
@@ -405,16 +417,20 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
                           % (s, green(o), value))
 
     if update:
-        if confChanged:
-            print("Changes detected: writing changes into %s. Please check values." % fpath)
-        else:
+        if not confChanged:
             print("Update requested no changes detected for %s." % fpath)
+        else:
 
-        try:
-            with open(fpath, 'w') as f:
-                cf.write(f)
-        except Exception as e:
-            print("Could not update the config: ", e)
+            print("Changes detected: writing changes into %s.")
+
+            try:
+                # Make a back up
+                backup(fpath)
+
+                with open(fpath, 'w') as f:
+                    cf.write(f)
+            except Exception as e:
+                print("Could not update the config: ", e)
 
 
 def compareConfig(cf, ct, fPath, fTemplate):
@@ -450,91 +466,91 @@ def compareConfigVariable(section, variableName, valueInConfig, valueInTemplate)
                                 yellow(valueInTemplate)))
 
 
-def guessJava():
-    """Guess the system's Java installation, return a dict with the Java keys"""
-
-    options = {}
-    candidates = []
-
-    # First check if the system has a favorite one.
-    if 'JAVA_HOME' in os.environ:
-        candidates.append(os.environ['JAVA_HOME'])
-
-    # Add also all the ones related to a "javac" program.
-    for d in os.environ.get('PATH', '').split(':'):
-        if not os.path.isdir(d) or 'javac' not in os.listdir(d):
-            continue
-        javaBin = os.path.realpath(join(d, 'javac'))
-        if javaBin.endswith('/bin/javac'):
-            javaHome = javaBin[:-len('/bin/javac')]
-            candidates.append(javaHome)
-            if javaHome.endswith('/jre'):
-                candidates.append(javaHome[:-len('/jre')])
-
-    # Check in order if for any of our candidates, all related
-    # directories and files exist. If they do, that'd be our best guess.
-    for javaHome in candidates:
-        allExist = True
-        for path in ['include', join('bin', 'javac'), join('bin', 'jar')]:
-            if not exists(join(javaHome, path)):
-                allExist = False
-        if allExist:
-            options['JAVA_HOME'] = javaHome
-            break
-            # We could instead check individually for JAVA_BINDIR, JAVAC
-            # and so on, as we do with MPI options, but we go for an
-            # easier and consistent case instead: everything must be under
-            # JAVA_HOME, which is the most common case for Java.
-
-    if not options:
-        print(red("Warning: could not detect a suitable JAVA_HOME."))
-        if candidates:
-            print(red("Our candidates were:\n  %s" % '\n  '.join(candidates)))
-
-    return options
-
-
-def guessMPI():
-    """Guess the system's MPI installation, return a dict with MPI keys"""
-    # Returns MPI_LIBDIR, MPI_INCLUDE and MPI_BINDIR as a dictionary.
-
-    options = {}
-    candidates = []
-
-    # First check if the system has a favorite one.
-    for prefix in ['MPI_', 'MPI', 'OPENMPI_', 'OPENMPI']:
-        if '%sHOME' % prefix in os.environ:
-            candidates.append(os.environ['%sHOME' % prefix])
-
-    # Add also all the ones related to a "mpicc" program.
-    for d in os.environ.get('PATH', '').split(':'):
-        if not os.path.isdir(d) or 'mpicc' not in os.listdir(d):
-            continue
-        mpiBin = os.path.realpath(join(d, 'mpicc'))
-        if 'MPI_BINDIR' not in options:
-            options['MPI_BINDIR'] = os.path.dirname(mpiBin)
-        if mpiBin.endswith('/bin/mpicc'):
-            mpiHome = mpiBin[:-len('/bin/mpicc')]
-            candidates.append(mpiHome)
-
-    # Add some extra directories that are commonly around.
-    candidates += ['/usr/lib/openmpi', '/usr/lib64/mpi/gcc/openmpi']
-
-    # Check in order if for any of our candidates, all related
-    # directories and files exist. If they do, that'd be our best guess.
-    for mpiHome in candidates:
-        if (exists(join(mpiHome, 'include', 'mpi.h')) and
-                'MPI_INCLUDE' not in options):
-            options['MPI_INCLUDE'] = join(mpiHome, 'include')
-        if (exists(join(mpiHome, 'lib', 'libmpi.so')) and
-                'MPI_LIBDIR' not in options):
-            options['MPI_LIBDIR'] = join(mpiHome, 'lib')
-        if (exists(join(mpiHome, 'bin', 'mpicc')) and
-                'MPI_BINDIR' not in options):
-            options['MPI_BINDIR'] = join(mpiHome, 'bin')
-
-    return options
-
+# def guessJava():
+#     """Guess the system's Java installation, return a dict with the Java keys"""
+#
+#     options = {}
+#     candidates = []
+#
+#     # First check if the system has a favorite one.
+#     if 'JAVA_HOME' in os.environ:
+#         candidates.append(os.environ['JAVA_HOME'])
+#
+#     # Add also all the ones related to a "javac" program.
+#     for d in os.environ.get('PATH', '').split(':'):
+#         if not os.path.isdir(d) or 'javac' not in os.listdir(d):
+#             continue
+#         javaBin = os.path.realpath(join(d, 'javac'))
+#         if javaBin.endswith('/bin/javac'):
+#             javaHome = javaBin[:-len('/bin/javac')]
+#             candidates.append(javaHome)
+#             if javaHome.endswith('/jre'):
+#                 candidates.append(javaHome[:-len('/jre')])
+#
+#     # Check in order if for any of our candidates, all related
+#     # directories and files exist. If they do, that'd be our best guess.
+#     for javaHome in candidates:
+#         allExist = True
+#         for path in ['include', join('bin', 'javac'), join('bin', 'jar')]:
+#             if not exists(join(javaHome, path)):
+#                 allExist = False
+#         if allExist:
+#             options['JAVA_HOME'] = javaHome
+#             break
+#             # We could instead check individually for JAVA_BINDIR, JAVAC
+#             # and so on, as we do with MPI options, but we go for an
+#             # easier and consistent case instead: everything must be under
+#             # JAVA_HOME, which is the most common case for Java.
+#
+#     if not options:
+#         print(red("Warning: could not detect a suitable JAVA_HOME."))
+#         if candidates:
+#             print(red("Our candidates were:\n  %s" % '\n  '.join(candidates)))
+#
+#     return options
+#
+#
+# def guessMPI():
+#     """Guess the system's MPI installation, return a dict with MPI keys"""
+#     # Returns MPI_LIBDIR, MPI_INCLUDE and MPI_BINDIR as a dictionary.
+#
+#     options = {}
+#     candidates = []
+#
+#     # First check if the system has a favorite one.
+#     for prefix in ['MPI_', 'MPI', 'OPENMPI_', 'OPENMPI']:
+#         if '%sHOME' % prefix in os.environ:
+#             candidates.append(os.environ['%sHOME' % prefix])
+#
+#     # Add also all the ones related to a "mpicc" program.
+#     for d in os.environ.get('PATH', '').split(':'):
+#         if not os.path.isdir(d) or 'mpicc' not in os.listdir(d):
+#             continue
+#         mpiBin = os.path.realpath(join(d, 'mpicc'))
+#         if 'MPI_BINDIR' not in options:
+#             options['MPI_BINDIR'] = os.path.dirname(mpiBin)
+#         if mpiBin.endswith('/bin/mpicc'):
+#             mpiHome = mpiBin[:-len('/bin/mpicc')]
+#             candidates.append(mpiHome)
+#
+#     # Add some extra directories that are commonly around.
+#     candidates += ['/usr/lib/openmpi', '/usr/lib64/mpi/gcc/openmpi']
+#
+#     # Check in order if for any of our candidates, all related
+#     # directories and files exist. If they do, that'd be our best guess.
+#     for mpiHome in candidates:
+#         if (exists(join(mpiHome, 'include', 'mpi.h')) and
+#                 'MPI_INCLUDE' not in options):
+#             options['MPI_INCLUDE'] = join(mpiHome, 'include')
+#         if (exists(join(mpiHome, 'lib', 'libmpi.so')) and
+#                 'MPI_LIBDIR' not in options):
+#             options['MPI_LIBDIR'] = join(mpiHome, 'lib')
+#         if (exists(join(mpiHome, 'bin', 'mpicc')) and
+#                 'MPI_BINDIR' not in options):
+#             options['MPI_BINDIR'] = join(mpiHome, 'bin')
+#
+#     return options
+#
 
 def getConfigPathFromConfigFile(scipionConfigFile, configFile):
     """

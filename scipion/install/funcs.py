@@ -153,8 +153,9 @@ class Command:
             os.chdir(cwd)
             if not self._env.showOnly:
                 for t in self._targets:
-                    assert glob(t), ("target '%s' not built (after "
-                                     "running '%s')" % (t, cmd))
+                    if not glob(t):
+                        msg = "target '%s' not built (after running '%s')" % (t, cmd)
+                        sys.exit(msg)
 
     def __str__(self):
         return "Command: %s, targets: %s" % (self._cmd, self._targets)

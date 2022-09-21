@@ -23,7 +23,8 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-
+import logging
+logger = logging.getLogger(__name__)
 import os
 import platform
 import sys
@@ -157,6 +158,9 @@ class Command:
                         msg = "target '%s' not built (after running '%s')" % (t, cmd)
                         sys.exit(msg)
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         return "Command: %s, targets: %s" % (self._cmd, self._targets)
 
@@ -224,7 +228,10 @@ class Target:
                 print(green('Done (%d m %02d s)' % (dt / 60, int(dt) % 60)))
 
     def __str__(self):
-        return self._name
+        return "Name: %s, default: %s, always: %s, commands: %s, final commands: %s, deps: %s." %(
+            self._name, self._default, self._always,
+            self._commandList,self._finalCommands, self._deps)
+
 
 
 class Environment:
@@ -378,14 +385,16 @@ class Environment:
     def _addDownloadUntar(self, name, **kwargs):
         """ Build a basic target and add commands for Download and Untar.
         This is the base for addLibrary, addModule and addPackage.
+
+        :param createBuildDir:  If true tar extraction will specify an extraction dir. Use this for plain tgz, tars, ...use with target
+
         """
         # Use reasonable defaults.
         tar = kwargs.get('tar', '%s.tgz' % name)
         urlSuffix = kwargs.get('urlSuffix', 'external')
         url = kwargs.get('url', '%s/%s/%s' % (Config.SCIPION_URL_SOFTWARE, urlSuffix, tar))
         downloadDir = kwargs.get('downloadDir', self.getTmpFolder())
-        buildDir = kwargs.get('buildDir',
-                              tar.rsplit('.tar.gz', 1)[0].rsplit('.tgz', 1)[0])
+        buildDir = self._getBuildDir(kwargs, tar)
         targetDir = kwargs.get('targetDir', buildDir)
 
         createBuildDir = kwargs.get('createBuildDir', False)
@@ -415,18 +424,21 @@ class Environment:
             t.addCommand(self._downloadCmd % {'tar': tarFile, 'url': url},
                          targets=tarFile)
 
+
+        tarCmd = self._tarCmd % tar
+
         if createBuildDir:
-            tarCmd = '{0} -C {1}'.format(self._tarCmd % tar, buildDir)
-            t.addCommand('mkdir %s' % buildPath,
-                         targets=[buildPath],
-                         cwd=downloadDir)
-        else:
-            tarCmd = self._tarCmd % tar
+            tarCmd = 'mkdir {0} && {1} -C {2}'.format(buildPath,tarCmd, buildDir)
+            # t.addCommand('mkdir %s' % buildPath,
+            #              targets=[buildPath],
+            #              cwd=downloadDir)
 
         finalTarget = join(downloadDir, kwargs.get('target', buildDir))
         t.addCommand(tarCmd,
                      targets=finalTarget,
                      cwd=downloadDir)
+
+        logger.warning("Target added: %s" % t)
 
         return t
 
@@ -604,13 +616,13 @@ class Environment:
             kwargs["buildDir"] = extName
             kwargs["createBuildDir"] = True
 
-        buildDir = kwargs.get('buildDir',
-                              tar.rsplit('.tar.gz', 1)[0].rsplit('.tgz', 1)[0])
+        buildDir = self._getBuildDir(kwargs, tar)
         targetDir = kwargs.get('targetDir', buildDir)
 
         libArgs = {'downloadDir': self.getEmFolder(),
                    'urlSuffix': 'em',
-                   'default': False}  # This will be updated with value in kwargs
+                   'default': False,
+                   'buildDir': buildDir}  # This will be updated with value in kwargs
         libArgs.update(kwargs)
 
         target = self._addDownloadUntar(extName, **libArgs)
@@ -644,6 +656,11 @@ class Environment:
         self.addTargetAlias(extName, name)
 
         return target
+
+    def _getBuildDir(self, kwargs, tarFile):
+
+        return kwargs.get('buildDir',
+                   tarFile.rsplit('.tar.gz', 1)[0].rsplit('.tgz', 1)[0].rsplit('.tar')[0])
 
     def _showTargetGraph(self, targetList):
         """ Traverse the targets taking into account

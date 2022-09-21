@@ -4,6 +4,8 @@ users:
 
 developers:
   protocol.conf is not handled anymore in the config.
+  tar files are allowed.
+  compressed file without a "folder inside" should also work.
 
 v3.0.11
 users:

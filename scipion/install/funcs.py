@@ -438,7 +438,7 @@ class Environment:
                      targets=finalTarget,
                      cwd=downloadDir)
 
-        logger.warning("Target added: %s" % t)
+        logger.debug("Target added: %s" % t)
 
         return t
 

@@ -427,11 +427,14 @@ class Environment:
 
         tarCmd = self._tarCmd % tar
 
+        # If we need to create the build dir (True)
         if createBuildDir:
-            tarCmd = 'mkdir {0} && {1} -C {2}'.format(buildPath,tarCmd, buildDir)
-            # t.addCommand('mkdir %s' % buildPath,
-            #              targets=[buildPath],
-            #              cwd=downloadDir)
+
+            # If is the void one, just mkdir. DO not extract anything
+            if tar == VOID_TGZ:
+                tarCmd = 'mkdir %s' % buildPath
+            else:
+                tarCmd = 'mkdir {0} && {1} -C {2}'.format(buildPath,tarCmd, buildDir)
 
         finalTarget = join(downloadDir, kwargs.get('target', buildDir))
         t.addCommand(tarCmd,

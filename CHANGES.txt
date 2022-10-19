@@ -1,3 +1,12 @@
+v3.0.12
+users:
+  old config file is now backed up (at backup/scipion.conf.YYmmDDHHMMSS) always after any scipion config command that updates the config files.
+
+developers:
+  protocol.conf is not handled anymore in the config.
+  tar files are allowed.
+  compressed file without a "folder inside" should also work.
+
 v3.0.11
 users:
    Variables in the environment take priority than those same ones in the config file

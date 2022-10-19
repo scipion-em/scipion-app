@@ -40,7 +40,7 @@ from threading import Thread
 from scipion.constants import *
 from scipion.utils import (getScipionHome, getInstallPath,
                            getScriptsPath, getTemplatesPath, getModuleFolder)
-from scipion.scripts.config import getConfigPathFromConfigFile, PROTOCOLS, HOSTS
+from scipion.scripts.config import getConfigPathFromConfigFile, HOSTS
 from scipion.constants import MODE_UPDATE
 from scipion import __version__
 
@@ -159,11 +159,6 @@ while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
     else:
         sys.exit('Unknown argument: %s' % arg)
 
-# Protocols.conf and hosts.conf, fallback to the template.
-protocols = getConfigPathFromConfigFile(scipionConfig, PROTOCOLS)
-if not exists(protocols):
-    protocols = ""  # We are not falling back on this template which is outdated.
-    # join(getTemplatesPath(), "protocols.template")
 
 hosts = getConfigPathFromConfigFile(scipionConfig, HOSTS)
 if not exists(hosts):
@@ -186,7 +181,6 @@ class Vars:
     # Config files
     SCIPION_CONFIG = scipionConfig
     SCIPION_LOCAL_CONFIG = scipionLocalConfig
-    SCIPION_PROTOCOLS = protocols
     SCIPION_HOSTS = os.environ.get('SCIPION_HOSTS', hosts)
 
     # Paths to apps or scripts
@@ -217,7 +211,6 @@ try:
     VARS['SCIPION_DOMAIN'] = Vars.SCIPION_DOMAIN
     VARS['SCIPION_CONFIG'] = Vars.SCIPION_CONFIG
     VARS['SCIPION_LOCAL_CONFIG'] = Vars.SCIPION_LOCAL_CONFIG
-    VARS['SCIPION_PROTOCOLS'] = Vars.SCIPION_PROTOCOLS
     VARS['SCIPION_HOSTS'] = Vars.SCIPION_HOSTS
     VARS['SCIPION_VERSION'] = Vars.SCIPION_VERSION
     VARS['SCIPION_PRIORITY_PACKAGE_LIST'] = Vars.SCIPION_PRIORITY_PACKAGE_LIST

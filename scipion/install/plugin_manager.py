@@ -673,22 +673,23 @@ class PluginBrowser(tk.Frame):
             self.popup_menu.unpost()
             x, y, widget = event.x, event.y, event.widget
             elem = widget.identify("element", x, y)
-            self.tree.selectedItem = self.tree.identify_row(y)
-            if "image" in elem:
-                # a box was clicked
-                self._treeOperation()
-            else:
-                if self.tree.selectedItem is not None:
-                    if self.isPlugin(self.tree.item(self.tree.selectedItem,
-                                                    "values")[0]):
-                        self.showPluginInformation(self.tree.selectedItem)
-                    else:
-                        parent = self.tree.parent(self.tree.selectedItem)
-                        self.showPluginInformation(parent)
-            if len(self.operationList.getOperations(None)):
-                self.executeOpsBtn.config(state='normal')
-            else:
-                self.executeOpsBtn.config(state='disable')
+            if elem:
+                self.tree.selectedItem = self.tree.identify_row(y)
+                if "image" in elem:
+                    # a box was clicked
+                    self._treeOperation()
+                else:
+                    if self.tree.selectedItem is not None:
+                        item = self.tree.selectedItem
+                        if not self.isPlugin(self.tree.item(item, "values")[0]):
+                            item = self.tree.parent(item)
+
+                        self.showPluginInformation(item)
+
+                if len(self.operationList.getOperations(None)):
+                    self.executeOpsBtn.config(state='normal')
+                else:
+                    self.executeOpsBtn.config(state='disable')
 
     def _deleteSelectedOperation(self, e=None):
         """

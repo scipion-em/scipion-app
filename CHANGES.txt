@@ -1,3 +1,7 @@
+v3.0.14
+users:
+    Fix workflow tutorial intro.
+
 v3.0.13
 users:
     Fixing an error related with the Plugin Manager when clicking the plugin treeview

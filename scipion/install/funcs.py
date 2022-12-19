@@ -24,6 +24,9 @@
 # *
 # **************************************************************************
 import logging
+
+from pyworkflow.utils import redStr
+
 logger = logging.getLogger(__name__)
 import os
 import platform
@@ -71,22 +74,15 @@ def checkLib(lib, target=None):
                    stdout=open(os.devnull, 'w'), stderr=STDOUT)
         if ret != 0:
             raise OSError
+        return True
     except OSError:
         try:
             ret = call(['%s-config' % lib, '--cflags'])
             if ret != 0:
                 raise OSError
+            return True
         except OSError:
-            print("""
-  ************************************************************************
-    Warning: %s not found. Please consider installing it first.
-  ************************************************************************
-
-Continue anyway? (y/n)""" % lib)
-            if input().upper() != 'Y':
-                sys.exit(2)
-    # TODO: maybe write the result of the check in
-    # software/log/lib_...log so we don't check again if we already said "no"
+            return False
 
 
 class Command:
@@ -576,6 +572,7 @@ class Environment:
             :param buildDir: Optional folder where build/extraction happens. If not passed will be inferred from tgz's name
             :param neededProgs: Optional, list of programs needed. E.g: make, cmake,...
             :param version: Optional, version of the package.
+            :param libChecks: Optional, a list of the libraries needed. E.g: libjpeg62, gsl (GSL - GNU Scientific Library)
 
         """
         # Add to the list of available packages, for reference (used in --help).
@@ -597,6 +594,21 @@ class Environment:
         else:
             version = ''
             extName = name
+
+        # Check the required libraries
+        commands = kwargs.get('commands', [])
+        if 'libChecks' in kwargs:
+            cmdLibChecks = []
+            libChecks = kwargs['libChecks']
+            libChecks = list(libChecks) if type(libChecks) == str else libChecks
+            for libName in libChecks:
+                if not checkLib(libName):
+                    msg = 'ERROR! Required library %s was not found. Please consider to install it ' \
+                          '(sudo apt-get install in Ubuntu, sudo yum install in centOS, etc).' % libName
+                    cmdLibChecks.append(('echo "%s" && exit 1' % redStr(msg), libName))
+
+            if cmdLibChecks:
+                commands = cmdLibChecks
 
         self._packages[name].append((name, version))
 
@@ -629,7 +641,6 @@ class Environment:
         libArgs.update(kwargs)
 
         target = self._addDownloadUntar(extName, **libArgs)
-        commands = kwargs.get('commands', [])
         for cmd, tgt in commands:
             if isinstance(tgt, str):
                 tgt = [tgt]

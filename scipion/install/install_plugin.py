@@ -237,14 +237,18 @@ def installPluginMethods():
 
     elif parsedArgs.mode in MODE_UNINSTALL_PLUGIN:
 
-        for pluginName in parsedArgs.plugin:
-            plugin = PluginInfo(pluginName, pluginName, remote=False)
-            if plugin.isInstalled():
-                if not parsedArgs.noBin:
-                    plugin.uninstallBins()
-                plugin.uninstallPip()
-            else:
-                print("WARNING: Plugin %s is not installed." % pluginName)
+        if parsedArgs.plugin:
+            for pluginName in parsedArgs.plugin:
+                plugin = PluginInfo(pluginName, pluginName, remote=False)
+                if plugin.isInstalled():
+                    if not parsedArgs.noBin:
+                        plugin.uninstallBins()
+                    plugin.uninstallPip()
+                else:
+                    print("WARNING: Plugin %s is not installed." % pluginName)
+        else:
+            print("Incorrect usage of command 'uninstallp'. Execute 'scipion3 uninstallp --help' or "
+                  "'scipion3 help' for more details.")
 
     elif parsedArgs.mode == MODE_INSTALL_BINS:
         binToInstallList = parsedArgs.binName

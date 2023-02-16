@@ -1,7 +1,10 @@
+
 v3.0.13
 users:
-    Fixing an error related with the Plugin Manager when clicking the plugin treeview
-        Fix workflow tutorial intro.
+ - Fixing an error related with the Plugin Manager when clicking the plugin treeview
+ - Fix workflow tutorial intro.
+ - New variable (flag) to define if binaries are installed by default or not --> SCIPION_DONT_INSTALL_BINARIES (any value will deactivate installation of binaries
+ - scipion3 config -p <relion> (or any other): shows plugin url too
 
 developers:
     Update the methods checkLib and addPackage to improve the installation of plugins with libraries dependencies.

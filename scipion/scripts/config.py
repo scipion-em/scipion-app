@@ -103,6 +103,12 @@ def main(args=None):
                 print("%s = %s" % (k, v))
             print("\nThese variables can be added/edited in '%s'"
                   % os.environ[SCIPION_CONFIG])
+            url = plugin.getUrl()
+
+            if url != "":
+                print("\nMore information these variables might be found at '%s'"
+                  % url)
+
         else:
             print("No plugin found with name '%s'. Module name is expected,\n"
                   "i.e. 'scipion3 config -p xmipp3' shows the config variables "
@@ -465,92 +471,6 @@ def compareConfigVariable(section, variableName, valueInConfig, valueInTemplate)
               "template: %s" % (red(variableName), section, red(valueInConfig),
                                 yellow(valueInTemplate)))
 
-
-# def guessJava():
-#     """Guess the system's Java installation, return a dict with the Java keys"""
-#
-#     options = {}
-#     candidates = []
-#
-#     # First check if the system has a favorite one.
-#     if 'JAVA_HOME' in os.environ:
-#         candidates.append(os.environ['JAVA_HOME'])
-#
-#     # Add also all the ones related to a "javac" program.
-#     for d in os.environ.get('PATH', '').split(':'):
-#         if not os.path.isdir(d) or 'javac' not in os.listdir(d):
-#             continue
-#         javaBin = os.path.realpath(join(d, 'javac'))
-#         if javaBin.endswith('/bin/javac'):
-#             javaHome = javaBin[:-len('/bin/javac')]
-#             candidates.append(javaHome)
-#             if javaHome.endswith('/jre'):
-#                 candidates.append(javaHome[:-len('/jre')])
-#
-#     # Check in order if for any of our candidates, all related
-#     # directories and files exist. If they do, that'd be our best guess.
-#     for javaHome in candidates:
-#         allExist = True
-#         for path in ['include', join('bin', 'javac'), join('bin', 'jar')]:
-#             if not exists(join(javaHome, path)):
-#                 allExist = False
-#         if allExist:
-#             options['JAVA_HOME'] = javaHome
-#             break
-#             # We could instead check individually for JAVA_BINDIR, JAVAC
-#             # and so on, as we do with MPI options, but we go for an
-#             # easier and consistent case instead: everything must be under
-#             # JAVA_HOME, which is the most common case for Java.
-#
-#     if not options:
-#         print(red("Warning: could not detect a suitable JAVA_HOME."))
-#         if candidates:
-#             print(red("Our candidates were:\n  %s" % '\n  '.join(candidates)))
-#
-#     return options
-#
-#
-# def guessMPI():
-#     """Guess the system's MPI installation, return a dict with MPI keys"""
-#     # Returns MPI_LIBDIR, MPI_INCLUDE and MPI_BINDIR as a dictionary.
-#
-#     options = {}
-#     candidates = []
-#
-#     # First check if the system has a favorite one.
-#     for prefix in ['MPI_', 'MPI', 'OPENMPI_', 'OPENMPI']:
-#         if '%sHOME' % prefix in os.environ:
-#             candidates.append(os.environ['%sHOME' % prefix])
-#
-#     # Add also all the ones related to a "mpicc" program.
-#     for d in os.environ.get('PATH', '').split(':'):
-#         if not os.path.isdir(d) or 'mpicc' not in os.listdir(d):
-#             continue
-#         mpiBin = os.path.realpath(join(d, 'mpicc'))
-#         if 'MPI_BINDIR' not in options:
-#             options['MPI_BINDIR'] = os.path.dirname(mpiBin)
-#         if mpiBin.endswith('/bin/mpicc'):
-#             mpiHome = mpiBin[:-len('/bin/mpicc')]
-#             candidates.append(mpiHome)
-#
-#     # Add some extra directories that are commonly around.
-#     candidates += ['/usr/lib/openmpi', '/usr/lib64/mpi/gcc/openmpi']
-#
-#     # Check in order if for any of our candidates, all related
-#     # directories and files exist. If they do, that'd be our best guess.
-#     for mpiHome in candidates:
-#         if (exists(join(mpiHome, 'include', 'mpi.h')) and
-#                 'MPI_INCLUDE' not in options):
-#             options['MPI_INCLUDE'] = join(mpiHome, 'include')
-#         if (exists(join(mpiHome, 'lib', 'libmpi.so')) and
-#                 'MPI_LIBDIR' not in options):
-#             options['MPI_LIBDIR'] = join(mpiHome, 'lib')
-#         if (exists(join(mpiHome, 'bin', 'mpicc')) and
-#                 'MPI_BINDIR' not in options):
-#             options['MPI_BINDIR'] = join(mpiHome, 'bin')
-#
-#     return options
-#
 
 def getConfigPathFromConfigFile(scipionConfigFile, configFile):
     """

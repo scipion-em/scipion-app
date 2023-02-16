@@ -27,7 +27,6 @@ from logging.handlers import RotatingFileHandler
 from tkinter import *
 import threading
 
-from pyworkflow import Config
 from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
 from pyworkflow.gui import *

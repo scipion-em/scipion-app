@@ -151,8 +151,8 @@ class Command:
             if not self._env.showOnly:
                 for t in self._targets:
                     if not glob(t):
-                        msg = "target '%s' not built (after running '%s')" % (t, cmd)
-                        sys.exit(msg)
+                        print(red("ERROR: File or folder '%s' not found after running '%s'." % (t, cmd)))
+                        sys.exit(1)
 
     def __repr__(self):
         return self.__str__()

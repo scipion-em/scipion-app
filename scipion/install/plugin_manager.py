@@ -27,6 +27,7 @@ from logging.handlers import RotatingFileHandler
 from tkinter import *
 import threading
 
+from pyworkflow import Config
 from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
 from pyworkflow.gui import *
@@ -887,7 +888,7 @@ class PluginBrowser(tk.Frame):
                                  plugin.latestRelease + ' available. Right-click on the '
                                                         'plugin to update it)')
                 self.topPanelTree.tag_configure('pluginVersion',
-                                                foreground=Color.RED_COLOR)
+                                                foreground=Config.SCIPION_MAIN_COLOR)
             else:
                 self.topPanelTree.tag_configure('pluginVersion', foreground='black')
             self.topPanelTree.insert('', 'end', pluginVersion,

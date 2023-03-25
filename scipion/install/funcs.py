@@ -291,8 +291,8 @@ class Environment:
         # import site
         # return site.getsitepackages()[0]
 
-        from distutils.sysconfig import get_python_lib
-        return get_python_lib()
+        from sysconfig import get_paths
+        return get_paths()["purelib"]
 
     @staticmethod
     def getIncludeFolder():

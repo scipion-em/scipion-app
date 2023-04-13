@@ -232,6 +232,7 @@ def installPluginMethods():
                     if plugin:
                         installed = plugin.installPipModule(version=pluginVersion)
                         if installed and installBinsDefault() and not parsedArgs.noBin:
+                            plugin.getPluginClass()._defineVariables()
                             plugin.installBin({'args': ['-j', numberProcessor]})
                     else:
                         print("WARNING: Plugin %s does not exist." % pluginName)

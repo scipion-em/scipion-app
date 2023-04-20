@@ -1101,12 +1101,12 @@ class InstallHelper():
         targetName = targetName if targetName else '{}_CONDA_ENV_CREATED'.format(binaryName.upper())
         
         # Crafting final command string
-        command = pwem.Plugin.getCondaActivationCmd() + ' ' + createEnvCmd              # Basic commands: hook and env creation
-        command += ' && ' + self.__getEnvActivationCommand(binaryName, binaryVersion=binaryVersion)   # Env activation
-        command += ' && cd {}'.format(binaryPath) if binaryPath else ''                 # cd to binary path if proceeds
-        command += pythonCommands                                                       # Python related commands
-        command += " && ".join(extraCommands)                                           # Extra conda commands
-        command += ' && cd {}'.format(protocolHome) if binaryPath else ''               # Return to protocol's root directory
+        command = pwem.Plugin.getCondaActivationCmd() + ' ' + createEnvCmd                          # Basic commands: hook and env creation
+        command += ' && ' + self.__getEnvActivationCommand(binaryName, binaryVersion=binaryVersion) # Env activation
+        command += ' && cd {}'.format(binaryPath) if binaryPath else ''                             # cd to binary path if proceeds
+        command += pythonCommands                                                                   # Python related commands
+        command += " && ".join(extraCommands)                                                       # Extra conda commands
+        command += ' && cd {}'.format(protocolHome) if binaryPath else ''                           # Return to protocol's root directory
         
         # Adding command
         self.addCommand(command, targetName)

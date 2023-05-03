@@ -440,7 +440,8 @@ def importTemplate(template, window):
         try:
             window.getViewWidget().info('Importing the workflow...')
             window.project.loadProtocols(workflow)
-            window.getViewWidget().updateRunsGraph(True, reorganize=False)
+            window.getViewWidget().updateRunsGraph(True)
+            window.getViewWidget().drawRunsGraph(reorganize=True)
             window.getViewWidget().cleanInfo()
         except Exception as ex:
             window.showError(str(ex), exception=ex)

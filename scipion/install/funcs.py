@@ -1252,7 +1252,7 @@ class InstallHelper():
     
         return self
     
-    def addPackage(self, env, dependencies: List[str]=[], default: bool=True):
+    def addPackage(self, env, dependencies: List[str]=[], default: bool=True, **kwargs):
         """
         ### This function adds the given package to scipion installation with some provided parameters.
         
@@ -1260,12 +1260,13 @@ class InstallHelper():
         env: Scipion enviroment.
         dependencies (list[str]): Optional. List of dependencies the package has.
         default (bool): Optional. Defines if this package version is automatically installed with the plugin.
+        **kwargs: Optional. Other possible keyword parameters that will be directly passed to env.addPackage.
         Intended for cases where multiple versions of the same package coexist in the same plugin.
 
         #### Usage:
         installer.addPackage(env, dependencies=['wget', 'conda'], default=True)
         """
-        env.addPackage(self.__packageName, version=self.__packageVersion, tar='void.tgz', commands=self.__commandList, neededProgs=dependencies, default=default)
+        env.addPackage(self.__packageName, version=self.__packageVersion, tar='void.tgz', commands=self.__commandList, neededProgs=dependencies, default=default, **kwargs)
     
     #--------------------------------------- PUBLIC UTILS FUNCTIONS ---------------------------------------#
     def getFileDict(self, url: str, path: str='.', fileName: str=None) -> Dict[str, str]:

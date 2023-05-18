@@ -900,7 +900,7 @@ class InstallHelper():
 
     def __init__(self, packageName: str, packageHome: str=None, packageVersion: str=DEFAULT_VERSION):
         """
-        Constructor for the InstallHelper class.
+        ### Constructor for the InstallHelper class.
 
         #### Parameters:
         packageName (str): Name of the package.
@@ -918,39 +918,57 @@ class InstallHelper():
     #--------------------------------------- PRIVATE FUNCTIONS ---------------------------------------#
     def __getTargetCommand(self, targetName: str) -> str:
         """
-        This private function returns the neccessary command to create a target file given its name.
-        Targets are always in uppercase and underscore format.
+        ### This private function returns the neccessary command to create a target file given its name.
+        ### Targets are always in uppercase and underscore format.
 
-        Parameters:
+        #### Parameters:
         targetName (str): Name of the target file.
 
-        Returns:
+        #### Returns:
         (str): The command needed to create the target file.
         """
         return 'touch {}'.format(targetName)
     
     def __getBinaryEnvName(self, binaryName: str, binaryVersion: str=DEFAULT_VERSION) -> str:
         """
-        This function returns the env name for a given package and repo.
+        ### This function returns the env name for a given package and repo.
 
-        Parameters:
+        #### Parameters:
         binaryName (str): Name of the binary inside the package.
         binaryVersion (str): Optional. Binary's version.
 
-        Returns:
+        #### Returns:
         (str): The enviroment name for this binary.
         """
         return binaryName + "-" + binaryVersion
     
     def __getEnvActivationCommand(self, binaryName: str, binaryVersion: str=DEFAULT_VERSION) -> str:
         """
-        Returns the conda activation command for the given enviroment.
+        ### Returns the conda activation command for the given enviroment.
 
-        Parameters:
+        #### Parameters:
         binaryName (str): Name of the binary inside the package.
         binaryVersion (str): Optional. Version of the binary inside the package.
+
+        #### Returns:
+        (str): The enviroment activation command.
         """
         return "conda activate " + self.__getBinaryEnvName(binaryName, binaryVersion=binaryVersion)
+    
+    def __getBinaryNameAndVersion(self, binaryName: str=None, binaryVersion: str=None)  -> Tuple[str, str]:
+        """
+        ### Returns the binary name and version from an optionally introduced binary name and version.
+
+        #### Parameters:
+        binaryName (str): Name of the binary inside the package.
+        binaryVersion (str): Optional. Version of the binary inside the package.
+
+        #### Returns:
+        tuple(str, str): The binary name and binary version.
+        """
+        binaryName = binaryName if binaryName else self.__packageName
+        binaryVersion = binaryVersion if binaryVersion else self.__packageVersion
+        return binaryName, binaryVersion
     
     #--------------------------------------- PUBLIC FUNCTIONS ---------------------------------------#
     def getCommandList(self) -> List[Tuple[str, str]]:
@@ -1010,7 +1028,7 @@ class InstallHelper():
         cd /home/user/Documents/otherDirectory && ls && touch /home/user/scipion/software/em/test-package-1.0/DIRECTORY_LISTED
         """
         # Defining binary name
-        binaryName = binaryName if binaryName else self.__packageName
+        binaryName = self.__getBinaryNameAndVersion(binaryName=binaryName)[0]
 
         # Defining default target name preffix
         defaultTargetPreffix = '{}_EXTRA_COMMAND_'.format(binaryName.upper())
@@ -1075,11 +1093,8 @@ class InstallHelper():
         $CONDA_PREFIX/bin/pip install torch==1.2.0 numpyconda info --envs && cd /home/user/scipion/software/em/test-package-1.0 && touch CONDA_ENV_CREATED
         #### The path in the first command (eval ...) might vary, depending on the value of CONDA_ACTIVATION_CMD in your scipion.conf file.
         """
-        # Binary name definition
-        binaryName = binaryName if binaryName else self.__packageName
-
-        # Vinary version
-        binaryVersion = binaryVersion if binaryVersion else self.__packageVersion 
+        # Binary name and version definition
+        binaryName, binaryVersion = self.__getBinaryNameAndVersion(binaryName=binaryName, binaryVersion=binaryVersion)
 
         # Conda env creation
         createEnvCmd = 'conda create -y -n {}{}'.format(self.__getBinaryEnvName(binaryName, binaryVersion=binaryVersion), (' python={}'.format(pythonVersion)) if pythonVersion else '')
@@ -1141,11 +1156,8 @@ class InstallHelper():
         conda install -y pytorch==1.1.0 cudatoolkit=10.0 -c conda-forge && touch CONDA_PACKAGES_INSTALLED
         #### The path in the first command (eval ...) might vary, depending on the value of CONDA_ACTIVATION_CMD in your scipion.conf file.
         """
-        # Defining binary name
-        binaryName = binaryName if binaryName else self.__packageName
-
-        # Defining binary version
-        binaryVersion = binaryVersion if binaryVersion else self.__packageVersion
+        # Binary name and version definition
+        binaryName, binaryVersion = self.__getBinaryNameAndVersion(binaryName=binaryName, binaryVersion=binaryVersion)
 
         # Defininig target name
         targetName = targetName if targetName else '{}_CONDA_PACKAGES_INSTALLED'.format(binaryName.upper())
@@ -1216,7 +1228,7 @@ class InstallHelper():
         wget -O /home/user/scipion/software/em/test-package-1.0/subdirectory2/test2.tar2 https://site.com/myfile.tar2 && touch /home/user/scipion/software/em/test-package-1.0/DOWNLOADED_FILE_2
         """
         # Defining binary name
-        binaryName = binaryName if binaryName else self.__packageName
+        binaryName = self.__getBinaryNameAndVersion(binaryName=binaryName)[0]
 
         # Default preffix for target names
         defaultTargetPreffix = "{}_FILE_".format(binaryName.upper())
@@ -1233,10 +1245,10 @@ class InstallHelper():
                 kwargs['name'] = fileList[idx]['name']
             if 'path' in fileList[idx]:
                 kwargs['path'] = fileList[idx]['path']
-            file = fileList[idx] if ('path' in fileList[idx] and 'name' in fileList[idx]) else self.getFileDict(fileList[idx]['url'], **kwargs)
+            downloadable = fileList[idx] if ('path' in fileList[idx] and 'name' in fileList[idx]) else self.getFileDict(fileList[idx]['url'], **kwargs)
 
             targetName = targetNames[idx] if targetNames else (defaultTargetPreffix + str(idx))
-            self.getExtraFile(file['url'], targetName, location=file['path'], workDir=workDir, fileName=file['name'])
+            self.getExtraFile(downloadable['url'], targetName, location=downloadable['path'], workDir=workDir, fileName=downloadable['name'])
     
         return self
     

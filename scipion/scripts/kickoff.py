@@ -252,7 +252,7 @@ class KickoffView(tk.Frame):
             elif widget == CHECKBUTTON:
                 var.set(YES if value else NO)
                 widget = tk.Checkbutton(lf, text="", font=self.bigFont, variable=var,
-                                        onvalue=YES, offvalue=NO, bg="white")
+                                        onvalue=YES, offvalue=NO, bg=pw.Config.SCIPION_BG_COLOR)
 
             widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=pady)
 
@@ -438,7 +438,7 @@ def importTemplate(template, window):
     workflow = createTemplateFile(template)
     if workflow is not None:
         try:
-            window.getViewWidget().info('Importing the workflow...')
+            window.getViewWidget().info('Importing workflow %s' % workflow)
             window.project.loadProtocols(workflow)
             window.getViewWidget().updateRunsGraph(True)
             window.getViewWidget().cleanInfo()

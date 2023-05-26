@@ -112,7 +112,7 @@ class Command:
     def execute(self):
         if not self._always and self._targets and self._existsAll():
             print("  Skipping command: %s" % cyan(self._cmd))
-            print("  All targets exist.")
+            print("  All targets %s exist." % self._targets)
         else:
             cwd = os.getcwd()
             if self._cwd is not None:
@@ -209,7 +209,7 @@ class Target:
     def execute(self):
         t1 = time.time()
 
-        print(green("Building %s ..." % self._name))
+        print(green("Installing %s ..." % self._name))
         if not self._always and self._existsAll():
             print("  All targets exist, skipping.")
         else:

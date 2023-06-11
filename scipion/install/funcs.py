@@ -1086,7 +1086,7 @@ class InstallHelper():
 
         return self
     
-    def getCondaEnvCommand(self, binaryName: str=None, binaryPath: str=None, binaryVersion: str=None, pythonVersion: str=None, requirementsFile: bool=True,
+    def getCondaEnvCommand(self, binaryName: str=None, binaryPath: str=None, binaryVersion: str=None, pythonVersion: str=None, requirementsFile: bool=False,
                            requirementFileName: str='requirements.txt', requirementList: List[str]=[], extraCommands: List[str]=[], targetName: str=None):
         """
         ### This function creates the command string for creating a Conda enviroment and installing required dependencies for a given binary inside a package.

@@ -1149,7 +1149,7 @@ class InstallHelper():
         command += ' && ' + self.__getEnvActivationCommand(binaryName, binaryVersion=binaryVersion) # Env activation
         command += ' && cd {}'.format(binaryPath) if binaryPath else ''                             # cd to binary path if proceeds
         command += pythonCommands                                                                   # Python related commands
-        command += " && ".join(extraCommands)                                                       # Extra conda commands
+        command += (" && " + " && ".join(extraCommands)) if extraCommands else ''                   # Extra conda commands
         command += ' && cd {}'.format(self.__packageHome) if binaryPath else ''                     # Return to package's root directory
         
         # Adding command

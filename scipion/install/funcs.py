@@ -1136,8 +1136,9 @@ class InstallHelper():
         installManual = (requirementPrefixCmd + " " + installManual) if installManual else ''
 
         # Only install pip and Python packages if requiremenst file or manual list has been provided
-        pythonCommands = (' && ' + pipInstallCmd) if (installWithFile or installManual) else ''
-        if pythonCommands:
+        pythonCommands = ''
+        if installWithFile or installManual:
+            pythonCommands = ' && ' + pipInstallCmd
             pythonCommands += ' && {}'.format(installWithFile) if installWithFile else ''
             pythonCommands += ' && {}'.format(installManual) if installManual else ''
         
@@ -1147,10 +1148,13 @@ class InstallHelper():
         # Crafting final command string
         command = pwem.Plugin.getCondaActivationCmd() + ' ' + createEnvCmd                          # Basic commands: hook and env creation
         command += ' && ' + self.__getEnvActivationCommand(binaryName, binaryVersion=binaryVersion) # Env activation
-        command += ' && cd {}'.format(binaryPath) if binaryPath else ''                             # cd to binary path if proceeds
+        if binaryPath:
+            command += ' && cd {}'.format(binaryPath)                                               # cd to binary path if proceeds
         command += pythonCommands                                                                   # Python related commands
-        command += " && ".join(extraCommands)                                                       # Extra conda commands
-        command += ' && cd {}'.format(self.__packageHome) if binaryPath else ''                     # Return to package's root directory
+        if extraCommands:
+            command += " && " + " && ".join(extraCommands)                                          # Extra conda commands
+        if binaryPath:
+            command += ' && cd {}'.format(self.__packageHome)                                       # Return to package's root directory
         
         # Adding command
         self.addCommand(command, targetName)

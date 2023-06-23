@@ -31,7 +31,7 @@ import re
 
 from scipion.constants import MODE_INSTALL_PLUGIN, MODE_UNINSTALL_PLUGIN
 from scipion.install import Environment
-from scipion.install.plugin_funcs import PluginRepository, PluginInfo
+from scipion.install.plugin_funcs import PluginRepository, PluginInfo, installBinsDefault
 from pyworkflow.utils import redStr
 
 #  ************************************************************************
@@ -67,6 +67,7 @@ def installPluginMethods():
     ############################################################################
     #                               Install parser                             #
     ############################################################################
+
 
     installParser = subparsers.add_parser(MODE_INSTALL_PLUGIN[1], aliases=[MODE_INSTALL_PLUGIN[0]], formatter_class=argparse.RawTextHelpFormatter,
                                           usage="%s  [-h] [--noBin] [-p pluginName [pipVersion ...]]" %
@@ -171,6 +172,7 @@ def installPluginMethods():
     parserUsed = modeToParser[mode]
     exitWithErrors = False
 
+
     if parsedArgs.help or (mode in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
                            and len(parsedArgs.binName) == 0):
 
@@ -212,7 +214,7 @@ def installPluginMethods():
                     plugin = PluginInfo(pipName=pluginName, pluginSourceUrl=pluginSrc, remote=False)
                     numberProcessor = parsedArgs.j
                     installed = plugin.installPipModule()
-                    if installed and not parsedArgs.noBin:
+                    if installed and installBinsDefault() and not parsedArgs.noBin:
                         plugin.getPluginClass()._defineVariables()
                         plugin.installBin({'args': ['-j', numberProcessor]})
         else:
@@ -229,7 +231,8 @@ def installPluginMethods():
                     plugin = pluginDict.get(pluginName, None)
                     if plugin:
                         installed = plugin.installPipModule(version=pluginVersion)
-                        if installed and not parsedArgs.noBin:
+                        if installed and installBinsDefault() and not parsedArgs.noBin:
+                            plugin.getPluginClass()._defineVariables()
                             plugin.installBin({'args': ['-j', numberProcessor]})
                     else:
                         print("WARNING: Plugin %s does not exist." % pluginName)
@@ -237,14 +240,18 @@ def installPluginMethods():
 
     elif parsedArgs.mode in MODE_UNINSTALL_PLUGIN:
 
-        for pluginName in parsedArgs.plugin:
-            plugin = PluginInfo(pluginName, pluginName, remote=False)
-            if plugin.isInstalled():
-                if not parsedArgs.noBin:
-                    plugin.uninstallBins()
-                plugin.uninstallPip()
-            else:
-                print("WARNING: Plugin %s is not installed." % pluginName)
+        if parsedArgs.plugin:
+            for pluginName in parsedArgs.plugin:
+                plugin = PluginInfo(pluginName, pluginName, remote=False)
+                if plugin.isInstalled():
+                    if installBinsDefault() and not parsedArgs.noBin:
+                        plugin.uninstallBins()
+                    plugin.uninstallPip()
+                else:
+                    print("WARNING: Plugin %s is not installed." % pluginName)
+        else:
+            print("Incorrect usage of command 'uninstallp'. Execute 'scipion3 uninstallp --help' or "
+                  "'scipion3 help' for more details.")
 
     elif parsedArgs.mode == MODE_INSTALL_BINS:
         binToInstallList = parsedArgs.binName

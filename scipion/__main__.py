@@ -249,6 +249,8 @@ def main():
         defaultViewers.append('"SetOfLandmarkModels":["imod.viewers.ImodViewer"]')
         defaultViewers.append('"SetOfTomograms":["imod.viewers.ImodViewer"]')
         defaultViewers.append('"SetOfSubTomograms":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"SetOfVolumes":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"SetOfParticles":["pwem.viewers.DataViewer"]')
 
         os.environ["VIEWERS"] = '{%s}' % ','.join(defaultViewers)
 

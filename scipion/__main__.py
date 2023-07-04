@@ -278,7 +278,16 @@ def main():
         from pyworkflow.utils.log import LoggingConfigurator
         LoggingConfigurator.setUpGUILogging()
         from pyworkflow.apps.pw_project import openProject
-        arg = sys.argv[2] if mode == MODE_PROJECT else mode
+
+        if mode == MODE_PROJECT:
+            if len(sys.argv)==3:
+                arg = sys.argv[2]
+
+            else:
+                arg = "list" #TODO, import LIST from pyworkflow.apps.pw_project
+        else:
+            arg = mode
+
         openProject(arg)
 
     elif mode == MODE_TESTS or mode == MODE_TEST:

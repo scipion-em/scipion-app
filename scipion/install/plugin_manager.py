@@ -27,12 +27,11 @@ from logging.handlers import RotatingFileHandler
 from tkinter import *
 import threading
 
-from pyworkflow import Config
 from pyworkflow.gui.project import ProjectManagerWindow
 from pyworkflow.project import MenuConfig
 from pyworkflow.gui import *
 import pyworkflow.gui.dialog as pwgui
-from scipion.install.plugin_funcs import PluginRepository, PluginInfo, NULL_VERSION
+from scipion.install.plugin_funcs import PluginRepository, PluginInfo, NULL_VERSION, installBinsDefault
 
 from pyworkflow.utils.properties import *
 from pyworkflow.utils import redStr, makeFilePath
@@ -434,7 +433,7 @@ class PluginBrowser(tk.Frame):
         # Add option to cancel binaries installation
         self._col += 1
         self.skipBinaries = tk.BooleanVar()
-        self.skipBinaries.set(False)
+        self.skipBinaries.set(not installBinsDefault())
         installBinsEntry = tk.Checkbutton(frame, variable=self.skipBinaries,
                                           font=getDefaultFont(), text="Skip binaries")
         installBinsEntry.grid(row=0, column=self._col, sticky='ew', padx=5)

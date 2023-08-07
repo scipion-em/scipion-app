@@ -1,6 +1,7 @@
 V3.2.0
  - Update message is green now
  - SCIPION_DONT_INSTALL_BINARIES is used in the plugin manager to initialize "Skip binaries" check box
+ - Do not raise error when one of the CUDA env vars is not set
 v3.1.0
 users:
  - Fixing an error related with the Plugin Manager when clicking the plugin treeview

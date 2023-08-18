@@ -1,3 +1,7 @@
+V3.3.0
+developers:
+ - Exist code is not masked when running xmipp, relion etc commands
+ - CommandDef and CondaCommandDef assist in the definition of commands for the binaries
 V3.2.0
  - Update message is green now
  - SCIPION_DONT_INSTALL_BINARIES is used in the plugin manager to initialize "Skip binaries" check box

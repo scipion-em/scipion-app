@@ -39,6 +39,7 @@ from subprocess import STDOUT, call
 from pyworkflow import Config
 import pwem
 from typing import List, Tuple, Dict
+from typing_extensions import Self
 
 # Then we get some OS vars
 MACOSX = (platform.system() == 'Darwin')
@@ -856,6 +857,126 @@ class Link:
         os.symlink(packageFolder, packageLink)
         print("Created link: %s" % linkText)
 
+
+class CommandDef:
+    """ Basic command class to hold the command string and the targets"""
+    def __init__(self, cmd:str, targets:list=[]):
+        """ Constructor
+
+        e.g.: Command("git clone .../myrepo", "myrepo")
+
+        :param cmd: String with the command/s to run.
+        :param targets: Optional, a list or a string with file/s or folder/s that should exist as
+         a consequence of the commands.
+
+        """
+        self._cmds = []
+        self.new(cmd, targets)
+
+    def new(self, cmd='', targets=None):
+        """ Creates a new command element becoming the current command to do appends on it"""
+
+        self._cmds.append([cmd, []])
+        self.addTarget(targets)
+        return self
+
+    def addTarget(self, targets: list):
+        """ Centralized internal method to add targets. They could be a list of string commands or a single command"""
+        if targets is not None:
+            lastTargets = self._cmds[-1][1]
+
+            lastTargets.extend(targets if isinstance(targets, list) else [targets])
+
+    def getCommands(self)->list:
+        """ Returns the commands"""
+        return self._cmds
+
+    def append(self, newCmd:str, targets=None, sep="&&")->Self:
+        """ Appends an extra command to the existing one.
+
+        :param newCmd: New command to append
+        :param targets: Optional, additional targets in case this command produce them
+        :param sep: Optional, separator used between the existing command and this new added one. (&&)
+
+        :return itself Command
+        """
+        # Get the last command, target tuple
+        lastCmdTarget = self._cmds[-1]
+
+        cmd = lastCmdTarget[0]
+
+        # If there is something already
+        if cmd:
+            cmd = "%s %s %s" % (cmd , sep, newCmd)
+        else:
+            cmd = newCmd
+
+        lastCmdTarget[0] = cmd
+
+        self.addTarget(targets)
+
+        return self
+
+    def cd(self, folder):
+        """ Appends a cd command to the existing one
+
+        :param folder: folder to changes director to
+        """
+        return self.append("cd %s" % folder)
+
+    def touch(self, fileName):
+        """ Appends a touch command and its target based on the fileName
+
+        :param fileName: file to touch. Should be created in the binary home folder. Use ../ in case of a previous cd command
+
+        :return: CondaCommandDef (self)
+        """
+
+        return self.append("touch %s" % fileName, os.path.basename(fileName))
+
+
+class CondaCommandDef(CommandDef):
+    """ Extends CommandDef with some conda specific methods"""
+
+    ENV_CREATED = "env-created.txt"
+
+    def __init__(self, envName, condaActivationCmd=''):
+
+        self._condaActivationCmd = condaActivationCmd.replace("&&", "")
+        super().__init__("", None)
+
+        self._envName=envName
+
+    def create(self, extraCmds=''):
+        """ Creates a conda environment with extra commands if passed
+
+        :param extraCmds: additional commands (string) after the conda create -n envName
+
+        :return: CondaCommandDef (self)
+
+        """
+        self.append(self._condaActivationCmd)
+        self.append("conda create -y -n %s %s" % (self._envName, extraCmds))
+        return self.touch("env_created.txt")
+
+    def pipInstall(self, packages):
+        """ Appends pip install to the existing command adding packages"""
+
+        return self.append("python -m pip install %s" % packages)
+
+    def condaInstall(self, packages):
+        """ Appends conda install to the existing command adding packages"""
+
+        return self.append("conda install %s" % packages)
+
+    def activate(self, appendCondaActivation=False):
+        """ Activates the conda environment
+
+        :param appendCondaActivation: Pass true to prepend the conda activation command"""
+        if appendCondaActivation:
+            self.append(self._condaActivationCmd)
+
+        return self.append("conda activate %s" % self._envName)
 
 def mkdir(path):
     """ Creates a folder if it does not exist"""

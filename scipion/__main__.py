@@ -30,6 +30,7 @@
 """
 Main entry point to scipion. It launches the gui, tests, etc.
 """
+import subprocess
 import sys
 import os
 from os.path import join, exists, expanduser, expandvars
@@ -104,10 +105,9 @@ def runCmd(cmd, args=''):
     cmd = '%s %s' % (cmd, args)
 
     os.environ.update(VARS)
-    # sys.stdout.write(">>>>> %s\n" % cmd)
-    result = os.system(cmd)
-    if not -256 < result < 256:
-        result = 1  # because if not, 256 is confused with 0 !
+    # result = os.system(cmd)
+    # Replacement of os.system with subprocess.call(cmd, shell=True)
+    result = subprocess.call(cmd, shell=True)
     sys.exit(result)
 
 

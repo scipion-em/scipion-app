@@ -799,8 +799,8 @@ class Environment:
 
         if os.path.exists(cudaLib):
             environ.update({'LD_LIBRARY_PATH': cudaLib + ":" +
-                                               environ['LD_LIBRARY_PATH']})
-        if os.path.exists(cudaBin):
+                                               environ.get('LD_LIBRARY_PATH',"")})
+        if cudaBin and os.path.exists(cudaBin):
             environ.update({'PATH': cudaBin + ":" + environ['PATH']})
 
         return environ

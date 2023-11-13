@@ -3,15 +3,19 @@ import os
 import re
 import sys
 import json
-import pkg_resources
-from pkg_resources import parse_version
+import importlib
+try:
+    from importlib import metadata
+except ImportError:  # for Python<3.8
+    import importlib_metadata as metadata
+from packaging import version
 
 from .funcs import Environment
 from pwem import Domain
 from pyworkflow.utils import redStr, yellowStr
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
-from importlib import reload
+
 
 NULL_VERSION = "0.0.0"
 # This constant is used in order to install all plugins taking into account a
@@ -78,7 +82,7 @@ class PluginInfo(object):
     def _getDistribution(self):
         if self._dist is None:
             try:
-                self._dist = pkg_resources.get_distribution(self.pipName)
+                self._dist = metadata.distribution(self.pipName)
             except:
                 pass
         return self._dist
@@ -100,7 +104,7 @@ class PluginInfo(object):
     def isInstalled(self):
         """Checks if the current plugin is installed (i.e. has pip package).
         NOTE: we might want to change definition of isInstalled, hence the extra function."""
-        reload(pkg_resources)
+        importlib.reload(importlib)
         return self.hasPipPackage()
 
     def installPipModule(self, version=""):
@@ -154,7 +158,7 @@ class PluginInfo(object):
         if reloadPkgRes:
             # if plugin was already installed, pkg_resources has the old one
             # so it needs a reload
-            reload(pkg_resources)
+            importlib.reload(importlib)
             self.dirName = self.getDirName()
             Domain.refreshPlugin(self.dirName)
         return True
@@ -225,14 +229,14 @@ class PluginInfo(object):
 
         for release, releaseData in pipJsonData['releases'].items():
             releaseData = releaseData[0]
-            scipionVersions = [parse_version(v)
+            scipionVersions = [version.Version(v)
                                for v in re.findall(reg,
                                                    releaseData['comment_text'])]
             if len(scipionVersions) != 0:
                 releases[release] = releaseData
-                if any([v == parse_version(CORE_VERSION)
+                if any([v == version.Version(CORE_VERSION)
                         for v in scipionVersions]):
-                    if parse_version(latestCompRelease) < parse_version(release):
+                    if version.Version(latestCompRelease) < version.Version(release):
                         latestCompRelease = release
             else:
                 print(yellowStr("WARNING: %s's release %s did not specify a "
@@ -272,27 +276,17 @@ class PluginInfo(object):
         plugin is installed."""
         if self.isInstalled():
 
-            metadata = {}
+            mdata = {}
             # Take into account 2 cases here:
             # A.: plugin is a proper pipmodule and is installed as such
             # B.: Plugin is not yet a pipmodule but a local folder.
             try:
-                package = pkg_resources.get_distribution(self.pipName)
+                md = metadata.metadata(self.pipName)
                 keys = ['Name', 'Version', 'Summary', 'Home-page', 'Author',
                         'Author-email']
-                pattern = r'(.*): (.*)'
 
-                for line in package._get_metadata(package.PKG_INFO):
-                    match = re.match(pattern, line)
-                    if match:
-                        key = match.group(1)
-                        if key in keys:
-                            metadata[key] = match.group(2)
-                            keys.remove(key)
-                            if not len(keys):
-                                break
-
-                self.pipVersion = metadata.get('Version', "")
+                mdata = {key: md[key] for key in md if key in keys}
+                self.pipVersion = mdata.get('Version', "")
                 self.dirName = self.getDirName()
                 self.binVersions = self.getBinVersions()
 
@@ -302,10 +296,10 @@ class PluginInfo(object):
 
             if not self.remote:
                 # only do this if we don't already have it from remote
-                self.homePage = metadata.get('Home-page', "")
-                self.summary = metadata.get('Summary', "")
-                self.author = metadata.get('Author', "")
-                self.email = metadata.get('Author-email', "")
+                self.homePage = mdata.get('Home-page', "")
+                self.summary = mdata.get('Summary', "")
+                self.author = mdata.get('Author', "")
+                self.email = mdata.get('Author-email', "")
 
     def getPluginClass(self):
         """ Tries to find the Plugin object."""
@@ -361,7 +355,8 @@ class PluginInfo(object):
         # top level file is a file included in all pip packages that contains
         # the name of the package's top level directory
         try:
-            return pkg_resources.get_distribution(self.pipName).get_metadata('top_level.txt').strip()
+            top_level = [p for p in metadata.files(self.pipName) if 'top_level.txt' in str(p)][0]
+            return top_level.read_text().strip()
         except Exception as e:
             return None
 

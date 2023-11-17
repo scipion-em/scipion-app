@@ -3,8 +3,7 @@ import os
 import re
 import sys
 import json
-import importlib
-from importlib import metadata
+from importlib import metadata, util, reload
 from packaging import version
 
 from .funcs import Environment
@@ -52,7 +51,7 @@ class PluginInfo(object):
         self.latestRelease = ""
 
         # things we have when installed
-        self.dirName = ""
+        self.dirName = None
         self.pipVersion = ""
         self.binVersions = []
         self.pluginEnv = None
@@ -78,15 +77,11 @@ class PluginInfo(object):
 
     def _getDistribution(self):
         if self._dist is None:
-            try:
-                self._dist = metadata.distribution(self.pipName)
-            except:
-                pass
+            self._dist = util.find_spec(self.pipName)
         return self._dist
 
     def _getPlugin(self):
         if self._plugin is None:
-
             try:
                 dirname = self.getDirName()
                 self._plugin = Config.getDomain().getPlugin(dirname)
@@ -101,7 +96,6 @@ class PluginInfo(object):
     def isInstalled(self):
         """Checks if the current plugin is installed (i.e. has pip package).
         NOTE: we might want to change definition of isInstalled, hence the extra function."""
-        importlib.reload(importlib)
         return self.hasPipPackage()
 
     def installPipModule(self, version=""):
@@ -147,15 +141,8 @@ class PluginInfo(object):
                                              target=target,
                                              pipCmd=cmd)
 
-        # check if we're doing a version change of an already installed plugin
-        reloadPkgRes = self.isInstalled()
-
         environment.execute()
-        # we already have a dir for the plugin:
-        if reloadPkgRes:
-            # if plugin was already installed, pkg_resources has the old one
-            # so it needs a reload
-            importlib.reload(importlib)
+        if self.isInstalled():
             self.dirName = self.getDirName()
             Domain.refreshPlugin(self.dirName)
         return True
@@ -195,7 +182,6 @@ class PluginInfo(object):
         """Removes pip package from site-packages"""
         print('Removing %s plugin...' % self.pipName)
         import subprocess
-        args = (PIP_UNINSTALL_CMD % self.pipName).split()
         subprocess.call(PIP_UNINSTALL_CMD % self.pipName, shell=True,
                         stdout=sys.stdout,
                         stderr=sys.stderr)
@@ -346,14 +332,29 @@ class PluginInfo(object):
         binVersions = [target.getName() for target in env.getTargetList() if target.getName() not in defaultTargets]
         return binVersions
 
+    def getDirNameNew(self):
+        """Get the name of the folder that contains the plugin code
+           itself (e.g. to import the _plugin object.)"""
+        # top level file is a file included in all pip packages that contains
+        # the name of the package's top level directory
+        if self.dirName is None:
+            try:
+                # FIXME: GS 17/11/2023
+                #  this does not work right after successful installation within the same runtime
+                top_level = [p for p in metadata.files(self.pipName) if 'top_level.txt' in str(p)][0]
+                self.dirName = top_level.read_text().strip()
+            except metadata.PackageNotFoundError as e:
+                print(str(e))
+        return self.dirName
+
     def getDirName(self):
         """Get the name of the folder that contains the plugin code
            itself (e.g. to import the _plugin object.)"""
         # top level file is a file included in all pip packages that contains
         # the name of the package's top level directory
+        import pkg_resources
         try:
-            top_level = [p for p in metadata.files(self.pipName) if 'top_level.txt' in str(p)][0]
-            return top_level.read_text().strip()
+            return pkg_resources.get_distribution(self.pipName).get_metadata('top_level.txt').strip()
         except Exception as e:
             return None
 
@@ -503,12 +504,13 @@ class PluginRepository(object):
             keys = sorted(pluginDict.keys())
             for name in keys:
                 plugin = pluginDict[name]
-                if withBins and not plugin.isInstalled():
+                isInstalled = plugin.isInstalled()
+                if withBins and not isInstalled:
                     continue
                 printStr += "{0:30} {1:10} [{2}]".format(name,
                                                          plugin.pipVersion,
-                                                         'X' if plugin.isInstalled() else ' ')
-                if withUpdates and plugin.isInstalled():
+                                                         'X' if isInstalled else ' ')
+                if withUpdates and isInstalled:
                     if plugin.latestRelease != plugin.pipVersion:
                         printStr += yellow('\t(%s available)' % plugin.latestRelease)
                 printStr += "\n"
@@ -516,6 +518,7 @@ class PluginRepository(object):
                     printStr += green(plugin.printBinInfoStr())
         else:
             printStr = "List of available plugins in plugin repository inaccessible at this time."
+
         return printStr
 
 

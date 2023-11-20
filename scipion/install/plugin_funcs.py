@@ -3,8 +3,14 @@ import os
 import re
 import sys
 import json
-from importlib import metadata, util, reload
+from importlib import util
 from packaging import version
+
+try:
+    from importlib_metadata import metadata, files, PackageNotFoundError
+except ModuleNotFoundError:
+    raise ModuleNotFoundError('You are missing importlib-metadata package. '
+                              'Please run: scipion3 pip install importlib-metadata')
 
 from .funcs import Environment
 from pwem import Domain
@@ -264,7 +270,7 @@ class PluginInfo(object):
             # A.: plugin is a proper pipmodule and is installed as such
             # B.: Plugin is not yet a pipmodule but a local folder.
             try:
-                md = metadata.metadata(self.pipName)
+                md = metadata(self.pipName)
                 keys = ['Name', 'Version', 'Summary', 'Home-page', 'Author',
                         'Author-email']
 
@@ -341,9 +347,9 @@ class PluginInfo(object):
             try:
                 # FIXME: GS 17/11/2023
                 #  this does not work right after successful installation within the same runtime
-                top_level = [p for p in metadata.files(self.pipName) if 'top_level.txt' in str(p)][0]
+                top_level = [p for p in files(self.pipName) if 'top_level.txt' in str(p)][0]
                 self.dirName = top_level.read_text().strip()
-            except metadata.PackageNotFoundError as e:
+            except PackageNotFoundError as e:
                 print(str(e))
         return self.dirName
 

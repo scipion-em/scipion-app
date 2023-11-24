@@ -147,7 +147,7 @@ class KickoffWindow(ProjectBaseWindow):
 
 
 class KickoffView(tk.Frame):
-    def __init__(self, parent, windows, template=None, argsList=[],
+    def __init__(self, parent, windows, template:Template=None, argsList=[],
                  showScheduleOption=True, schedule=True, showProjectOption=True,
                  showProject=True, showProjectName=True, **kwargs):
 
@@ -282,9 +282,12 @@ class KickoffView(tk.Frame):
         for field in self.template.params.values():
             newValue = self._getValue(field.getTitle())
             field.setValue(newValue)
-            if not field.validate():
-                errors.append("%s value does not validate. Value: %s, Type: %s"
-                              % (field.getTitle(), field.getValue(),
+
+            validationMsg = field.validate()
+
+            if validationMsg:
+                errors.append("%s value does not validate: %s. Value: %s, Type: %s."
+                              % (field.getTitle(), validationMsg, field.getValue(),
                                  field.getType()))
 
         # Do more checks only if there are no previous errors

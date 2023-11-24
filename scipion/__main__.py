@@ -30,6 +30,7 @@
 """
 Main entry point to scipion. It launches the gui, tests, etc.
 """
+import subprocess
 import sys
 import os
 from os.path import join, exists, expanduser, expandvars
@@ -104,10 +105,9 @@ def runCmd(cmd, args=''):
     cmd = '%s %s' % (cmd, args)
 
     os.environ.update(VARS)
-    # sys.stdout.write(">>>>> %s\n" % cmd)
-    result = os.system(cmd)
-    if not -256 < result < 256:
-        result = 1  # because if not, 256 is confused with 0 !
+    # result = os.system(cmd)
+    # Replacement of os.system with subprocess.call(cmd, shell=True)
+    result = subprocess.call(cmd, shell=True)
     sys.exit(result)
 
 
@@ -278,7 +278,16 @@ def main():
         from pyworkflow.utils.log import LoggingConfigurator
         LoggingConfigurator.setUpGUILogging()
         from pyworkflow.apps.pw_project import openProject
-        arg = sys.argv[2] if mode == MODE_PROJECT else mode
+
+        if mode == MODE_PROJECT:
+            if len(sys.argv)==3:
+                arg = sys.argv[2]
+
+            else:
+                arg = "list" #TODO, import LIST from pyworkflow.apps.pw_project
+        else:
+            arg = mode
+
         openProject(arg)
 
     elif mode == MODE_TESTS or mode == MODE_TEST:

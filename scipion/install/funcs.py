@@ -39,6 +39,7 @@ from subprocess import STDOUT, call
 from pyworkflow import Config
 import pwem
 from typing import List, Tuple, Dict
+from typing_extensions import Self
 
 # Then we get some OS vars
 MACOSX = (platform.system() == 'Darwin')
@@ -796,22 +797,10 @@ class Environment:
 
         environ = os.environ.copy()
 
-        # If there isn't any CUDA in the environment
-        if cudaLib is None and cudaBin is None:
-            # Exit ...do not update the environment
-            return environ
-
-        elif cudaLib is not None and cudaBin is None:
-            raise Exception("CUDA_LIB (or %s_CUDA_LIB) is defined, but not "
-                            "CUDA_BIN (or %s_CUDA_BIN), please execute "
-                            "scipion config --update" % (packUpper, packUpper))
-        elif cudaBin is not None and cudaLib is None:
-            raise Exception("CUDA_BIN (or %s_CUDA_BIN) is defined, but not "
-                            "CUDA_LIB (or %s_CUDA_LIB), please execute "
-                            "scipion config --update" % (packUpper, packUpper))
-        elif os.path.exists(cudaLib) and os.path.exists(cudaBin):
+        if os.path.exists(cudaLib):
             environ.update({'LD_LIBRARY_PATH': cudaLib + ":" +
-                                               environ['LD_LIBRARY_PATH']})
+                                               environ.get('LD_LIBRARY_PATH',"")})
+        if cudaBin and os.path.exists(cudaBin):
             environ.update({'PATH': cudaBin + ":" + environ['PATH']})
 
         return environ
@@ -869,6 +858,126 @@ class Link:
         print("Created link: %s" % linkText)
 
 
+class CommandDef:
+    """ Basic command class to hold the command string and the targets"""
+    def __init__(self, cmd:str, targets:list=[]):
+        """ Constructor
+
+        e.g.: Command("git clone .../myrepo", "myrepo")
+
+        :param cmd: String with the command/s to run.
+        :param targets: Optional, a list or a string with file/s or folder/s that should exist as
+         a consequence of the commands.
+
+        """
+        self._cmds = []
+        self.new(cmd, targets)
+
+    def new(self, cmd='', targets=None):
+        """ Creates a new command element becoming the current command to do appends on it"""
+
+        self._cmds.append([cmd, []])
+        self.addTarget(targets)
+        return self
+
+    def addTarget(self, targets: list):
+        """ Centralized internal method to add targets. They could be a list of string commands or a single command"""
+        if targets is not None:
+            lastTargets = self._cmds[-1][1]
+
+            lastTargets.extend(targets if isinstance(targets, list) else [targets])
+
+    def getCommands(self)->list:
+        """ Returns the commands"""
+        return self._cmds
+
+    def append(self, newCmd:str, targets=None, sep="&&")->Self:
+        """ Appends an extra command to the existing one.
+
+        :param newCmd: New command to append
+        :param targets: Optional, additional targets in case this command produce them
+        :param sep: Optional, separator used between the existing command and this new added one. (&&)
+
+        :return itself Command
+        """
+        # Get the last command, target tuple
+        lastCmdTarget = self._cmds[-1]
+
+        cmd = lastCmdTarget[0]
+
+        # If there is something already
+        if cmd:
+            cmd = "%s %s %s" % (cmd , sep, newCmd)
+        else:
+            cmd = newCmd
+
+        lastCmdTarget[0] = cmd
+
+        self.addTarget(targets)
+
+        return self
+
+    def cd(self, folder):
+        """ Appends a cd command to the existing one
+
+        :param folder: folder to changes director to
+        """
+        return self.append("cd %s" % folder)
+
+    def touch(self, fileName):
+        """ Appends a touch command and its target based on the fileName
+
+        :param fileName: file to touch. Should be created in the binary home folder. Use ../ in case of a previous cd command
+
+        :return: CondaCommandDef (self)
+        """
+
+        return self.append("touch %s" % fileName, os.path.basename(fileName))
+
+
+class CondaCommandDef(CommandDef):
+    """ Extends CommandDef with some conda specific methods"""
+
+    ENV_CREATED = "env-created.txt"
+
+    def __init__(self, envName, condaActivationCmd=''):
+
+        self._condaActivationCmd = condaActivationCmd.replace("&&", "")
+        super().__init__("", None)
+
+        self._envName=envName
+
+    def create(self, extraCmds=''):
+        """ Creates a conda environment with extra commands if passed
+
+        :param extraCmds: additional commands (string) after the conda create -n envName
+
+        :return: CondaCommandDef (self)
+
+        """
+        self.append(self._condaActivationCmd)
+        self.append("conda create -y -n %s %s" % (self._envName, extraCmds))
+        return self.touch("env_created.txt")
+
+    def pipInstall(self, packages):
+        """ Appends pip install to the existing command adding packages"""
+
+        return self.append("python -m pip install %s" % packages)
+
+    def condaInstall(self, packages):
+        """ Appends conda install to the existing command adding packages"""
+
+        return self.append("conda install %s" % packages)
+
+    def activate(self, appendCondaActivation=False):
+        """ Activates the conda environment
+
+        :param appendCondaActivation: Pass true to prepend the conda activation command"""
+        if appendCondaActivation:
+            self.append(self._condaActivationCmd)
+
+        return self.append("conda activate %s" % self._envName)
+
 def mkdir(path):
     """ Creates a folder if it does not exist"""
     if not exists(path):
@@ -907,6 +1016,11 @@ class InstallHelper():
         packageHome (str): Optional. Path to the package. It can be absolute or relative to current directory.
         packageVersion (str): Optional. Package version.
         """
+        # Temporary variables to store the count for autogenerated target files
+        self.__genericCommands = 0
+        self.__condaCommands = 0
+        self.__extraFiles = 0
+
         # Private list of tuples containing commands with targets
         self.__commandList = []
         
@@ -1003,18 +1117,18 @@ class InstallHelper():
         self.__commandList.extend(commandList)
         return self
     
-    def addCommand(self, command: str, targetName: str, workDir: str=''):
+    def addCommand(self, command: str, targetName: str='', workDir: str=''):
         """
         ### This function adds the given command with target to the command list.
         ### The target file needs to be located inside packageHome's directory so Scipion can detect it.
 
         #### Parameters:
         command (str): Command to be added.
-        targetName (str): Name of the target file to be produced after commands are completed successfully.
+        targetName (str): Optional. Name of the target file to be produced after commands are completed successfully.
         workDir (str): Optional. Directory where the command will be executed from.
 
         #### Usage:
-        installer.addCommand('python3 myScript.py', 'MYSCRIPT_COMPLETED', workDir='/home/user/Documents/otherDirectory')
+        installer.addCommand('python3 myScript.py', targetName='MYSCRIPT_COMPLETED', workDir='/home/user/Documents/otherDirectory')
 
         #### This function call will generate the following commands:
         cd /home/user/Documents/otherDirectory && python3 myScript.py && touch /home/user/scipion/software/em/test-package-1.0/MYSCRIPT_COMPLETED
@@ -1023,6 +1137,9 @@ class InstallHelper():
         workDirCmd = 'cd {} && '.format(workDir) if workDir else ''
 
         # Getting target name
+        if not targetName:
+            targetName = f'COMMAND_{self.__genericCommands}'
+            self.__genericCommands += 1
         fullTargetName = os.path.join(self.__packageHome, targetName)
 
         command = (workDirCmd + command) if workDir else command
@@ -1047,16 +1164,17 @@ class InstallHelper():
         cd /home/user/Documents/otherDirectory && python3 myScript.py && touch /home/user/scipion/software/em/test-package-1.0/MYSCRIPT_COMPLETED\n
         cd /home/user/Documents/otherDirectory && ls && touch /home/user/scipion/software/em/test-package-1.0/DIRECTORY_LISTED
         """
+        # Checking if introduced target name list and command list have same size
+        if targetNames and len(commandList) != len(targetNames):
+                raise RuntimeError("Error: Introduced target name list is of size {}, but command list is of size {}.".format(len(targetNames), len(commandList)))
+
         # Defining binary name
         binaryName = self.__getBinaryNameAndVersion(binaryName=binaryName)[0]
 
-        # Defining default target name preffix
-        defaultTargetPreffix = '{}_EXTRA_COMMAND_'.format(binaryName.upper())
-
         # Executing commands
         for idx in range(len(commandList)):
-            targetName = targetNames[idx] if targetNames else (defaultTargetPreffix + str(idx))
-            self.addCommand(commandList[idx], targetName, workDir=workDir)
+            targetName = targetNames[idx] if targetNames else ''
+            self.addCommand(commandList[idx], targetName=targetName, workDir=workDir)
 
         return self
     
@@ -1184,7 +1302,9 @@ class InstallHelper():
         binaryName, binaryVersion = self.__getBinaryNameAndVersion(binaryName=binaryName, binaryVersion=binaryVersion)
 
         # Defininig target name
-        targetName = targetName if targetName else '{}_CONDA_PACKAGES_INSTALLED'.format(binaryName.upper())
+        if not targetName:
+            targetName = 'CONDA_COMMAND_{}'.format(self.__condaCommands)
+            self.__condaCommands += 1
 
         # Adding installation command
         command = "{} {} && conda install -y {}".format(pwem.Plugin.getCondaActivationCmd(), self.__getEnvActivationCommand(binaryName, binaryVersion=binaryVersion), ' '.join(packages))
@@ -1194,7 +1314,7 @@ class InstallHelper():
 
         return self
     
-    def getExtraFile(self, url: str, targetName: str, location: str=".", workDir: str='', fileName: str=None):
+    def getExtraFile(self, url: str, targetName: str='', location: str=".", workDir: str='', fileName: str=None):
         """
         ### This function creates the command to download with wget the file in the given link into the given path.
         ### The downloaded file will overwrite a local one if they have the same name.
@@ -1202,13 +1322,13 @@ class InstallHelper():
 
         #### Parameters:
         url (str): URL of the resource to download.
-        targetName (str): Name of the target file for this command.
+        targetName (str): Optional. Name of the target file for this command.
         location (str): Optional. Location where the file will be downloaded. It can be absolute or relative to current directory.
         workDir (str): Optional. Directory where the file will be downloaded from.
         fileName (str): Optional. Name of the file after the download. Use intended for cases when expected name differs from url name.
 
         #### Usage:
-        installer.getExtraFile('https://site.com/myfile.tar', 'FILE_DOWNLOADED', location='/home/user/scipion/software/em/test-package-1.0/subdirectory', workDir='/home/user', fileName='test.tar')
+        installer.getExtraFile('https://site.com/myfile.tar', targetName='FILE_DOWNLOADED', location='/home/user/scipion/software/em/test-package-1.0/subdirectory', workDir='/home/user', fileName='test.tar')
 
         #### This function call will generate the following command:
         cd /home/user && mkdir -p /home/user/scipion/software/em/test-package-1.0/subdirectory &&
@@ -1218,9 +1338,14 @@ class InstallHelper():
         fileName = fileName if fileName else os.path.basename(url)
         mkdirCmd = "mkdir -p {} && ".format(location) if location else ''
 
+        # Defining target file name
+        if not targetName:
+            targetName = 'EXTRA_FILE_{}'.format(self.__extraFiles)
+            self.__extraFiles += 1
+
         downloadCmd = "{}wget -O {} {}".format(mkdirCmd, os.path.join(location, fileName), url)
-        self.addCommand(downloadCmd, targetName, workDir=workDir)
-    
+        self.addCommand(downloadCmd, targetName=targetName, workDir=workDir)
+
         return self
 
     def getExtraFiles(self, fileList: List[Dict[str, str]], binaryName: str=None, workDir: str='', targetNames: List[str]=None):
@@ -1251,11 +1376,12 @@ class InstallHelper():
         cd /home/user && mkdir -p /home/user/scipion/software/em/test-package-1.0/subdirectory2 &&
         wget -O /home/user/scipion/software/em/test-package-1.0/subdirectory2/test2.tar2 https://site.com/myfile.tar2 && touch /home/user/scipion/software/em/test-package-1.0/DOWNLOADED_FILE_2
         """
+        # Checking if introduced target name list and file list have same size
+        if targetNames and len(fileList) != len(targetNames):
+            raise RuntimeError("Error: Introduced target name list is of size {}, but file list is of size {}.".format(len(targetNames), len(fileList)))
+        
         # Defining binary name
         binaryName = self.__getBinaryNameAndVersion(binaryName=binaryName)[0]
-
-        # Default preffix for target names
-        defaultTargetPreffix = "{}_FILE_".format(binaryName.upper())
 
         # For each file in the list, download file
         for idx in range(len(fileList)):
@@ -1271,9 +1397,9 @@ class InstallHelper():
                 kwargs['path'] = fileList[idx]['path']
             downloadable = fileList[idx] if ('path' in fileList[idx] and 'name' in fileList[idx]) else self.getFileDict(fileList[idx]['url'], **kwargs)
 
-            targetName = targetNames[idx] if targetNames else (defaultTargetPreffix + str(idx))
-            self.getExtraFile(downloadable['url'], targetName, location=downloadable['path'], workDir=workDir, fileName=downloadable['name'])
-    
+            targetName = targetNames[idx] if targetNames else ''
+            self.getExtraFile(downloadable['url'], targetName=targetName, location=downloadable['path'], workDir=workDir, fileName=downloadable['name'])
+
         return self
     
     def addPackage(self, env, dependencies: List[str]=[], default: bool=True, **kwargs):
@@ -1294,9 +1420,22 @@ class InstallHelper():
     
     #--------------------------------------- PUBLIC UTILS FUNCTIONS ---------------------------------------#
     def getFileDict(self, url: str, path: str='.', fileName: str=None) -> Dict[str, str]:
-        """ This function generates the dictionary for a downloadable file. """
+        """
+        ### This function generates the dictionary for a downloadable file.
+        
+        #### Parameters:
+        url (str): Url of the file to download.
+        path (str): Optional. Relative or absolute path to download the file to.
+        fileName (str): Optional. Local file name intented for that file after the download.
+
+        #### Returns:
+        (dict[str, str]): Dictionary prepared for the download of one file for function getExtraFiles.
+
+        #### Usage:
+        getFileDict('https://www.mywebsite.com/downloads/file.tar.gz', path='/path/to/myfile', fileName='newFile.tar.gz')
+        """
         # Getting file name
         fileName = fileName if fileName else os.path.basename(url)
 
         # Returning dictionary
-        return {'url': url, 'path': path, 'name': fileName}        
+        return {'url': url, 'path': path, 'name': fileName}

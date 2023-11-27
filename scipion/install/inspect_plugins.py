@@ -148,8 +148,9 @@ elif n > 2:
                         ('3D', Prot3D)]
 
         plugin = Domain.getPlugin(pluginName)
-        version = PluginInfo('scipion-em-%s' % pluginName).pipVersion
-        bin = PluginInfo('scipion-em-%s' % pluginName).printBinInfoStr()
+        pInfo = PluginInfo(pipName='scipion-em-%s' % pluginName)  # FIXME: this should not be hardcoded
+        version = pInfo.pipVersion
+        bin = pInfo.printBinInfoStr()
         print("Plugin name: %s, version: %s" % (pluginName, version))
         print("Plugin binaries: %s" % bin)
 

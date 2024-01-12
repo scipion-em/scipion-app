@@ -88,8 +88,9 @@ class PluginInfo(object):
 
             try:
                 dirname = self.getDirName()
-                self._plugin = Config.getDomain().getPlugin(dirname)
-            except:
+                self._plugin = Config.getDomain().getPluginModule(dirname)
+            except Exception as e:
+                print(e)
                 pass
         return self._plugin
 
@@ -312,7 +313,7 @@ class PluginInfo(object):
         pluginModule = self._getPlugin()
 
         if pluginModule is not None:
-            pluginClass = pluginModule.Plugin
+            pluginClass = pluginModule._pluginInstance
         else:
             print("Warning: couldn't find Plugin for %s" % self.pipName)
             print("Dirname: %s" % self.getDirName())

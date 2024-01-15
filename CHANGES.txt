@@ -1,3 +1,5 @@
+V3.3.1
+ - Adapted to sprites
 V3.3.0
 developers:
  - Exist code is not masked when running xmipp, relion etc commands

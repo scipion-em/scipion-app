@@ -89,8 +89,7 @@ class PluginInfo(object):
             try:
                 dirname = self.getDirName()
                 self._plugin = Config.getDomain().getPluginModule(dirname)
-            except Exception as e:
-                print(e)
+            except Exception:
                 pass
         return self._plugin
 

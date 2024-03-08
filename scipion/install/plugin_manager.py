@@ -1019,14 +1019,14 @@ class PluginManagerWindow(gui.Window):
         self.parent = master
         menu = MenuConfig()
         fileMenu = menu.addSubMenu('File')
-        fileMenu.addSubMenu('Exit', 'exit', icon='fa-sign-out.png')
+        fileMenu.addSubMenu('Exit', 'exit', icon=pwutils.Icon.ACTION_OUT)
 
         configMenu = menu.addSubMenu('Configuration')
         configMenu.addSubMenu('User', 'user')
         configMenu.addSubMenu('Variables', 'variables')
 
         helpMenu = menu.addSubMenu('Help')
-        helpMenu.addSubMenu('Help', 'help', icon='fa-question-circle.png')
+        helpMenu.addSubMenu('Help', 'help', icon=pwutils.Icon.ACTION_HELP)
         self.menuCfg = menu
         gui.Window.createMainMenu(self, self.menuCfg)
 
@@ -1074,42 +1074,42 @@ class PluginHelp(gui.Window):
     def createHelp(self):
         helpFrame = tk.Frame(self.root)
         helpFrame.grid(row=0, column=0, sticky='news')
-        photo = PhotoImage(file=pw.findResource(Icon.CHECKED))
+        photo = getImage(Icon.CHECKED)
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=0, column=0, sticky='sw', padx=10, pady=5)
         btn = Label(helpFrame, text='INSTALLED Plugin/Binary')
         btn.grid(row=0, column=1, sticky='sw', padx=0, pady=5)
 
-        photo = PhotoImage(file=pw.findResource(Icon.UNCHECKED))
+        photo = getImage(Icon.UNCHECKED)
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=1, column=0, sticky='sw', padx=10, pady=5)
         btn = Label(helpFrame, text='UNINSTALLED Plugin/Binary')
         btn.grid(row=1, column=1, sticky='sw', padx=0, pady=5)
 
-        photo = PhotoImage(file=pw.findResource(Icon.INSTALL))
+        photo = getImage(Icon.INSTALL)
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=2, column=0, sticky='sw', padx=10, pady=5)
         btn = Label(helpFrame, text='Plugin/Binary TO INSTALL')
         btn.grid(row=2, column=1, sticky='sw', padx=0, pady=5)
 
-        photo = PhotoImage(file=pw.findResource(Icon.UNINSTALL))
+        photo = getImage(Icon.UNINSTALL)
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=3, column=0, sticky='sw', padx=10, pady=5)
         btn = Label(helpFrame, text='Plugin/Binary TO UNINSTALL')
         btn.grid(row=3, column=1, sticky='sw', padx=0, pady=5)
 
-        photo = PhotoImage(file=pw.findResource(Icon.TO_INSTALL))
+        photo = getImage(Icon.TO_INSTALL)
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=4, column=0, sticky='sw', padx=10, pady=5)
         btn = Label(helpFrame, text='Execute the selected operations')
         btn.grid(row=4, column=1, sticky='sw', padx=0, pady=5)
 
-        photo = PhotoImage(file=pw.findResource(Icon.DELETE_OPERATION))
+        photo = getImage(Icon.DELETE_OPERATION)
         btn = Label(helpFrame, image=photo)
         btn.photo = photo
         btn.grid(row=5, column=0, sticky='sw', padx=10, pady=5)

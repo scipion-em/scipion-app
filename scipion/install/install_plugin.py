@@ -172,12 +172,11 @@ def installPluginMethods():
     parserUsed = modeToParser[mode]
     exitWithErrors = False
 
-
     if parsedArgs.help or (mode in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
                            and len(parsedArgs.binName) == 0):
 
         if mode not in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]:
-            parserUsed.epilog += pluginRepo.printPluginInfoStr()
+            parserUsed.epilog += pluginRepo.printPluginInfoStr(withBins=False)
         else:
             env = Environment()
             env.setDefault(False)
@@ -211,7 +210,7 @@ def installPluginMethods():
                     print("ERROR: Couldn't find pluginName for source %s" % pluginSrc)
                     exitWithErrors = True
                 else:
-                    plugin = PluginInfo(pipName=pluginName, pluginSourceUrl=pluginSrc, remote=False)
+                    plugin = PluginInfo(pipName=pluginName, pluginSourceUrl=pluginSrc)
                     numberProcessor = parsedArgs.j
                     installed = plugin.installPipModule()
                     if installed and installBinsDefault() and not parsedArgs.noBin:
@@ -242,7 +241,7 @@ def installPluginMethods():
 
         if parsedArgs.plugin:
             for pluginName in parsedArgs.plugin:
-                plugin = PluginInfo(pluginName, pluginName, remote=False)
+                plugin = PluginInfo(pipName=pluginName)
                 if plugin.isInstalled():
                     if installBinsDefault() and not parsedArgs.noBin:
                         plugin.uninstallBins()
@@ -263,7 +262,7 @@ def installPluginMethods():
                 continue
             pmodule = Config.getDomain().getPlugin(pluginTargetName)
             numberProcessor = parsedArgs.j
-            pinfo = PluginInfo(name=pluginTargetName, plugin=pmodule, remote=False)
+            pinfo = PluginInfo(moduleName=pluginTargetName, plugin=pmodule)
             pinfo.installBin({'args': [binTarget, '-j', numberProcessor]})
 
     elif parsedArgs.mode == MODE_UNINSTALL_BINS:
@@ -276,7 +275,7 @@ def installPluginMethods():
                 print('ERROR: Could not find target %s' % binTarget)
                 continue
             pmodule = Config.getDomain().getPlugin(pluginTargetName)
-            pinfo = PluginInfo(name=pluginTargetName, plugin=pmodule, remote=False)
+            pinfo = PluginInfo(moduleName=pluginTargetName, plugin=pmodule)
             pinfo.uninstallBins([binTarget])
 
     if exitWithErrors:

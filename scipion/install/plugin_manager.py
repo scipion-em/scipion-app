@@ -240,13 +240,13 @@ class Operation:
                     if installed and handleBins:
                         plugin.installBin({'args': ['-j', processors]})
             elif self.objStatus == PluginStates.UNINSTALL:
-                plugin = PluginInfo(self.objName, self.objName, remote=False)
+                plugin = PluginInfo(pipName=self.objName)
                 if plugin is not None:
                     if handleBins:
                         plugin.uninstallBins()
                     plugin.uninstallPip()
         else:
-            plugin = PluginInfo(self.objParent, self.objParent, remote=False)
+            plugin = PluginInfo(pipName=self.objParent)
             if self.objStatus == PluginStates.INSTALL:
                 plugin.installBin({'args': [self.objText, '-j', processors]})
             else:
@@ -915,7 +915,7 @@ class PluginBrowser(tk.Frame):
         """
         Reload a given plugin and update the tree view
         """
-        plugin = PluginInfo(pluginName, pluginName, remote=True)
+        plugin = PluginInfo(pipName=pluginName, remote=True)
         if plugin is not None:
             # Insert all binaries of plugin on the tree
             if plugin.isInstalled():
@@ -962,7 +962,7 @@ class PluginBrowser(tk.Frame):
         for pluginName in pluginList:
             countPlugin = countPlugin + 1
             self.progressbar['value'] = countPlugin
-            plugin = PluginInfo(pluginName, pluginName, remote=False)
+            plugin = PluginInfo(pipName=pluginName)
             if plugin is not None:
                 tag = PluginStates.UNCHECKED
                 if plugin._getPlugin():

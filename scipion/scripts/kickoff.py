@@ -81,7 +81,7 @@ DO_NOT_SCHEDULE = "Cancel schedule"
 DO_NOT_SHOW_GUI = "Don't show the project"
 
 # Project regex to validate the session id name
-PROJECT_PATTERN = "^\w{2}\d{4,6}-\d+$"
+PROJECT_PATTERN = r"^\w{2}\d{4,6}-\d+$"
 PROJECT_REGEX = re.compile(PROJECT_PATTERN)
 
 

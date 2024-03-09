@@ -99,7 +99,8 @@ class PluginInfo(object):
     def _getPlugin(self):
         if self._plugin is None:
             try:
-                self._plugin = Config.getDomain().getPlugin(self.getModuleName())
+                dirname = self.getModuleName()
+                self._plugin = Config.getDomain().getPluginModule(dirname)
             except:
                 pass
         return self._plugin
@@ -288,7 +289,7 @@ class PluginInfo(object):
         pluginModule = self._getPlugin()
 
         if pluginModule is not None:
-            pluginClass = pluginModule.Plugin
+            pluginClass = pluginModule._pluginInstance
         else:
             print("Warning: couldn't find Plugin for %s" % self.pipName)
             pluginClass = None

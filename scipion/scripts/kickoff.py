@@ -97,9 +97,6 @@ class KickoffWindow(ProjectBaseWindow):
         except Exception:
             title = Message.LABEL_PROJECTS
 
-        settings = ProjectSettings()
-        self.generalCfg = settings.getConfig()
-
         ProjectBaseWindow.__init__(self, title, minsize=(800, 350))
         self.template = template
         self.argsList = argsList

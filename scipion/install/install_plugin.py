@@ -183,7 +183,7 @@ def installPluginMethods():
             installedPlugins = Config.getDomain().getPlugins()
             for p, pobj in installedPlugins.items():
                 try:
-                    pobj.Plugin.defineBinaries(env)
+                    pobj._pluginInstance.defineBinaries(env)
                 except Exception as e:
                     print(
                         redStr("Error retrieving plugin %s binaries: " % str(p)), e)

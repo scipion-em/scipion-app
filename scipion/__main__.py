@@ -242,16 +242,15 @@ def main():
 
     # Set default VIEWERS value for scipion if not defined:
     if not os.environ.get("VIEWERS", None):
-        defaultViewers = [
-            '"Volume":["pwem.viewers.DataViewer"]',
-            '"VolumeMask":["pwem.viewers.DataViewer"]',
-            '"SetOfTiltSeries":["imod.viewers.ImodViewer"]',
-            '"SetOfLandmarkModels":["imod.viewers.ImodViewer"]',
-            '"SetOfTomograms":["imod.viewers.ImodViewer"]',
-            '"SetOfSubTomograms":["pwem.viewers.DataViewer"]',
-            '"SetOfVolumes":["pwem.viewers.DataViewer"]',
-            '"SetOfParticles":["pwem.viewers.DataViewer"]',
-        ]
+        defaultViewers = []
+        defaultViewers.append('"Volume":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"VolumeMask":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"SetOfTiltSeries":["tomo.viewers.TomoDataViewer"]')
+        defaultViewers.append('"SetOfLandmarkModels":["imod.viewers.ImodViewer"]')
+        defaultViewers.append('"SetOfTomograms":["imod.viewers.ImodViewer"]')
+        defaultViewers.append('"SetOfSubTomograms":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"SetOfVolumes":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"SetOfParticles":["pwem.viewers.DataViewer"]')
 
         os.environ["VIEWERS"] = '{%s}' % ','.join(defaultViewers)
 

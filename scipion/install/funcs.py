@@ -39,7 +39,7 @@ from subprocess import STDOUT, call
 from pyworkflow import Config
 import pwem
 from typing import List, Tuple, Dict
-from typing_extensions import Self
+
 
 # Then we get some OS vars
 MACOSX = (platform.system() == 'Darwin')
@@ -891,7 +891,7 @@ class CommandDef:
         """ Returns the commands"""
         return self._cmds
 
-    def append(self, newCmd:str, targets=None, sep="&&")->Self:
+    def append(self, newCmd:str, targets=None, sep="&&"):
         """ Appends an extra command to the existing one.
 
         :param newCmd: New command to append

@@ -1,3 +1,7 @@
+V3.3.1
+users:
+ - Adapted to sprites
+ - Defining TomoDataViewer as the TiltSeries default viewer
 V3.3.0
 developers:
  - Exist code is not masked when running xmipp, relion etc commands

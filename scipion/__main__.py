@@ -251,6 +251,7 @@ def main():
         defaultViewers.append('"SetOfSubTomograms":["pwem.viewers.DataViewer"]')
         defaultViewers.append('"SetOfVolumes":["pwem.viewers.DataViewer"]')
         defaultViewers.append('"SetOfParticles":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"AtomStruct":["pwem.viewers.ChimeraViewer"]')
 
         os.environ["VIEWERS"] = '{%s}' % ','.join(defaultViewers)
 

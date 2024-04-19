@@ -245,7 +245,7 @@ def main():
         defaultViewers = []
         defaultViewers.append('"Volume":["pwem.viewers.DataViewer"]')
         defaultViewers.append('"VolumeMask":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfTiltSeries":["imod.viewers.ImodViewer"]')
+        defaultViewers.append('"SetOfTiltSeries":["tomo.viewers.TomoDataViewer"]')
         defaultViewers.append('"SetOfLandmarkModels":["imod.viewers.ImodViewer"]')
         defaultViewers.append('"SetOfTomograms":["imod.viewers.ImodViewer"]')
         defaultViewers.append('"SetOfSubTomograms":["pwem.viewers.DataViewer"]')

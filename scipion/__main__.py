@@ -344,13 +344,19 @@ def main():
 
     elif mode == MODE_ENV:
         # Print all the environment variables needed to run scipion.
-        from pyworkflow.plugin import Plugin
+        from pyworkflow.utils import greenStr,yellowStr
 
         # Trigger plugin's variable definition
         pyworkflow.Config.getDomain().getPlugins()
-        VARS.update(pyworkflow.plugin.Plugin.getVars())
-        for key in sorted(VARS):
-            sys.stdout.write('export %s="%s"\n' % (key, VARS[key]))
+
+        for key, var in pyworkflow.VariablesRegistry.variables().items():
+
+            sys.stdout.write('%s="%s"\n' % (key,var.value))
+
+            if len(sys.argv) > 2:
+                if var.description is not None:
+                    sys.stdout.write(greenStr(var.description+"\n"))
+                sys.stdout.write(yellowStr("SOURCE: %s\n" % var.source))
 
         sys.exit(0)
 

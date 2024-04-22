@@ -353,7 +353,7 @@ class PluginBrowser(tk.Frame):
                                           background='white')
         self.progressbarLabel.place(x=480, y=65, width=200)
         self.progressbar = ttk.Progressbar(parent)
-        self.progressbar.place(x=450, y=85 + cfgFontSize, width=200)
+        self.progressbar.place(x=450, y=85 + Config.SCIPION_FONT_SIZE, width=200)
         self.progressbar.step(1)
         self.progressbar.start(200)
 

@@ -161,9 +161,9 @@ class KickoffView(tk.Frame):
         self.showProject = showProject
         self.showProjectName = showProjectName
 
-        bigSize = pwgui.cfgFontSize + 2
-        smallSize = pwgui.cfgFontSize - 2
-        fontName = pwgui.cfgFontName
+        bigSize = pw.Config.SCIPION_FONT_SIZE + 2
+        smallSize = pw.Config.SCIPION_FONT_SIZE - 2
+        fontName = pw.Config.SCIPION_FONT_NAME
 
         self.bigFont = tkFont.Font(size=bigSize, family=fontName)
         self.bigFontBold = tkFont.Font(size=bigSize, family=fontName,

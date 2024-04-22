@@ -886,6 +886,7 @@ class CommandDef:
             lastTargets = self._cmds[-1][1]
 
             lastTargets.extend(targets if isinstance(targets, list) else [targets])
+        return self
 
     def getCommands(self)->list:
         """ Returns the commands"""
@@ -924,13 +925,16 @@ class CommandDef:
         """
         return self.append("cd %s" % folder)
 
-    def touch(self, fileName):
+    def touch(self, fileName, isTarget=True):
         """ Appends a touch command and its target based on the fileName
 
         :param fileName: file to touch. Should be created in the binary home folder. Use ../ in case of a previous cd command
 
         :return: CondaCommandDef (self)
         """
+        if isTarget:
+            # Add the touched file as target
+            self.addTarget(fileName)
 
         return self.append("touch %s" % fileName, os.path.basename(fileName))
 

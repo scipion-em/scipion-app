@@ -1,3 +1,6 @@
+V3.4.0
+ - Adapted to variables registry
+ - printenv refactored (does not print export) and is more detailed.
 V3.3.1
 users:
  - Adapted to sprites

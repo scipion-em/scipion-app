@@ -28,7 +28,6 @@ import sys
 import os
 from datetime import datetime
 from os.path import join, exists, basename
-import time
 import optparse
 from pathlib import Path
 

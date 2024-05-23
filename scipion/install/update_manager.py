@@ -29,8 +29,8 @@
 This module is responsible for updating scipion-em, scipion-pyworkflow and
 scipion-app if a higher version of these is released
 """
+import subprocess
 import argparse
-from pip._internal.commands import create_command
 
 from pyworkflow.utils import redStr, greenStr, os
 from scipion.constants import MODE_UPDATE
@@ -118,7 +118,7 @@ class UpdateManager:
         from requests.exceptions import ConnectionError
         try:
             checkOutdated = check_outdated(packageName, version)
-        except ConnectionError as connError:
+        except ConnectionError:
             print("Cannot check update status of %s (%s)" % (packageName, version))
             return False, version
         except ValueError:
@@ -137,16 +137,10 @@ class UpdateManager:
         """
         Update a module from which there is released a higher version
         """
-        kwargs = {'isolated': False}
-
         for packageName in outdatedPackages:
-            cmd_args = [packageName[0],
-                        '--upgrade',
-                        '-vvv']  # highest level of verbosity
-
-            command = create_command('install', **kwargs)
-            status = command.main(cmd_args)
-            if status == 0:
+            cmd_args = ['pip', 'install', '--upgrade', packageName[0]]
+            result = subprocess.call(cmd_args)
+            if result == 0:
                 print('%s was correctly updated.' % packageName[0])
             else:
                 print('Something went wrong during the update of %s.'

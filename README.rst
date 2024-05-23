@@ -9,7 +9,7 @@ and developers. Scipion allows to execute workflows combining different
 software tools, while taking care of formats and conversions. Additionally,
 all steps are tracked and can be reproduced later on.
 
-Want to learn more? [Go to our web site.](http://scipion.i2pc.es)
+Want to learn more? [Go to our web site.](https://scipion.i2pc.es)
 
 
 .. figure:: https://travis-ci.org/I2PC/scipion.svg?branch=devel

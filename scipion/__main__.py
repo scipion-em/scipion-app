@@ -275,8 +275,6 @@ def main():
 
     elif mode in [MODE_LAST, MODE_HERE, MODE_PROJECT]:
         os.environ.update(VARS)
-        from pyworkflow.utils.log import LoggingConfigurator
-        LoggingConfigurator.setUpGUILogging()
         from pyworkflow.apps.pw_project import openProject
 
         if mode == MODE_PROJECT:
@@ -393,7 +391,8 @@ def main():
         runCmd(EM_PROGRAM_ENTRY_POINT, sys.argv[1:])
 
     elif mode == MODE_INSPECT:
-        runScript(join(Vars.SCIPION_INSTALL, 'inspect_plugins.py'), sys.argv[2:])
+        from scipion.install.inspect_plugins import inspectPlugin
+        inspectPlugin(sys.argv[1:])
 
     elif mode == MODE_UPDATE:
         # Once more: local import to avoid importing pyworkflow, triggered by install.__init__ (Plugin Manager)

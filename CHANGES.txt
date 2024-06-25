@@ -1,5 +1,5 @@
 V3.5.0
-  -
+  - Extending the CondaCommanDef class to allow environment creation using .yml files
 
 V3.4.0
  - Adapted to variables registry

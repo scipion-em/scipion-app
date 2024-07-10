@@ -880,6 +880,9 @@ class CommandDef:
         self.addTarget(targets)
         return self
 
+    def isEmpty(self):
+        return self._cmds[-1][0] == ''
+
     def addTarget(self, targets: list):
         """ Centralized internal method to add targets. They could be a list of string commands or a single command"""
         if targets is not None:
@@ -951,7 +954,7 @@ class CondaCommandDef(CommandDef):
 
         self._envName=envName
 
-    def create(self, extraCmds=''):
+    def create(self, extraCmds='', yml=None):
         """ Creates a conda environment with extra commands if passed
 
         :param extraCmds: additional commands (string) after the conda create -n envName
@@ -960,7 +963,10 @@ class CondaCommandDef(CommandDef):
 
         """
         self.append(self._condaActivationCmd)
-        self.append("conda create -y -n %s %s" % (self._envName, extraCmds))
+        if yml is None:
+            self.append("conda create -y -n %s %s" % (self._envName, extraCmds))
+        else:
+            self.append("conda env create -y -n %s -f %s %s" % (self._envName, yml, extraCmds))
         return self.touch("env_created.txt")
 
     def pipInstall(self, packages):
@@ -970,6 +976,8 @@ class CondaCommandDef(CommandDef):
 
     def condaInstall(self, packages):
         """ Appends conda install to the existing command adding packages"""
+        if self.isEmpty():
+            self.activate(appendCondaActivation=True)
 
         return self.append("conda install %s" % packages)
 

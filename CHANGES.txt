@@ -1,6 +1,10 @@
+V3.5.0
+  - Extending the CondaCommanDef class to allow environment creation using .yml files
+
 V3.4.0
  - Adapted to variables registry
  - printenv refactored (does not print export) and is more detailed.
+ - Replace pip internal command with subprocess call
 V3.3.1
 users:
  - Adapted to sprites

@@ -45,12 +45,11 @@ import pyworkflow as pw
 from pyworkflow.config import VarTypes
 import pyworkflow.utils as pwutils
 from pyworkflow.gui import Message, dialog, askPath
-from pyworkflow.plugin import Template
 from pyworkflow.project import Project
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
-from pyworkflow.template import TemplateList
+from pyworkflow.template import TemplateList, LocalTemplate, Template
 from scipion.constants import SCIPION_EP, MODE_PROJECT
 
 # Custom labels
@@ -323,7 +322,7 @@ def getTemplates(templateName=None):
     tempId = None
     if templateName:
         if os.path.isfile(templateName) and os.path.exists(templateName):
-            t = Template("custom_template", templateName)
+            t = LocalTemplate("custom_template", templateName)
             tempList.addTemplate(t)
         else:
             tempId = templateName

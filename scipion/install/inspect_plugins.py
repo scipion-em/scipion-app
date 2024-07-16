@@ -139,34 +139,31 @@ def showPluginInfo(exitWithErrors, pluginName):
     return exitWithErrors
 
 
-def showInfo(args, exitWithErrors, n):
+def showInfo(args, anyError, n):
 
     pluginName = args[1]
     showBase = True if (n == 4 and args[3] == '--showBase') else False
-    subclasses = {}
-    emCategories = [('Imports', ProtImport),
-                    ('Micrographs', ProtMicrographs),
-                    ('Particles', ProtParticles),
-                    ('2D', Prot2D),
-                    ('3D', Prot3D)]
     plugin = Domain.getPluginModule(pluginName)
-    version = PluginInfo('scipion-em-%s' % pluginName).pipVersion
-    bin = PluginInfo('scipion-em-%s' % pluginName).printBinInfoStr()
+    pluginInfo = PluginInfo('scipion-em-%s' % pluginName)
+    version = pluginInfo.pipVersion
+    bin = pluginInfo.printBinInfoStr()
     print("Plugin name: %s, version: %s" % (pluginName, version))
     print("Plugin binaries: %s" % bin)
-    bib, error2 = getSubmodule(plugin, pluginName, 'bibtex')
-    if bib is None:
-        exitWithErrors = error2 is not None
-    else:
-        print("Plugin references:")
-        bibtex = pwutils.parseBibTex(bib.__doc__)
 
-        for citeStr in bibtex:
-            text = Protocol()._getCiteText(bibtex[citeStr])
-            print(text)
+    anyError = showReferences(anyError, plugin, pluginName)
+
+    anyError = showProtocols(anyError, plugin, pluginName, showBase)
+
+    return anyError
+
+
+def showProtocols(anyError, plugin, pluginName, showBase):
+
+    subclasses=dict()
+
     sub, error = getSubmodule(plugin, pluginName, 'protocols')
     if sub is None:
-        exitWithErrors = error is not None
+        anyError = error is not None
 
     else:
         for name in dir(sub):
@@ -175,28 +172,36 @@ def showInfo(args, exitWithErrors, n):
                 # Set this special property used by Scipion
                 attr._package = plugin
                 attr._plugin = plugin.Plugin()
+
                 subclasses[name] = attr
     print("Plugin protocols:\n")
-    print("%-35s %-35s %-10s %-s" % (
-        'NAME', 'LABEL', 'CATEGORY', 'DESCRIPTION'))
+    print("%-35s %-35s %-s" % (
+        'NAME', 'LABEL', 'DESCRIPTION'))
     prots = OrderedDict(sorted(subclasses.items()))
     for prot in prots:
         label = prots[prot].getClassLabel()
         desc = getFirstLine(prots[prot].__doc__)
-        cat = 'None'
-
-        for c in emCategories:
-            if issubclass(prots[prot], c[1]):
-                cat = c[0]
-            if prots[prot].isBase():
-                cat = 'Base prot'
 
         # skip Base protocols if not requested
         if prots[prot].isBase() and not showBase:
             continue
         else:
-            print("%-35s %-35s %-10s %-s" % (prot, label, cat, desc))
-    return exitWithErrors
+            print("%-35s %-35s %-s" % (prot, label, desc))
+    return anyError
+
+
+def showReferences(anyError, plugin, pluginName):
+    bib, error2 = getSubmodule(plugin, pluginName, 'bibtex')
+    if bib is None:
+        anyError = error2 is not None
+    else:
+        print("Plugin references:")
+        bibtex = pwutils.parseBibTex(bib.__doc__)
+
+        for citeStr in bibtex:
+            text = Protocol()._getCiteText(bibtex[citeStr])
+            print(text)
+    return anyError
 
 
 def listAllPlugins():

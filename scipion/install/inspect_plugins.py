@@ -43,9 +43,6 @@ from scipion.install.plugin_funcs import PluginInfo
 
 ERROR_PREFIX = " error -> %s"
 
-exitWithErrors = False
-
-
 def usage(error=""):
 
     if error:
@@ -76,8 +73,8 @@ def getSubmodule(plugin, name, subname):
     except Exception as e:
         noModuleMsg = 'No module named \'%s.%s\'' % (name, subname)
         msg = str(e)
-        moduleExists = (exists(join(dirname(plugin.__file__), "%s.py" % subName)) or
-                        exists(join(dirname(plugin.__file__), subName)))
+        moduleExists = (exists(join(dirname(plugin.__file__), "%s.py" % subname)) or
+                        exists(join(dirname(plugin.__file__), subname)))
         r = (None, None if msg == noModuleMsg and not moduleExists else traceback.format_exc())
     return r
 
@@ -92,33 +89,37 @@ def getFirstLine(doc):
     return ''
 
 
-n = len(sys.argv)
+def inspectPlugin(args):
 
-if n > 4:
-    usage("Incorrect number of input parameters")
+    exitWithErrors = False
 
-if n == 1:  # List all plugins
-    plugins = Domain.getPlugins()
-    print("Plugins:")
-    for k, v in plugins.items():
-        print("-", k)
+    n = len(args)
 
-    print("Objects")
-    pwutils.prettyDict(Domain.getObjects())
+    if n > 4:
+        usage("Incorrect number of input parameters")
 
-    print("Protocols")
-    pwutils.prettyDict(Domain.getProtocols())
+    if n == 1:  # List all plugins
+        listAllPlugins()
 
-    print("Viewers")
-    pwutils.prettyDict(Domain.getViewers())
+    elif n == 2:
+        if args[1] in ['-h', '--help', 'help']:
+            usage()
+
+        pluginName = args[1]
+        exitWithErrors = showPluginInfo(exitWithErrors, pluginName)
+
+    elif n > 2:
+
+        exitWithErrors = showInfo(args, exitWithErrors, n)
+
+    if exitWithErrors:
+        sys.exit(1)
+    else:
+        sys.exit(0)
 
 
-elif n == 2:
-    if sys.argv[1] in ['-h', '--help', 'help']:
-        usage()
-
-    pluginName = sys.argv[1]
-    plugin = Domain.getPlugin(pluginName)
+def showPluginInfo(exitWithErrors, pluginName):
+    plugin = Domain.getPluginModule(pluginName)
     print("Plugin: %s" % pluginName)
     for subName in ['constants', 'convert', 'protocols',
                     'wizards', 'viewers', 'tests']:
@@ -135,81 +136,87 @@ elif n == 2:
             msg = " loaded"
 
         print("   >>> %s: %s" % (subName, msg))
+    return exitWithErrors
 
-elif n > 2:
-    if sys.argv[2] == 'info':
-        pluginName = sys.argv[1]
-        showBase = True if (n == 4 and sys.argv[3] == '--showBase') else False
-        subclasses = {}
-        emCategories = [('Imports', ProtImport),
-                        ('Micrographs', ProtMicrographs),
-                        ('Particles', ProtParticles),
-                        ('2D', Prot2D),
-                        ('3D', Prot3D)]
 
-        plugin = Domain.getPlugin(pluginName)
-        version = PluginInfo('scipion-em-%s' % pluginName).pipVersion
-        bin = PluginInfo('scipion-em-%s' % pluginName).printBinInfoStr()
-        print("Plugin name: %s, version: %s" % (pluginName, version))
-        print("Plugin binaries: %s" % bin)
+def showInfo(args, anyError, n):
 
-        bib, error2 = getSubmodule(plugin, pluginName, 'bibtex')
-        if bib is None:
-            if error2 is None:
-                msg = " missing bibtex"
-            else:
-                exitWithErrors = True
-                msg = ERROR_PREFIX % error2
-        else:
-            print("Plugin references:")
-            bibtex = pwutils.parseBibTex(bib.__doc__)
+    pluginName = args[1]
+    showBase = True if (n == 4 and args[3] == '--showBase') else False
+    plugin = Domain.getPluginModule(pluginName)
+    pluginInfo = PluginInfo('scipion-em-%s' % pluginName)
+    version = pluginInfo.pipVersion
+    bin = pluginInfo.printBinInfoStr()
+    print("Plugin name: %s, version: %s" % (pluginName, version))
+    print("Plugin binaries: %s" % bin)
 
-            for citeStr in bibtex:
-                text = Protocol()._getCiteText(bibtex[citeStr])
-                print(text)
+    anyError = showReferences(anyError, plugin, pluginName)
 
-        sub, error = getSubmodule(plugin, pluginName, 'protocols')
-        if sub is None:
-            if error is None:
-                msg = " missing protocols"
-            else:
-                exitWithErrors = True
-                msg = ERROR_PREFIX % error
+    anyError = showProtocols(anyError, plugin, pluginName, showBase)
 
-        else:
-            for name in dir(sub):
-                attr = getattr(sub, name)
-                if inspect.isclass(attr) and issubclass(attr, Protocol):
-                    # Set this special property used by Scipion
-                    attr._package = plugin
-                    subclasses[name] = attr
+    return anyError
 
-        print("Plugin protocols:\n")
-        print("%-35s %-35s %-10s %-s" % (
-            'NAME', 'LABEL', 'CATEGORY', 'DESCRIPTION'))
 
-        prots = OrderedDict(sorted(subclasses.items()))
-        for prot in prots:
-            label = prots[prot].getClassLabel()
-            desc = getFirstLine(prots[prot].__doc__)
-            cat = 'None'
+def showProtocols(anyError, plugin, pluginName, showBase):
 
-            for c in emCategories:
-                if issubclass(prots[prot], c[1]):
-                    cat = c[0]
-                if prots[prot].isBase():
-                    cat = 'Base prot'
+    subclasses=dict()
 
-            # skip Base protocols if not requested
-            if prots[prot].isBase() and not showBase:
-                continue
-            else:
-                print("%-35s %-35s %-10s %-s" % (prot, label, cat, desc))
+    sub, error = getSubmodule(plugin, pluginName, 'protocols')
+    if sub is None:
+        anyError = error is not None
 
     else:
-        usage("The last argument must be 'info'")
+        for name in dir(sub):
+            attr = getattr(sub, name)
+            if inspect.isclass(attr) and issubclass(attr, Protocol):
+                # Set this special property used by Scipion
+                attr._package = plugin
+                attr._plugin = plugin.Plugin()
 
-if exitWithErrors:
-    sys.exit(1)
-else:
-    sys.exit(0)
+                subclasses[name] = attr
+    print("Plugin protocols:\n")
+    print("%-35s %-35s %-s" % (
+        'NAME', 'LABEL', 'DESCRIPTION'))
+    prots = OrderedDict(sorted(subclasses.items()))
+    for prot in prots:
+        label = prots[prot].getClassLabel()
+        desc = getFirstLine(prots[prot].__doc__)
+
+        # skip Base protocols if not requested
+        if prots[prot].isBase() and not showBase:
+            continue
+        else:
+            print("%-35s %-35s %-s" % (prot, label, desc))
+    return anyError
+
+
+def showReferences(anyError, plugin, pluginName):
+    bib, error2 = getSubmodule(plugin, pluginName, 'bibtex')
+    if bib is None:
+        anyError = error2 is not None
+    else:
+        print("Plugin references:")
+        bibtex = pwutils.parseBibTex(bib.__doc__)
+
+        for citeStr in bibtex:
+            text = Protocol()._getCiteText(bibtex[citeStr])
+            print(text)
+    return anyError
+
+
+def listAllPlugins():
+    plugins = Domain.getPlugins()
+    print("Plugins:")
+    for k, v in plugins.items():
+        print("-", k)
+    print("Objects")
+    pwutils.prettyDict(Domain.getObjects())
+    print("Protocols")
+    pwutils.prettyDict(Domain.getProtocols())
+    print("Viewers")
+    pwutils.prettyDict(Domain.getViewers())
+
+
+if __name__ == '__main__':
+    inspectPlugin(sys.argv)
+

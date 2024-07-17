@@ -1,6 +1,11 @@
+V3.6.0
+ - Template window shows browser icons
+ - Template window adapted to use workflow hub templates
+developers:
+ - Inspect is debugeable
+
 V3.5.0
   - Extending the CondaCommanDef class to allow environment creation using .yml files
-
 V3.4.0
  - Adapted to variables registry
  - printenv refactored (does not print export) and is more detailed.

@@ -42,18 +42,19 @@ import traceback
 import time
 
 import pyworkflow as pw
+from pyworkflow.config import VarTypes
 import pyworkflow.utils as pwutils
-from pyworkflow.gui import Message, dialog
-from pyworkflow.plugin import Template
-from pyworkflow.project import ProjectSettings, Project
+from pyworkflow.gui import Message, dialog, askPath
+from pyworkflow.project import Project
 import pyworkflow.gui as pwgui
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
-from pyworkflow.template import TemplateList
+from pyworkflow.template import TemplateList, LocalTemplate, Template
 from scipion.constants import SCIPION_EP, MODE_PROJECT
 
 # Custom labels
 from scipion.utils import getExternalJsonTemplates
+from pyworkflow.utils import Icon
 
 ENTRY = 'entry'
 LABEL = 'label'
@@ -144,13 +145,13 @@ class KickoffWindow(ProjectBaseWindow):
 
 
 class KickoffView(tk.Frame):
-    def __init__(self, parent, windows, template:Template=None, argsList=[],
+    def __init__(self, parent, window, template:Template=None, argsList=[],
                  showScheduleOption=True, schedule=True, showProjectOption=True,
                  showProject=True, showProjectName=True, **kwargs):
 
         tk.Frame.__init__(self, parent, bg='white', **kwargs)
-        self.windows = windows
-        self.root = windows.root
+        self.window = window
+        self.root = window.root
         self.vars = {}
         self.checkvars = []
         self.template = template
@@ -205,29 +206,27 @@ class KickoffView(tk.Frame):
     def _fillContent(self, frame):
         # Add project name
         self.template.genProjectName()
-        self._addPair(PROJECT_NAME, PROJECT_NAME, 1, frame, value=self.template.projectName,
+        self._addPair(PROJECT_NAME, PROJECT_NAME, 1, frame,
+                      value=self.template.projectName,
                       visible=self.showProjectName)
 
         self._addPair(DO_NOT_SCHEDULE, DO_NOT_SCHEDULE, 2, frame,
-                      widget=CHECKBUTTON, value=not self.schedule,
+                      varType=VarTypes.BOOLEAN.value, value=not self.schedule,
                       visible=self.showScheduleOption)
 
         self._addPair(DO_NOT_SHOW_GUI, DO_NOT_SHOW_GUI, 3, frame,
-                      widget=CHECKBUTTON, value=not self.showProject,
+                      varType=VarTypes.BOOLEAN.value, value=not self.showProject,
                       pady=(5, 30), visible=self.showProjectOption)
 
         # Add template params
         self._addTemplateFieldsToForm(frame)
 
-    def _addPair(self, text, title, r, lf, widget=ENTRY, traceCallback=None,
-                 mouseBind=False, value=None, pady=2, visible=True):
+    def _addPair(self, text, title, r, lf, varType=None,
+                 value=None, pady=2, visible=True):
 
         if visible:
             label = tk.Label(lf, text=text, bg='white', font=self.bigFont)
             label.grid(row=r, column=0, padx=(10, 5), pady=pady, sticky='nes')
-
-        if not widget:
-            return
 
         var = tk.StringVar()
 
@@ -236,30 +235,36 @@ class KickoffView(tk.Frame):
 
         self.vars[title] = var
         if visible:
-            if widget == ENTRY:
-                widget = tk.Entry(lf, width=30, font=self.bigFont,
-                                  textvariable=var)
-                if traceCallback:
-                    if mouseBind:  # call callback on click
-                        widget.bind("<Button-1>", traceCallback, "eee")
-                    else:  # call callback on type
-                        var.trace('w', traceCallback)
-            elif widget == LABEL:
+            if varType is None:
                 widget = tk.Label(lf, font=self.bigFont, textvariable=var)
-            elif widget == CHECKBUTTON:
+
+            elif varType == VarTypes.BOOLEAN.value:
                 var.set(YES if value else NO)
                 widget = tk.Checkbutton(lf, text="", font=self.bigFont, variable=var,
                                         onvalue=YES, offvalue=NO, bg=pw.Config.SCIPION_BG_COLOR)
+            else:
+                widget = tk.Entry(lf, width=30, font=self.bigFont,
+                                  textvariable=var)
 
             widget.grid(row=r, column=1, sticky='news', padx=(5, 10), pady=pady)
 
+            if varType in (VarTypes.FOLDER.value, VarTypes.PATH.value):
+                def searchPath(onlyFolders):
+                    result= askPath(path=var.get(), onlyFolders=onlyFolders, master=self.window)
+                    var.set(result)
+
+                btn = tk.Label(lf, text="", font=self.bigFont, image=self.window.getImage(Icon.FOLDER), bg=pw.Config.SCIPION_BG_COLOR)
+                btn.bind('<Button-1>', lambda e: searchPath(varType == VarTypes.FOLDER.value))
+
+                btn.grid(row=r,column=2)
     def _addTemplateFieldsToForm(self, labelFrame):
         row = 5
         for field in self.template.params.values():
             alias = field.getAlias()
             text = field.getTitle() if alias is None else "%s (%s)" % (field.getTitle(), alias)
 
-            self._addPair(text, field.getTitle(), row, labelFrame, value=field.getValue())
+            self._addPair(text, field.getTitle(), row, labelFrame,
+                          varType=field.getType(), value=field.getValue())
             row += 1
 
     def _getVar(self, varKey):
@@ -290,20 +295,20 @@ class KickoffView(tk.Frame):
         # Do more checks only if there are no previous errors
         if errors:
             errors.insert(0, "*Errors*:")
-            self.windows.showError("\n  - ".join(errors))
+            self.window.showError("\n  - ".join(errors))
         else:
             self.template.projectName = self._getValue(PROJECT_NAME)
 
             # Set parent with the data
-            self.windows.template = self.template
+            self.window.template = self.template
             if self._getValue(DO_NOT_SCHEDULE) == YES:
                 self.argsList.append(NOSCHEDULE_FLAG)
             if self._getValue(DO_NOT_SHOW_GUI) == YES:
                 self.argsList.append(NOGUI_FLAG)
 
-            self.windows.action = ACCEPT_BUTTON
-            self.windows.root.quit()
-            self.windows.root.withdraw()
+            self.window.action = ACCEPT_BUTTON
+            self.window.root.quit()
+            self.window.root.withdraw()
             return
 
 
@@ -317,7 +322,7 @@ def getTemplates(templateName=None):
     tempId = None
     if templateName:
         if os.path.isfile(templateName) and os.path.exists(templateName):
-            t = Template("custom_template", templateName)
+            t = LocalTemplate("custom_template", templateName)
             tempList.addTemplate(t)
         else:
             tempId = templateName

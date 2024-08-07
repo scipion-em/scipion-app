@@ -1,4 +1,5 @@
 import unittest
+
 from scipion.install.funcs import CommandDef, CondaCommandDef
 
 

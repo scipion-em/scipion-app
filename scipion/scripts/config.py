@@ -99,7 +99,7 @@ def main(args=None):
 
         else:
             print("No plugin found with name '%s'. Module name is expected,\n"
-                  "i.e. 'scipion3 config -p xmipp3' shows the config variables "
+                  "i.e. 'scipion config -p xmipp3' shows the config variables "
                   "defined in 'scipion-em-xmipp' plugin." % pluginName)
 
         sys.exit(0)

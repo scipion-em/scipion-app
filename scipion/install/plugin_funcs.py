@@ -10,13 +10,14 @@ try:
     import importlib_metadata
 except ModuleNotFoundError:
     raise ModuleNotFoundError('You are missing importlib-metadata package. '
-                              'Please run: scipion3 pip install importlib-metadata')
+                              'Please run: scipion pip install importlib-metadata')
 
-from .funcs import Environment
 from pwem import Domain
 from pyworkflow.utils import redStr, yellowStr
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
+
+from scipion.install.funcs import Environment
 
 
 NULL_VERSION = "0.0.0"

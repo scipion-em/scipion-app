@@ -96,10 +96,12 @@ def getMode():
 
 # Auxiliary functions to run commands in our environment, one of our
 # scripts, or one of our "apps"
-def runCmd(cmd, args=''):
+def runCmd(cmd, args=None):
     """ Runs ANY command with its arguments"""
     if isinstance(args, list):
         args = ' '.join('"%s"' % x for x in args)
+    elif args is None:
+        args = ''
 
     cmd = '%s %s' % (cmd, args)
 
@@ -109,7 +111,7 @@ def runCmd(cmd, args=''):
 
 
 # The following functions require a working SCIPION_PYTHON
-def runScript(scriptCmd, args='', chdir=True):
+def runScript(scriptCmd, args=None, chdir=True):
     """"Runs a PYTHON script appending the profiling prefix if ON"""
     if chdir:
         os.chdir(Vars.SCIPION_HOME)
@@ -122,7 +124,7 @@ def runScript(scriptCmd, args='', chdir=True):
     runCmd(cmd, args)
 
 
-def runApp(app, args='', chdir=True):
+def runApp(app, args=None, chdir=True):
     """Runs an app provided by pyworkflow"""
     runScript(join(Vars.PW_APPS, app), args=args, chdir=chdir)
 
@@ -239,15 +241,16 @@ def main():
 
     # Set default VIEWERS value for scipion if not defined:
     if not os.environ.get("VIEWERS", None):
-        defaultViewers = []
-        defaultViewers.append('"Volume":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"VolumeMask":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfTiltSeries":["tomo.viewers.TomoDataViewer"]')
-        defaultViewers.append('"SetOfLandmarkModels":["imod.viewers.ImodViewer"]')
-        defaultViewers.append('"SetOfTomograms":["imod.viewers.ImodViewer"]')
-        defaultViewers.append('"SetOfSubTomograms":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfVolumes":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfParticles":["pwem.viewers.DataViewer"]')
+        defaultViewers = [
+            '"Volume":["pwem.viewers.DataViewer"]',
+            '"VolumeMask":["pwem.viewers.DataViewer"]',
+            '"SetOfTiltSeries":["tomo.viewers.TomoDataViewer"]',
+            '"SetOfLandmarkModels":["imod.viewers.ImodViewer"]',
+            '"SetOfTomograms":["imod.viewers.ImodViewer"]',
+            '"SetOfSubTomograms":["pwem.viewers.DataViewer"]',
+            '"SetOfVolumes":["pwem.viewers.DataViewer"]',
+            '"SetOfParticles":["pwem.viewers.DataViewer"]'
+        ]
 
         os.environ["VIEWERS"] = '{%s}' % ','.join(defaultViewers)
 
@@ -298,9 +301,6 @@ def main():
     elif mode in MODE_VIEWER:
         runApp('pw_viewer.py', args=sys.argv[2:], chdir=False)
 
-    # elif mode == MODE_INSTALL_BINS:
-    #     runScript('scipion install %s' % ' '.join(sys.argv[2:]))
-
     elif mode in PLUGIN_MODES:
         os.environ.update(VARS)
         from scipion.install.install_plugin import installPluginMethods
@@ -344,9 +344,7 @@ def main():
         pyworkflow.Config.getDomain().getPlugins()
 
         for key, var in pyworkflow.VariablesRegistry.variables().items():
-
             sys.stdout.write('%s="%s"\n' % (key, var.value))
-
             if len(sys.argv) > 2:
                 if var.description is not None:
                     sys.stdout.write(greenStr(var.description+"\n"))
@@ -356,15 +354,15 @@ def main():
 
     elif mode == MODE_RUN:
         # Run any command with the environment of scipion loaded.
-        runCmd('emprogram ' + ' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
+        runCmd('emprogram', sys.argv[2:])
 
     elif mode == MODE_PIP:
         # Runs pip command inside scipion's environment.
-        runCmd('pip ' + ' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
+        runCmd('pip', sys.argv[2:])
 
     elif mode == MODE_PYTHON:
         runScript(' '.join(['"%s"' % arg for arg in sys.argv[2:]]),
-                  chdir=False)
+                  args=None, chdir=False)
 
     elif mode == MODE_TEMPLATE:
         from scipion.scripts.kickoff import main as launchKickoff
@@ -415,7 +413,7 @@ MODE can be:
 
     %s                Opens the manager with a list of all projects.
 
-    %s                inspect a python module and check if it looks like a scipion plugin. 
+    %s                Inspect a python module and check if it looks like a Scipion plugin. 
     
     %s               Prints the environment variables used by the application.
     

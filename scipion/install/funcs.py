@@ -260,9 +260,6 @@ class Environment:
         self._tarCmd = 'tar -xf %s'
         self._pipCmd = kwargs.get('pipCmd', 'pip install %s==%s')
 
-    def getLibSuffix(self):
-        return self._libSuffix
-
     def getProcessors(self):
         return self._processors
 
@@ -278,11 +275,6 @@ class Environment:
     def getPython():
         return sys.executable
 
-    # Pablo: A quick search didn't find usages.
-    # @staticmethod
-    # def getPythonFolder():
-    #     return Environment.getLibFolder() + '/python2.7'
-
     @staticmethod
     def getPythonPackagesFolder():
         # This does not work on MAC virtual envs
@@ -292,21 +284,12 @@ class Environment:
         from sysconfig import get_paths
         return get_paths()["purelib"]
 
-    @staticmethod
-    def getIncludeFolder():
-        return Environment.getSoftware('include')
-
     def getLib(self, name):
-
         return Environment.getLibFolder('lib%s.%s' % (name, self._libSuffix))
 
     @staticmethod
     def getBinFolder(*paths):
         return os.path.join(mkdir(Environment.getSoftware('bin')), *paths)
-
-    @staticmethod
-    def getBin(name):
-        return Environment.getBinFolder(name)
 
     @staticmethod
     def getTmpFolder():

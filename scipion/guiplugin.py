@@ -1,6 +1,6 @@
 # NOTE: This is far from ideal.
 # We want to register actions in pyworkflow windows.
-# Since pyworkflow scans packages, this init will be triggered by pyworkflow and then
+# Since pyworkflow scans packages, this init will be triggered by pyworkflow, and then
 # we will register the menu (only works for the project window and not for the "project list" window).
 
 import os

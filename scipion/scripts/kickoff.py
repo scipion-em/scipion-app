@@ -45,15 +45,15 @@ import pyworkflow as pw
 from pyworkflow.config import VarTypes
 import pyworkflow.utils as pwutils
 from pyworkflow.gui import Message, dialog, askPath
-from pyworkflow.project import Project
-import pyworkflow.gui as pwgui
+from pyworkflow.gui.tree import ListTreeProviderTemplate
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
+from pyworkflow.project import Project
 from pyworkflow.template import TemplateList, LocalTemplate, Template
 
 from scipion.constants import SCIPION_EP, MODE_PROJECT
 from scipion.utils import getExternalJsonTemplates
-from pyworkflow.utils import Icon
+
 
 ENTRY = 'entry'
 LABEL = 'label'
@@ -251,7 +251,7 @@ class KickoffView(tk.Frame):
                     result = askPath(path=var.get(), onlyFolders=onlyFolders, master=self.window)
                     var.set(result)
 
-                btn = tk.Label(lf, text="", font=self.bigFont, image=self.window.getImage(Icon.FOLDER),
+                btn = tk.Label(lf, text="", font=self.bigFont, image=self.window.getImage(pwutils.Icon.FOLDER),
                                bg=pw.Config.SCIPION_BG_COLOR)
                 btn.bind('<Button-1>', lambda e: searchPath(varType == VarTypes.FOLDER.value))
 
@@ -348,7 +348,7 @@ def chooseTemplate(templates, parentWindow=None):
     if len(templates) == 1:
         chosenTemplate = templates[0]
     else:
-        provider = pwgui.tree.ListTreeProviderTemplate(templates)
+        provider = ListTreeProviderTemplate(templates)
         dlg = dialog.ListDialog(parentWindow, "Workflow templates", provider,
                                 "Select one of the templates.",
                                 selectOnDoubleClick=True)

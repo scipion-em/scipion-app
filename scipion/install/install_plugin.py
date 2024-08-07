@@ -250,8 +250,8 @@ def installPluginMethods():
                 else:
                     print("WARNING: Plugin %s is not installed." % pluginName)
         else:
-            print("Incorrect usage of command 'uninstallp'. Execute 'scipion3 uninstallp --help' or "
-                  "'scipion3 help' for more details.")
+            print("Incorrect usage of command 'uninstallp'. Execute 'scipion uninstallp --help' or "
+                  "'scipion help' for more details.")
 
     elif parsedArgs.mode == MODE_INSTALL_BINS:
         binToInstallList = parsedArgs.binName

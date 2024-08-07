@@ -2,7 +2,7 @@
 # We want to register actions in pyworkflow windows.
 # Since pyworkflow scans packages, this init will be triggered by pyworkflow and then
 # we will register the menu (only works for the project window and not for the "project list" window).
-# register plugin menus
+
 import os
 
 from scipion.scripts.kickoff import (getTemplates, chooseTemplate,
@@ -39,5 +39,4 @@ def importFromTemplate(window):
         importTemplate(chosenTemplate, window)
 
 
-ProjectWindow.registerPluginMenu("Import workflow template", importFromTemplate,
-                                 None)
+ProjectWindow.registerPluginMenu("Import workflow template", importFromTemplate, None)

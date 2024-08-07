@@ -1,6 +1,7 @@
 import unittest
 from scipion.install.funcs import CommandDef, CondaCommandDef
 
+
 class TestCommands(unittest.TestCase):
     def test_command_class(self):
 

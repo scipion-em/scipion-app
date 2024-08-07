@@ -68,8 +68,8 @@ def installPluginMethods():
     #                               Install parser                             #
     ############################################################################
 
-
-    installParser = subparsers.add_parser(MODE_INSTALL_PLUGIN[1], aliases=[MODE_INSTALL_PLUGIN[0]], formatter_class=argparse.RawTextHelpFormatter,
+    installParser = subparsers.add_parser(MODE_INSTALL_PLUGIN[1], aliases=[MODE_INSTALL_PLUGIN[0]],
+                                          formatter_class=argparse.RawTextHelpFormatter,
                                           usage="%s  [-h] [--noBin] [-p pluginName [pipVersion ...]]" %
                                                 invokeCmd,
                                           epilog="Example: %s -p scipion-em-motioncorr 1.0.6 "
@@ -107,7 +107,8 @@ def installPluginMethods():
     #                             Uninstall parser                             #
     ############################################################################
 
-    uninstallParser = subparsers.add_parser(MODE_UNINSTALL_PLUGIN[1], aliases=[MODE_UNINSTALL_PLUGIN[0]], formatter_class=argparse.RawTextHelpFormatter,
+    uninstallParser = subparsers.add_parser(MODE_UNINSTALL_PLUGIN[1], aliases=[MODE_UNINSTALL_PLUGIN[0]],
+                                            formatter_class=argparse.RawTextHelpFormatter,
                                             usage="%s  [-h] [-p pluginName [binVersion ...]]" % invokeCmd,
                                             epilog="Example: %s -p scipion-em-eman2 scipion-em-motioncorr \n\n" %
                                                    invokeCmd,

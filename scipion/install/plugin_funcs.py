@@ -525,4 +525,4 @@ def installBinsDefault():
     """ Returns the default behaviour for installing binaries
     By default it is TRUE, define "SCIPION_DONT_INSTALL_BINARIES" to anything to deactivate binaries installation"""
 
-    return os.environ.get("SCIPION_DONT_INSTALL_BINARIES", True) == True
+    return os.environ.get("SCIPION_DONT_INSTALL_BINARIES", True)

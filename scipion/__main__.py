@@ -49,6 +49,7 @@ __nickname__ = "Eugenius"
 
 # *********************  Helper functions *****************************
 
+
 def getVersion(long=True):
     if long:
         return "v%s - %s" % (__version__, __nickname__)
@@ -58,7 +59,6 @@ def getVersion(long=True):
 
 def printVersion():
     """ Print Scipion version """
-    # Print the version and some more info
     print('Scipion %s' % getVersion())
 
 
@@ -66,7 +66,6 @@ def config2Dict(configFile, varDict):
     """ Loads a config file if exists and populates a dictionary
     overwriting the keys.
     """
-    # If config file exists
     if exists(configFile):
         # read the file
         config = ConfigParser()
@@ -91,7 +90,7 @@ def envOn(varName):
 
 
 def getMode():
-    """ :returns the mode scipion has to be launched """
+    """ Returns the mode scipion has to be launched """
     return MODE_MANAGER if len(sys.argv) == 1 else sys.argv[1]
 
 
@@ -105,8 +104,6 @@ def runCmd(cmd, args=''):
     cmd = '%s %s' % (cmd, args)
 
     os.environ.update(VARS)
-    # result = os.system(cmd)
-    # Replacement of os.system with subprocess.call(cmd, shell=True)
     result = subprocess.call(cmd, shell=True)
     sys.exit(result)
 
@@ -152,7 +149,7 @@ while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
 
         # Verify existence if not config
         if getMode() != MODE_CONFIG and not exists(scipionConfig):
-            # Here we can react differently,instead of exiting, may be continuing warning about
+            # Here we could react differently: instead of exiting, maybe continue & warn about
             # the missing config file?
             sys.exit('Config file missing: %s' % scipionConfig)
 
@@ -275,16 +272,13 @@ def main():
 
     elif mode in [MODE_LAST, MODE_HERE, MODE_PROJECT]:
         os.environ.update(VARS)
-        from pyworkflow.utils.log import LoggingConfigurator
-        LoggingConfigurator.setUpGUILogging()
         from pyworkflow.apps.pw_project import openProject
 
         if mode == MODE_PROJECT:
-            if len(sys.argv)==3:
+            if len(sys.argv) == 3:
                 arg = sys.argv[2]
-
             else:
-                arg = "list" #TODO, import LIST from pyworkflow.apps.pw_project
+                arg = "list"  # TODO, import LIST from pyworkflow.apps.pw_project
         else:
             arg = mode
 
@@ -344,14 +338,14 @@ def main():
 
     elif mode == MODE_ENV:
         # Print all the environment variables needed to run scipion.
-        from pyworkflow.utils import greenStr,yellowStr
+        from pyworkflow.utils import greenStr, yellowStr
 
         # Trigger plugin's variable definition
         pyworkflow.Config.getDomain().getPlugins()
 
         for key, var in pyworkflow.VariablesRegistry.variables().items():
 
-            sys.stdout.write('%s="%s"\n' % (key,var.value))
+            sys.stdout.write('%s="%s"\n' % (key, var.value))
 
             if len(sys.argv) > 2:
                 if var.description is not None:
@@ -393,7 +387,8 @@ def main():
         runCmd(EM_PROGRAM_ENTRY_POINT, sys.argv[1:])
 
     elif mode == MODE_INSPECT:
-        runScript(join(Vars.SCIPION_INSTALL, 'inspect_plugins.py'), sys.argv[2:])
+        from scipion.install.inspect_plugins import inspectPlugin
+        inspectPlugin(sys.argv[1:])
 
     elif mode == MODE_UPDATE:
         # Once more: local import to avoid importing pyworkflow, triggered by install.__init__ (Plugin Manager)

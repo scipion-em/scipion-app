@@ -106,7 +106,7 @@ def main(args=None):
 
             if url != "":
                 print("\nMore information these variables might be found at '%s'"
-                  % url)
+                      % url)
 
         else:
             print("No plugin found with name '%s'. Module name is expected,\n"
@@ -235,7 +235,7 @@ def backup(fpath):
         if not exists(join(dname, BACKUPS)):
             os.makedirs(join(dname, BACKUPS))
         backupFn = join(dname, BACKUPS,
-                      '%s.%s' % (basename(fpath), datetime.now().strftime("%Y%m%d%H%M%S")))
+                        '%s.%s' % (basename(fpath), datetime.now().strftime("%Y%m%d%H%M%S")))
         print(yellow("* Creating backup: %s" % backupFn))
         os.rename(fpath, backupFn)
 

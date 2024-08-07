@@ -26,11 +26,10 @@ or if they do not exist.
 """
 import sys
 import os
+from os.path import join, exists, basename, dirname, sep
 from datetime import datetime
-from os.path import join, exists, basename
 import optparse
 from pathlib import Path
-
 from configparser import ConfigParser
 from shutil import copyfile
 
@@ -44,7 +43,6 @@ MISSING_VAR = "None"
 SCIPION_NOTIFY = 'SCIPION_NOTIFY'
 SCIPION_CONFIG = 'SCIPION_CONFIG'
 SCIPION_LOCAL_CONFIG = 'SCIPION_LOCAL_CONFIG'
-
 UPDATE_PARAM = '--update'
 COMPARE_PARAM = '--compare'
 
@@ -55,9 +53,7 @@ def ansi(n):
 
 
 black, red, green, yellow, blue, magenta, cyan, white = map(ansi, range(30, 38))
-
-
-# We don't take them from pyworkflow.utils because this has to run
+# We don't take these from pyworkflow.utils because this has to run
 # with all python versions (and so it is simplified).
 
 
@@ -69,24 +65,17 @@ def main(args=None):
     add(UPDATE_PARAM, action='store_true',
         help=("Updates you local config files with the values in the template, "
               "only for those missing values."))
-    add('--notify', action='store_true',
-        help="Allow Scipion to notify usage data (skips user question) "
-             "TO BE DEPRECATED, use unattended param instead")
     add('--unattended', action='store_true',
-        help="Scipion will skipping questions")
+        help="Scipion will skip questions")
     add('-p', help='Prints the config variables associated to plugin P')
-
     add(COMPARE_PARAM, action='store_true',
         help="Check that the configurations seems reasonably well set up.")
-
     add('--show', action='store_true', help="Show the config files used in the default editor")
 
     options, args = parser.parse_args(args)
 
     if args:  # no args which aren't options
         sys.exit(parser.format_help())
-
-    unattended = options.notify or options.unattended
 
     if options.p:
         import pyworkflow.utils as pwutils
@@ -119,11 +108,11 @@ def main(args=None):
         scipionConf = os.environ[SCIPION_CONFIG]
         homeConf = os.environ[SCIPION_LOCAL_CONFIG]
         _open_cmd(scipionConf)
-        if homeConf != scipionConf and os.path.exists(homeConf):
+        if homeConf != scipionConf and exists(homeConf):
             _open_cmd(os.environ[SCIPION_LOCAL_CONFIG])
         sys.exit(0)
     try:
-        # where templates are
+        # where the templates are
         templates_dir = getTemplatesPath()
 
         scipionConfigFile = os.environ[SCIPION_CONFIG]
@@ -138,11 +127,11 @@ def main(args=None):
             if not exists(fpath) or options.overwrite:
                 print(fpath, tmplt)
                 createConf(fpath, join(templates_dir, getTemplateName(tmplt)),
-                           unattended=unattended)
+                           unattended=options.unattended)
             else:
                 checkConf(fpath, join(templates_dir, getTemplateName(tmplt)),
                           update=options.update,
-                          unattended=unattended)
+                          unattended=options.unattended)
 
         # Check paths for the config
         checkPaths(os.environ[SCIPION_CONFIG])
@@ -165,7 +154,7 @@ def checkNotify(config, configfile, unattended):
     print("""--------------------------------------------------------------
 -----------------------------------------------------------------
 It would be very helpful if you allow Scipion to send anonymous usage data. This
-information will help Scipion's team to identify the more demanded protocols and
+information will help Scipion's team to identify most used protocols and
 prioritize support for them.
 
 Collected usage information is COMPLETELY ANONYMOUS and does NOT include protocol
@@ -176,7 +165,7 @@ You can always deactivate/activate this option by editing the file %s and settin
 the variable SCIPION_NOTIFY to False/True respectively.
 
 We understand, of course, that you may not wish to have any information collected
-from you and we respect your privacy.
+and we respect your privacy.
 """ % configfile)
 
     if not unattended:
@@ -196,15 +185,13 @@ def createConf(fpath, ftemplate, unattended=False):
     print(yellow("* Creating configuration file: %s" % fpath))
     print("Please edit it to reflect the configuration of your system.\n")
 
-    if not os.path.exists(ftemplate):
+    if not exists(ftemplate):
         raise FileNotFoundError('Missing file: %s' % ftemplate)
 
     # Special case for scipion config
     if getTemplateName(SCIPION_CONF) in ftemplate:
-
         cf = ConfigParser()
         cf.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
-
         addPyworkflowVariables(cf)
         addPluginsVariables(cf)
 
@@ -226,11 +213,10 @@ def backup(fpath):
     :return: None
 
     """
-    dname = os.path.dirname(fpath)
+    dname = dirname(fpath)
 
     if not exists(dname):
         os.makedirs(dname)
-
     elif exists(fpath):
         if not exists(join(dname, BACKUPS)):
             os.makedirs(join(dname, BACKUPS))
@@ -252,7 +238,7 @@ def addVariablesToSection(cf, section, vars, exclude=[]):
         # If it's EM_ROOT, just replace SCIPION_HOME to make it relative
         if varValue == pwem.Config.EM_ROOT:
             varValue = varValue.replace(pwem.Config.SCIPION_HOME, "")
-            if varValue.startswith(os.path.sep):
+            if varValue.startswith(sep):
                 varValue = varValue[1:]
 
         elif varValue.startswith(pwem.Config.EM_ROOT):
@@ -281,7 +267,7 @@ def addVariablesToSection(cf, section, vars, exclude=[]):
 
 
 def addPyworkflowVariables(cf):
-    # Once more we need a local import to prevent the Config to be wrongly initialized
+    # Once again we need a local import to prevent the Config to be wrongly initialized
     import pyworkflow as pw
 
     exclude = ["SCIPION_CONFIG", "SCIPION_CWD", "SCIPION_LOCAL_CONFIG",
@@ -398,8 +384,7 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
                 # add it to the keys
                 sf.add(s)
                 df[s] = set()
-                print("Section %s added to your config file."
-                      % green(s))
+                print("Section %s added to your config file." % green(s))
                 confChanged = True
 
         for s in st & sf:
@@ -425,13 +410,11 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
         if not confChanged:
             print("Update requested no changes detected for %s." % fpath)
         else:
-
             print("Changes detected: writing changes into %s.")
 
             try:
                 # Make a back up
                 backup(fpath)
-
                 with open(fpath, 'w') as f:
                     cf.write(f)
             except Exception as e:
@@ -476,7 +459,7 @@ def getConfigPathFromConfigFile(scipionConfigFile, configFile):
     :param scipionConfigFile path to the config file to derive the folder name from
     :param configFile: name of the template: protocols or hosts so far
     :return theoretical path for the template at the same path as the config file"""
-    return os.path.join(os.path.dirname(scipionConfigFile), configFile + ".conf")
+    return join(dirname(scipionConfigFile), configFile + ".conf")
 
 
 if __name__ == '__main__':

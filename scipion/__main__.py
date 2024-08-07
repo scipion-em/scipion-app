@@ -366,10 +366,7 @@ def main():
         runScript(' '.join(['"%s"' % arg for arg in sys.argv[2:]]),
                   chdir=False)
 
-    elif mode == MODE_TUTORIAL:
-        runApp(join(Vars.SCIPION_SCRIPTS, 'tutorial.py'), sys.argv[2:])
-
-    elif mode in MODE_DEMO:
+    elif mode == MODE_TEMPLATE:
         from scipion.scripts.kickoff import main as launchKickoff
         # Remove one arg
         sys.argv = sys.argv[1:]
@@ -460,11 +457,6 @@ MODE can be:
                              
     %s                Prints main packages version.
     
-    %s | %s        Displays a GUI which allows to run the available Scipion workflow demos. 
-    
-    %s [NAME]        Creates a new protocol with a tutorial workflow loaded.
-                           If NAME is empty, the list of available tutorials are shown.
-
     %s | %s FILE       Opens a file with Scipion's showj, or a directory with Browser.
     
     %s [TEMPLATE]    Shows all the *.json.template files found in the config folder
@@ -485,8 +477,7 @@ MODE can be:
        MODE_INSTALL_BINS, MODE_UNINSTALL_BINS, MODE_MANAGER, MODE_INSPECT,
        MODE_ENV, MODE_PROTOCOLS, MODE_RUNPROTOCOL, MODE_PROJECT, MODE_LAST,
        MODE_RUN, MODE_PIP, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_VERSION,
-       MODE_DEMO[0], MODE_DEMO[1], MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
-       MODE_DEMO[1], MODE_UPDATE))
+       MODE_VIEWER[1], MODE_VIEWER[2], MODE_TEMPLATE, MODE_UPDATE))
 
         if mode == MODE_HELP:
             sys.exit(0)

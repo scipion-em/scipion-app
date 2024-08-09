@@ -168,9 +168,10 @@ class PluginInfo(object):
     def uninstallBins(self, binList=None):
         """Uninstall binaries of the plugin.
 
-        :param binList: if  given, will uninstall the binaries in it. The binList
+        :param binList: if given, will uninstall the binaries in it. The binList
         may contain strings with only the name of the binary or
-        name and version in the format name-version
+        name and version in the format name-version. The first one is usually a link
+        to the second one.
 
         :returns None
 
@@ -273,7 +274,13 @@ class PluginInfo(object):
     def setLocalPluginInfo(self, withBins=True):
         """Sets value for the attributes that can be obtained locally if the
         plugin is installed."""
-        if self.isInstalled():
+
+        # when installing/removing binaries, moduleName and plugin are defined,
+        # but pipName is unknown
+        if not self.pipName and self._plugin and withBins:
+            self.binVersions = self.getBinVersions()
+
+        elif self.isInstalled():  # assume pipName is defined
             if withBins:
                 self.binVersions = self.getBinVersions()
 
@@ -419,7 +426,7 @@ class PluginRepository(object):
         binToPluginDict = {}
         for p, pobj in localPlugins.items():
             pinfo = PluginInfo(moduleName=p, plugin=pobj)
-            pbins = pinfo.getBinVersions()
+            pbins = pinfo.binVersions
             binToPluginDict.update({k: p for k in pbins})
             pbinsNoVersion = set([b.split('-', 1)[0] for b in pbins])
             binToPluginDict.update({k: p for k in pbinsNoVersion})

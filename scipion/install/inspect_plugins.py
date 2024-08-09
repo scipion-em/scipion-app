@@ -140,7 +140,7 @@ def showInfo(args, anyError, n):
     pluginName = args[1]
     showBase = True if (n == 4 and args[3] == '--showBase') else False
     plugin = Domain.getPluginModule(pluginName)
-    pluginInfo = PluginInfo('scipion-em-%s' % pluginName)  # FIXME: this should not be hardcoded
+    pluginInfo = PluginInfo(pipName='scipion-em-%s' % pluginName)  # FIXME: this should not be hardcoded
     version = pluginInfo.pipVersion
     bin = pluginInfo.printBinInfoStr()
     print("Plugin name: %s, version: %s" % (pluginName, version))

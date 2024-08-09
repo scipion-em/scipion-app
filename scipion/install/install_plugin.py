@@ -68,8 +68,8 @@ def installPluginMethods():
     #                               Install parser                             #
     ############################################################################
 
-
-    installParser = subparsers.add_parser(MODE_INSTALL_PLUGIN[1], aliases=[MODE_INSTALL_PLUGIN[0]], formatter_class=argparse.RawTextHelpFormatter,
+    installParser = subparsers.add_parser(MODE_INSTALL_PLUGIN[1], aliases=[MODE_INSTALL_PLUGIN[0]],
+                                          formatter_class=argparse.RawTextHelpFormatter,
                                           usage="%s  [-h] [--noBin] [-p pluginName [pipVersion ...]]" %
                                                 invokeCmd,
                                           epilog="Example: %s -p scipion-em-motioncorr 1.0.6 "
@@ -107,7 +107,8 @@ def installPluginMethods():
     #                             Uninstall parser                             #
     ############################################################################
 
-    uninstallParser = subparsers.add_parser(MODE_UNINSTALL_PLUGIN[1], aliases=[MODE_UNINSTALL_PLUGIN[0]], formatter_class=argparse.RawTextHelpFormatter,
+    uninstallParser = subparsers.add_parser(MODE_UNINSTALL_PLUGIN[1], aliases=[MODE_UNINSTALL_PLUGIN[0]],
+                                            formatter_class=argparse.RawTextHelpFormatter,
                                             usage="%s  [-h] [-p pluginName [binVersion ...]]" % invokeCmd,
                                             epilog="Example: %s -p scipion-em-eman2 scipion-em-motioncorr \n\n" %
                                                    invokeCmd,
@@ -172,12 +173,11 @@ def installPluginMethods():
     parserUsed = modeToParser[mode]
     exitWithErrors = False
 
-
     if parsedArgs.help or (mode in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]
                            and len(parsedArgs.binName) == 0):
 
         if mode not in [MODE_INSTALL_BINS, MODE_UNINSTALL_BINS]:
-            parserUsed.epilog += pluginRepo.printPluginInfoStr()
+            parserUsed.epilog += pluginRepo.printPluginInfoStr(withBins=False)
         else:
             env = Environment()
             env.setDefault(False)
@@ -211,7 +211,7 @@ def installPluginMethods():
                     print("ERROR: Couldn't find pluginName for source %s" % pluginSrc)
                     exitWithErrors = True
                 else:
-                    plugin = PluginInfo(pipName=pluginName, pluginSourceUrl=pluginSrc, remote=False)
+                    plugin = PluginInfo(pipName=pluginName, pluginSourceUrl=pluginSrc)
                     numberProcessor = parsedArgs.j
                     installed = plugin.installPipModule()
                     if installed and installBinsDefault() and not parsedArgs.noBin:
@@ -242,7 +242,7 @@ def installPluginMethods():
 
         if parsedArgs.plugin:
             for pluginName in parsedArgs.plugin:
-                plugin = PluginInfo(pluginName, pluginName, remote=False)
+                plugin = PluginInfo(pipName=pluginName)
                 if plugin.isInstalled():
                     if installBinsDefault() and not parsedArgs.noBin:
                         plugin.uninstallBins()
@@ -250,8 +250,8 @@ def installPluginMethods():
                 else:
                     print("WARNING: Plugin %s is not installed." % pluginName)
         else:
-            print("Incorrect usage of command 'uninstallp'. Execute 'scipion3 uninstallp --help' or "
-                  "'scipion3 help' for more details.")
+            print("Incorrect usage of command 'uninstallp'. Execute 'scipion uninstallp --help' or "
+                  "'scipion help' for more details.")
 
     elif parsedArgs.mode == MODE_INSTALL_BINS:
         binToInstallList = parsedArgs.binName
@@ -263,7 +263,7 @@ def installPluginMethods():
                 continue
             pmodule = Config.getDomain().getPlugin(pluginTargetName)
             numberProcessor = parsedArgs.j
-            pinfo = PluginInfo(name=pluginTargetName, plugin=pmodule, remote=False)
+            pinfo = PluginInfo(moduleName=pluginTargetName, plugin=pmodule)
             pinfo.installBin({'args': [binTarget, '-j', numberProcessor]})
 
     elif parsedArgs.mode == MODE_UNINSTALL_BINS:
@@ -276,7 +276,7 @@ def installPluginMethods():
                 print('ERROR: Could not find target %s' % binTarget)
                 continue
             pmodule = Config.getDomain().getPlugin(pluginTargetName)
-            pinfo = PluginInfo(name=pluginTargetName, plugin=pmodule, remote=False)
+            pinfo = PluginInfo(moduleName=pluginTargetName, plugin=pmodule)
             pinfo.uninstallBins([binTarget])
 
     if exitWithErrors:

@@ -93,8 +93,8 @@ class UpdateManager:
                 outdatedPackages.append((package[0], version))
                 print(
                     greenStr('The package %s is out of date. Your version is %s, '
-                           'the latest is %s.' % (package[0], package[1],
-                                                  version)))
+                             'the latest is %s.' % (package[0], package[1],
+                                                    version)))
             elif printAll:
                 print(greenStr('The package %s is up to date.  Your version '
                                'is %s' % (package[0], version)))

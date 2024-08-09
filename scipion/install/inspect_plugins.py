@@ -25,7 +25,6 @@
 # *
 # **************************************************************************
 
-
 import sys
 from os.path import join, exists, dirname
 import importlib
@@ -33,8 +32,6 @@ import inspect
 import traceback
 from collections import OrderedDict
 
-from pwem.protocols import (Prot3D, Prot2D, ProtParticles,
-                            ProtMicrographs, ProtImport)
 from pwem import Domain
 from pyworkflow.protocol import Protocol
 import pyworkflow.utils as pwutils
@@ -42,6 +39,7 @@ import pyworkflow.utils as pwutils
 from scipion.install.plugin_funcs import PluginInfo
 
 ERROR_PREFIX = " error -> %s"
+
 
 def usage(error=""):
 
@@ -109,7 +107,6 @@ def inspectPlugin(args):
         exitWithErrors = showPluginInfo(exitWithErrors, pluginName)
 
     elif n > 2:
-
         exitWithErrors = showInfo(args, exitWithErrors, n)
 
     if exitWithErrors:
@@ -131,27 +128,25 @@ def showPluginInfo(exitWithErrors, pluginName):
             else:
                 exitWithErrors = True
                 msg = ERROR_PREFIX % error
-
         else:
             msg = " loaded"
 
         print("   >>> %s: %s" % (subName, msg))
+
     return exitWithErrors
 
 
 def showInfo(args, anyError, n):
-
     pluginName = args[1]
     showBase = True if (n == 4 and args[3] == '--showBase') else False
     plugin = Domain.getPluginModule(pluginName)
-    pluginInfo = PluginInfo('scipion-em-%s' % pluginName)
+    pluginInfo = PluginInfo(pipName='scipion-em-%s' % pluginName)  # FIXME: this should not be hardcoded
     version = pluginInfo.pipVersion
     bin = pluginInfo.printBinInfoStr()
     print("Plugin name: %s, version: %s" % (pluginName, version))
     print("Plugin binaries: %s" % bin)
 
     anyError = showReferences(anyError, plugin, pluginName)
-
     anyError = showProtocols(anyError, plugin, pluginName, showBase)
 
     return anyError
@@ -159,12 +154,11 @@ def showInfo(args, anyError, n):
 
 def showProtocols(anyError, plugin, pluginName, showBase):
 
-    subclasses=dict()
-
+    subclasses = dict()
     sub, error = getSubmodule(plugin, pluginName, 'protocols')
+
     if sub is None:
         anyError = error is not None
-
     else:
         for name in dir(sub):
             attr = getattr(sub, name)
@@ -175,9 +169,9 @@ def showProtocols(anyError, plugin, pluginName, showBase):
 
                 subclasses[name] = attr
     print("Plugin protocols:\n")
-    print("%-35s %-35s %-s" % (
-        'NAME', 'LABEL', 'DESCRIPTION'))
+    print("%-35s %-35s %-s" % ('NAME', 'LABEL', 'DESCRIPTION'))
     prots = OrderedDict(sorted(subclasses.items()))
+
     for prot in prots:
         label = prots[prot].getClassLabel()
         desc = getFirstLine(prots[prot].__doc__)
@@ -192,12 +186,12 @@ def showProtocols(anyError, plugin, pluginName, showBase):
 
 def showReferences(anyError, plugin, pluginName):
     bib, error2 = getSubmodule(plugin, pluginName, 'bibtex')
+
     if bib is None:
         anyError = error2 is not None
     else:
         print("Plugin references:")
         bibtex = pwutils.parseBibTex(bib.__doc__)
-
         for citeStr in bibtex:
             text = Protocol()._getCiteText(bibtex[citeStr])
             print(text)
@@ -219,4 +213,3 @@ def listAllPlugins():
 
 if __name__ == '__main__':
     inspectPlugin(sys.argv)
-

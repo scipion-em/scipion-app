@@ -49,6 +49,7 @@ __nickname__ = "Eugenius"
 
 # *********************  Helper functions *****************************
 
+
 def getVersion(long=True):
     if long:
         return "v%s - %s" % (__version__, __nickname__)
@@ -58,7 +59,6 @@ def getVersion(long=True):
 
 def printVersion():
     """ Print Scipion version """
-    # Print the version and some more info
     print('Scipion %s' % getVersion())
 
 
@@ -66,7 +66,6 @@ def config2Dict(configFile, varDict):
     """ Loads a config file if exists and populates a dictionary
     overwriting the keys.
     """
-    # If config file exists
     if exists(configFile):
         # read the file
         config = ConfigParser()
@@ -91,28 +90,28 @@ def envOn(varName):
 
 
 def getMode():
-    """ :returns the mode scipion has to be launched """
+    """ Returns the mode scipion has to be launched """
     return MODE_MANAGER if len(sys.argv) == 1 else sys.argv[1]
 
 
 # Auxiliary functions to run commands in our environment, one of our
 # scripts, or one of our "apps"
-def runCmd(cmd, args=''):
+def runCmd(cmd, args=None):
     """ Runs ANY command with its arguments"""
     if isinstance(args, list):
         args = ' '.join('"%s"' % x for x in args)
+    elif args is None:
+        args = ''
 
     cmd = '%s %s' % (cmd, args)
 
     os.environ.update(VARS)
-    # result = os.system(cmd)
-    # Replacement of os.system with subprocess.call(cmd, shell=True)
     result = subprocess.call(cmd, shell=True)
     sys.exit(result)
 
 
 # The following functions require a working SCIPION_PYTHON
-def runScript(scriptCmd, args='', chdir=True):
+def runScript(scriptCmd, args=None, chdir=True):
     """"Runs a PYTHON script appending the profiling prefix if ON"""
     if chdir:
         os.chdir(Vars.SCIPION_HOME)
@@ -125,7 +124,7 @@ def runScript(scriptCmd, args='', chdir=True):
     runCmd(cmd, args)
 
 
-def runApp(app, args='', chdir=True):
+def runApp(app, args=None, chdir=True):
     """Runs an app provided by pyworkflow"""
     runScript(join(Vars.PW_APPS, app), args=args, chdir=chdir)
 
@@ -152,7 +151,7 @@ while len(sys.argv) > 2 and sys.argv[1].startswith('--'):
 
         # Verify existence if not config
         if getMode() != MODE_CONFIG and not exists(scipionConfig):
-            # Here we can react differently,instead of exiting, may be continuing warning about
+            # Here we could react differently: instead of exiting, maybe continue & warn about
             # the missing config file?
             sys.exit('Config file missing: %s' % scipionConfig)
 
@@ -242,15 +241,16 @@ def main():
 
     # Set default VIEWERS value for scipion if not defined:
     if not os.environ.get("VIEWERS", None):
-        defaultViewers = []
-        defaultViewers.append('"Volume":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"VolumeMask":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfTiltSeries":["tomo.viewers.TomoDataViewer"]')
-        defaultViewers.append('"SetOfLandmarkModels":["imod.viewers.ImodViewer"]')
-        defaultViewers.append('"SetOfTomograms":["imod.viewers.ImodViewer"]')
-        defaultViewers.append('"SetOfSubTomograms":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfVolumes":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfParticles":["pwem.viewers.DataViewer"]')
+        defaultViewers = [
+            '"Volume":["pwem.viewers.DataViewer"]',
+            '"VolumeMask":["pwem.viewers.DataViewer"]',
+            '"SetOfTiltSeries":["tomo.viewers.TomoDataViewer"]',
+            '"SetOfLandmarkModels":["imod.viewers.ImodViewer"]',
+            '"SetOfTomograms":["imod.viewers.ImodViewer"]',
+            '"SetOfSubTomograms":["pwem.viewers.DataViewer"]',
+            '"SetOfVolumes":["pwem.viewers.DataViewer"]',
+            '"SetOfParticles":["pwem.viewers.DataViewer"]'
+        ]
 
         os.environ["VIEWERS"] = '{%s}' % ','.join(defaultViewers)
 
@@ -278,11 +278,10 @@ def main():
         from pyworkflow.apps.pw_project import openProject
 
         if mode == MODE_PROJECT:
-            if len(sys.argv)==3:
+            if len(sys.argv) == 3:
                 arg = sys.argv[2]
-
             else:
-                arg = "list" #TODO, import LIST from pyworkflow.apps.pw_project
+                arg = "list"  # TODO, import LIST from pyworkflow.apps.pw_project
         else:
             arg = mode
 
@@ -301,9 +300,6 @@ def main():
 
     elif mode in MODE_VIEWER:
         runApp('pw_viewer.py', args=sys.argv[2:], chdir=False)
-
-    # elif mode == MODE_INSTALL_BINS:
-    #     runScript('scipion install %s' % ' '.join(sys.argv[2:]))
 
     elif mode in PLUGIN_MODES:
         os.environ.update(VARS)
@@ -342,15 +338,13 @@ def main():
 
     elif mode == MODE_ENV:
         # Print all the environment variables needed to run scipion.
-        from pyworkflow.utils import greenStr,yellowStr
+        from pyworkflow.utils import greenStr, yellowStr
 
         # Trigger plugin's variable definition
         pyworkflow.Config.getDomain().getPlugins()
 
         for key, var in pyworkflow.VariablesRegistry.variables().items():
-
-            sys.stdout.write('%s="%s"\n' % (key,var.value))
-
+            sys.stdout.write('%s="%s"\n' % (key, var.value))
             if len(sys.argv) > 2:
                 if var.description is not None:
                     sys.stdout.write(greenStr(var.description+"\n"))
@@ -360,20 +354,17 @@ def main():
 
     elif mode == MODE_RUN:
         # Run any command with the environment of scipion loaded.
-        runCmd('emprogram ' + ' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
+        runCmd('emprogram', sys.argv[2:])
 
     elif mode == MODE_PIP:
         # Runs pip command inside scipion's environment.
-        runCmd('pip ' + ' '.join(['"%s"' % arg for arg in sys.argv[2:]]))
+        runCmd('pip', sys.argv[2:])
 
     elif mode == MODE_PYTHON:
         runScript(' '.join(['"%s"' % arg for arg in sys.argv[2:]]),
-                  chdir=False)
+                  args=None, chdir=False)
 
-    elif mode == MODE_TUTORIAL:
-        runApp(join(Vars.SCIPION_SCRIPTS, 'tutorial.py'), sys.argv[2:])
-
-    elif mode in MODE_DEMO:
+    elif mode == MODE_TEMPLATE:
         from scipion.scripts.kickoff import main as launchKickoff
         # Remove one arg
         sys.argv = sys.argv[1:]
@@ -422,7 +413,7 @@ MODE can be:
 
     %s                Opens the manager with a list of all projects.
 
-    %s                inspect a python module and check if it looks like a scipion plugin. 
+    %s                Inspect a python module and check if it looks like a Scipion plugin. 
     
     %s               Prints the environment variables used by the application.
     
@@ -464,11 +455,6 @@ MODE can be:
                              
     %s                Prints main packages version.
     
-    %s | %s        Displays a GUI which allows to run the available Scipion workflow demos. 
-    
-    %s [NAME]        Creates a new protocol with a tutorial workflow loaded.
-                           If NAME is empty, the list of available tutorials are shown.
-
     %s | %s FILE       Opens a file with Scipion's showj, or a directory with Browser.
     
     %s [TEMPLATE]    Shows all the *.json.template files found in the config folder
@@ -489,8 +475,7 @@ MODE can be:
        MODE_INSTALL_BINS, MODE_UNINSTALL_BINS, MODE_MANAGER, MODE_INSPECT,
        MODE_ENV, MODE_PROTOCOLS, MODE_RUNPROTOCOL, MODE_PROJECT, MODE_LAST,
        MODE_RUN, MODE_PIP, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_VERSION,
-       MODE_DEMO[0], MODE_DEMO[1], MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
-       MODE_DEMO[1], MODE_UPDATE))
+       MODE_VIEWER[1], MODE_VIEWER[2], MODE_TEMPLATE, MODE_UPDATE))
 
         if mode == MODE_HELP:
             sys.exit(0)

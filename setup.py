@@ -34,6 +34,17 @@ setup(
     url='https://github.com/scipion-em/scipion-app',  # Optional
     author='Scipion team',  # Optional
     author_email='scipion@cnb.csic.es',  # Optional
+    classifiers=[  # Optional
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
+        'Topic :: Scientific/Engineering'
+    ],
     keywords='scipion cryoem imageprocessing scipion-3.0',  # Optional
     packages=find_packages(),
     install_requires=[requirements],
@@ -46,7 +57,4 @@ setup(
         ],
         'pyworkflow.guiplugin': 'guiplugin = scipion.guiplugin'
     }
-    # package_data={  # Optional
-    # #    '': [''],
-    # }
 )

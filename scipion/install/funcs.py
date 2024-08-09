@@ -40,7 +40,6 @@ from pyworkflow import Config
 import pwem
 from typing import List, Tuple, Dict
 
-
 # Then we get some OS vars
 MACOSX = (platform.system() == 'Darwin')
 WINDOWS = (platform.system() == 'Windows')
@@ -225,14 +224,12 @@ class Target:
                 print(green('Done (%d m %02d s)' % (dt / 60, int(dt) % 60)))
 
     def __str__(self):
-        return "Name: %s, default: %s, always: %s, commands: %s, final commands: %s, deps: %s." %(
+        return "Name: %s, default: %s, always: %s, commands: %s, final commands: %s, deps: %s." % (
             self._name, self._default, self._always,
-            self._commandList,self._finalCommands, self._deps)
-
+            self._commandList, self._finalCommands, self._deps)
 
 
 class Environment:
-
     def __init__(self, **kwargs):
         self._targetDict = {}
         self._targetList = []
@@ -263,9 +260,6 @@ class Environment:
         self._tarCmd = 'tar -xf %s'
         self._pipCmd = kwargs.get('pipCmd', 'pip install %s==%s')
 
-    def getLibSuffix(self):
-        return self._libSuffix
-
     def getProcessors(self):
         return self._processors
 
@@ -281,11 +275,6 @@ class Environment:
     def getPython():
         return sys.executable
 
-    # Pablo: A quick search didn't find usages.
-    # @staticmethod
-    # def getPythonFolder():
-    #     return Environment.getLibFolder() + '/python2.7'
-
     @staticmethod
     def getPythonPackagesFolder():
         # This does not work on MAC virtual envs
@@ -295,21 +284,12 @@ class Environment:
         from sysconfig import get_paths
         return get_paths()["purelib"]
 
-    @staticmethod
-    def getIncludeFolder():
-        return Environment.getSoftware('include')
-
     def getLib(self, name):
-
         return Environment.getLibFolder('lib%s.%s' % (name, self._libSuffix))
 
     @staticmethod
     def getBinFolder(*paths):
         return os.path.join(mkdir(Environment.getSoftware('bin')), *paths)
-
-    @staticmethod
-    def getBin(name):
-        return Environment.getBinFolder(name)
 
     @staticmethod
     def getTmpFolder():
@@ -421,17 +401,15 @@ class Environment:
             t.addCommand(self._downloadCmd % {'tar': tarFile, 'url': url},
                          targets=tarFile)
 
-
         tarCmd = self._tarCmd % tar
 
         # If we need to create the build dir (True)
         if createBuildDir:
-
             # If is the void one, just mkdir. DO not extract anything
             if tar == VOID_TGZ:
                 tarCmd = 'mkdir %s' % buildPath
             else:
-                tarCmd = 'mkdir {0} && {1} -C {2}'.format(buildPath,tarCmd, buildDir)
+                tarCmd = 'mkdir {0} && {1} -C {2}'.format(buildPath, tarCmd, buildDir)
 
         finalTarget = join(downloadDir, kwargs.get('target', buildDir))
         t.addCommand(tarCmd,
@@ -542,6 +520,7 @@ class Environment:
 
             :param name: pip module name
             :param version: module version - must be specified to prevent undesired updates.
+            :param pipCmd: command to pip install
             :param default: Optional. True if the module has to be installed right after the installation/update of the plugin.
 
             :returns target containing the pip module definition
@@ -601,7 +580,7 @@ class Environment:
         if 'libChecks' in kwargs:
             cmdLibChecks = []
             libChecks = kwargs['libChecks']
-            libChecks = list(libChecks) if type(libChecks) == str else libChecks
+            libChecks = list(libChecks) if isinstance(libChecks, str) else libChecks
             for libName in libChecks:
                 if not checkLib(libName):
                     msg = 'ERROR! Required library %s was not found. Please consider to install it ' \
@@ -675,7 +654,7 @@ class Environment:
     def _getBuildDir(self, kwargs, tarFile):
 
         return kwargs.get('buildDir',
-                   tarFile.rsplit('.tar.gz', 1)[0].rsplit('.tgz', 1)[0].rsplit('.tar')[0])
+                          tarFile.rsplit('.tar.gz', 1)[0].rsplit('.tgz', 1)[0].rsplit('.tar')[0])
 
     def _showTargetGraph(self, targetList):
         """ Traverse the targets taking into account
@@ -799,7 +778,7 @@ class Environment:
 
         if os.path.exists(cudaLib):
             environ.update({'LD_LIBRARY_PATH': cudaLib + ":" +
-                                               environ.get('LD_LIBRARY_PATH',"")})
+                                               environ.get('LD_LIBRARY_PATH', "")})
         if cudaBin and os.path.exists(cudaBin):
             environ.update({'PATH': cudaBin + ":" + environ['PATH']})
 
@@ -860,7 +839,8 @@ class Link:
 
 class CommandDef:
     """ Basic command class to hold the command string and the targets"""
-    def __init__(self, cmd:str, targets:list=[]):
+
+    def __init__(self, cmd: str, targets: list = []):
         """ Constructor
 
         e.g.: Command("git clone .../myrepo", "myrepo")
@@ -891,11 +871,11 @@ class CommandDef:
             lastTargets.extend(targets if isinstance(targets, list) else [targets])
         return self
 
-    def getCommands(self)->list:
+    def getCommands(self) -> list:
         """ Returns the commands"""
         return self._cmds
 
-    def append(self, newCmd:str, targets=None, sep="&&"):
+    def append(self, newCmd: str, targets=None, sep="&&"):
         """ Appends an extra command to the existing one.
 
         :param newCmd: New command to append
@@ -911,7 +891,7 @@ class CommandDef:
 
         # If there is something already
         if cmd:
-            cmd = "%s %s %s" % (cmd , sep, newCmd)
+            cmd = "%s %s %s" % (cmd, sep, newCmd)
         else:
             cmd = newCmd
 
@@ -952,7 +932,7 @@ class CondaCommandDef(CommandDef):
         self._condaActivationCmd = condaActivationCmd.replace("&&", "")
         super().__init__("", None)
 
-        self._envName=envName
+        self._envName = envName
 
     def create(self, extraCmds='', yml=None):
         """ Creates a conda environment with extra commands if passed
@@ -990,13 +970,15 @@ class CondaCommandDef(CommandDef):
 
         return self.append("conda activate %s" % self._envName)
 
+
 def mkdir(path):
     """ Creates a folder if it does not exist"""
     if not exists(path):
         os.makedirs(path)
     return path
 
-class InstallHelper():
+
+class InstallHelper:
     """
     ### This class is intended to be used to ease the plugin installation process.
 
@@ -1019,7 +1001,7 @@ class InstallHelper():
     # Global variables
     DEFAULT_VERSION = '1.0'
 
-    def __init__(self, packageName: str, packageHome: str=None, packageVersion: str=DEFAULT_VERSION):
+    def __init__(self, packageName: str, packageHome: str = None, packageVersion: str = DEFAULT_VERSION):
         """
         ### Constructor for the InstallHelper class.
 
@@ -1035,12 +1017,13 @@ class InstallHelper():
 
         # Private list of tuples containing commands with targets
         self.__commandList = []
-        
+
         # Package name, version, and home
         self.__packageName = packageName
         self.__packageVersion = packageVersion
-        self.__packageHome = packageHome if packageHome else os.path.join(pwem.Config.EM_ROOT, packageName + '-' + packageVersion)
-    
+        self.__packageHome = packageHome if packageHome else os.path.join(pwem.Config.EM_ROOT,
+                                                                          packageName + '-' + packageVersion)
+
     #--------------------------------------- PRIVATE FUNCTIONS ---------------------------------------#
     def __getTargetCommand(self, targetName: str) -> str:
         """
@@ -1054,8 +1037,8 @@ class InstallHelper():
         (str): The command needed to create the target file.
         """
         return 'touch {}'.format(targetName)
-    
-    def __getBinaryEnvName(self, binaryName: str, binaryVersion: str=DEFAULT_VERSION) -> str:
+
+    def __getBinaryEnvName(self, binaryName: str, binaryVersion: str = DEFAULT_VERSION) -> str:
         """
         ### This function returns the env name for a given package and repo.
 
@@ -1067,8 +1050,8 @@ class InstallHelper():
         (str): The enviroment name for this binary.
         """
         return binaryName + "-" + binaryVersion
-    
-    def __getEnvActivationCommand(self, binaryName: str, binaryVersion: str=DEFAULT_VERSION) -> str:
+
+    def __getEnvActivationCommand(self, binaryName: str, binaryVersion: str = DEFAULT_VERSION) -> str:
         """
         ### Returns the conda activation command for the given enviroment.
 
@@ -1080,8 +1063,8 @@ class InstallHelper():
         (str): The enviroment activation command.
         """
         return "conda activate " + self.__getBinaryEnvName(binaryName, binaryVersion=binaryVersion)
-    
-    def __getBinaryNameAndVersion(self, binaryName: str=None, binaryVersion: str=None)  -> Tuple[str, str]:
+
+    def __getBinaryNameAndVersion(self, binaryName: str = None, binaryVersion: str = None) -> Tuple[str, str]:
         """
         ### Returns the binary name and version from an optionally introduced binary name and version.
 
@@ -1095,7 +1078,7 @@ class InstallHelper():
         binaryName = binaryName if binaryName else self.__packageName
         binaryVersion = binaryVersion if binaryVersion else self.__packageVersion
         return binaryName, binaryVersion
-    
+
     #--------------------------------------- PUBLIC FUNCTIONS ---------------------------------------#
     def getCommandList(self) -> List[Tuple[str, str]]:
         """
@@ -1108,7 +1091,7 @@ class InstallHelper():
         commandList = installer.getCommandList()
         """
         return self.__commandList
-    
+
     def importCommandList(self, commandList: List[Tuple[str, str]]):
         """
         ### This function inserts the given formatted commands from another install helper into the current one.
@@ -1128,8 +1111,8 @@ class InstallHelper():
         # Adding given commands to current list
         self.__commandList.extend(commandList)
         return self
-    
-    def addCommand(self, command: str, targetName: str='', workDir: str=''):
+
+    def addCommand(self, command: str, targetName: str = '', workDir: str = ''):
         """
         ### This function adds the given command with target to the command list.
         ### The target file needs to be located inside packageHome's directory so Scipion can detect it.
@@ -1157,8 +1140,9 @@ class InstallHelper():
         command = (workDirCmd + command) if workDir else command
         self.__commandList.append((command + " && {}".format(self.__getTargetCommand(fullTargetName)), targetName))
         return self
-    
-    def addCommands(self, commandList: List[str], binaryName: str=None, workDir:str='', targetNames: List[str]=[]):
+
+    def addCommands(self, commandList: List[str], binaryName: str = None, workDir: str = '',
+                    targetNames: List[str] = []):
         """
         ### This function adds the given commands with targets to the command list.
 
@@ -1178,7 +1162,9 @@ class InstallHelper():
         """
         # Checking if introduced target name list and command list have same size
         if targetNames and len(commandList) != len(targetNames):
-                raise RuntimeError("Error: Introduced target name list is of size {}, but command list is of size {}.".format(len(targetNames), len(commandList)))
+            raise RuntimeError(
+                "Error: Introduced target name list is of size {}, but command list is of size {}.".format(
+                    len(targetNames), len(commandList)))
 
         # Defining binary name
         binaryName = self.__getBinaryNameAndVersion(binaryName=binaryName)[0]
@@ -1189,8 +1175,8 @@ class InstallHelper():
             self.addCommand(commandList[idx], targetName=targetName, workDir=workDir)
 
         return self
-    
-    def getCloneCommand(self, url: str, binaryFolderName: str='', targeName: str=None):
+
+    def getCloneCommand(self, url: str, binaryFolderName: str = '', targeName: str = None):
         """
         ### This function creates the neccessary command to clone a repository from Github.
 
@@ -1215,9 +1201,11 @@ class InstallHelper():
         self.addCommand('git clone {}{}'.format(url, binaryFolderName), targeName, workDir=self.__packageHome)
 
         return self
-    
-    def getCondaEnvCommand(self, binaryName: str=None, binaryPath: str=None, binaryVersion: str=None, pythonVersion: str=None, requirementsFile: bool=False,
-                           requirementFileName: str='requirements.txt', requirementList: List[str]=[], extraCommands: List[str]=[], targetName: str=None):
+
+    def getCondaEnvCommand(self, binaryName: str = None, binaryPath: str = None, binaryVersion: str = None,
+                           pythonVersion: str = None, requirementsFile: bool = False,
+                           requirementFileName: str = 'requirements.txt', requirementList: List[str] = [],
+                           extraCommands: List[str] = [], targetName: str = None):
         """
         ### This function creates the command string for creating a Conda enviroment and installing required dependencies for a given binary inside a package.
 
@@ -1247,7 +1235,9 @@ class InstallHelper():
         binaryName, binaryVersion = self.__getBinaryNameAndVersion(binaryName=binaryName, binaryVersion=binaryVersion)
 
         # Conda env creation
-        createEnvCmd = 'conda create -y -n {}{}'.format(self.__getBinaryEnvName(binaryName, binaryVersion=binaryVersion), (' python={}'.format(pythonVersion)) if pythonVersion else '')
+        createEnvCmd = 'conda create -y -n {}{}'.format(
+            self.__getBinaryEnvName(binaryName, binaryVersion=binaryVersion),
+            (' python={}'.format(pythonVersion)) if pythonVersion else '')
 
         # Command to install pip
         pipInstallCmd = 'conda install pip -y'
@@ -1256,7 +1246,8 @@ class InstallHelper():
         requirementPrefixCmd = '$CONDA_PREFIX/bin/pip install'
 
         # Requirements file name
-        requirementFileName = os.path.join(binaryPath, requirementFileName) if requirementFileName and binaryPath else requirementFileName
+        requirementFileName = os.path.join(binaryPath,
+                                           requirementFileName) if requirementFileName and binaryPath else requirementFileName
 
         # Command for installing Python packages with requirements file
         installWithFile = (requirementPrefixCmd + ' -r ' + requirementFileName) if requirementsFile else ''
@@ -1271,26 +1262,27 @@ class InstallHelper():
             pythonCommands = ' && ' + pipInstallCmd
             pythonCommands += ' && {}'.format(installWithFile) if installWithFile else ''
             pythonCommands += ' && {}'.format(installManual) if installManual else ''
-        
+
         # Defining target name
         targetName = targetName if targetName else '{}_CONDA_ENV_CREATED'.format(binaryName.upper())
-        
+
         # Crafting final command string
-        command = pwem.Plugin.getCondaActivationCmd() + ' ' + createEnvCmd                          # Basic commands: hook and env creation
-        command += ' && ' + self.__getEnvActivationCommand(binaryName, binaryVersion=binaryVersion) # Env activation
+        command = pwem.Plugin.getCondaActivationCmd() + ' ' + createEnvCmd  # Basic commands: hook and env creation
+        command += ' && ' + self.__getEnvActivationCommand(binaryName, binaryVersion=binaryVersion)  # Env activation
         if binaryPath:
-            command += ' && cd {}'.format(binaryPath)                                               # cd to binary path if proceeds
-        command += pythonCommands                                                                   # Python related commands
+            command += ' && cd {}'.format(binaryPath)  # cd to binary path if proceeds
+        command += pythonCommands  # Python related commands
         if extraCommands:
-            command += " && " + " && ".join(extraCommands)                                          # Extra conda commands
+            command += " && " + " && ".join(extraCommands)  # Extra conda commands
         if binaryPath:
-            command += ' && cd {}'.format(self.__packageHome)                                       # Return to package's root directory
-        
+            command += ' && cd {}'.format(self.__packageHome)  # Return to package's root directory
+
         # Adding command
         self.addCommand(command, targetName)
         return self
-    
-    def addCondaPackages(self, packages: List[str], binaryName: str=None, binaryVersion: str=None, channel: str=None, targetName: str=None):
+
+    def addCondaPackages(self, packages: List[str], binaryName: str = None, binaryVersion: str = None,
+                         channel: str = None, targetName: str = None):
         """
         ### This function returns the command used for installing extra packages in a conda enviroment.
 
@@ -1319,14 +1311,18 @@ class InstallHelper():
             self.__condaCommands += 1
 
         # Adding installation command
-        command = "{} {} && conda install -y {}".format(pwem.Plugin.getCondaActivationCmd(), self.__getEnvActivationCommand(binaryName, binaryVersion=binaryVersion), ' '.join(packages))
+        command = "{} {} && conda install -y {}".format(pwem.Plugin.getCondaActivationCmd(),
+                                                        self.__getEnvActivationCommand(binaryName,
+                                                                                       binaryVersion=binaryVersion),
+                                                        ' '.join(packages))
         if channel:
             command += " -c {}".format(channel)
         self.addCommand(command, targetName)
 
         return self
-    
-    def getExtraFile(self, url: str, targetName: str='', location: str=".", workDir: str='', fileName: str=None):
+
+    def getExtraFile(self, url: str, targetName: str = '', location: str = ".", workDir: str = '',
+                     fileName: str = None):
         """
         ### This function creates the command to download with wget the file in the given link into the given path.
         ### The downloaded file will overwrite a local one if they have the same name.
@@ -1360,7 +1356,8 @@ class InstallHelper():
 
         return self
 
-    def getExtraFiles(self, fileList: List[Dict[str, str]], binaryName: str=None, workDir: str='', targetNames: List[str]=None):
+    def getExtraFiles(self, fileList: List[Dict[str, str]], binaryName: str = None, workDir: str = '',
+                      targetNames: List[str] = None):
         """
         ### This function creates the command to download with wget the file in the given link into the given path.
         ### The downloaded file will overwrite a local one if they have the same name.
@@ -1390,8 +1387,9 @@ class InstallHelper():
         """
         # Checking if introduced target name list and file list have same size
         if targetNames and len(fileList) != len(targetNames):
-            raise RuntimeError("Error: Introduced target name list is of size {}, but file list is of size {}.".format(len(targetNames), len(fileList)))
-        
+            raise RuntimeError("Error: Introduced target name list is of size {}, but file list is of size {}.".format(
+                len(targetNames), len(fileList)))
+
         # Defining binary name
         binaryName = self.__getBinaryNameAndVersion(binaryName=binaryName)[0]
 
@@ -1399,22 +1397,25 @@ class InstallHelper():
         for idx in range(len(fileList)):
             # Checking if file dictionary contains url
             if 'url' not in fileList[idx]:
-                raise KeyError("ERROR: Download url has not been set for at least one file. You can create the appropiate dictionary calling function getFileDict.")
-            
+                raise KeyError(
+                    "ERROR: Download url has not been set for at least one file. You can create the appropiate dictionary calling function getFileDict.")
+
             # Getting proper file dictionary
             kwargs = {}
             if 'name' in fileList[idx]:
                 kwargs['name'] = fileList[idx]['name']
             if 'path' in fileList[idx]:
                 kwargs['path'] = fileList[idx]['path']
-            downloadable = fileList[idx] if ('path' in fileList[idx] and 'name' in fileList[idx]) else self.getFileDict(fileList[idx]['url'], **kwargs)
+            downloadable = fileList[idx] if ('path' in fileList[idx] and 'name' in fileList[idx]) else self.getFileDict(
+                fileList[idx]['url'], **kwargs)
 
             targetName = targetNames[idx] if targetNames else ''
-            self.getExtraFile(downloadable['url'], targetName=targetName, location=downloadable['path'], workDir=workDir, fileName=downloadable['name'])
+            self.getExtraFile(downloadable['url'], targetName=targetName, location=downloadable['path'],
+                              workDir=workDir, fileName=downloadable['name'])
 
         return self
-    
-    def addPackage(self, env, dependencies: List[str]=[], default: bool=True, **kwargs):
+
+    def addPackage(self, env, dependencies: List[str] = [], default: bool = True, **kwargs):
         """
         ### This function adds the given package to scipion installation with some provided parameters.
         
@@ -1428,10 +1429,11 @@ class InstallHelper():
         #### Usage:
         installer.addPackage(env, dependencies=['wget', 'conda'], default=True)
         """
-        env.addPackage(self.__packageName, version=self.__packageVersion, tar='void.tgz', commands=self.__commandList, neededProgs=dependencies, default=default, **kwargs)
-    
+        env.addPackage(self.__packageName, version=self.__packageVersion, tar='void.tgz', commands=self.__commandList,
+                       neededProgs=dependencies, default=default, **kwargs)
+
     #--------------------------------------- PUBLIC UTILS FUNCTIONS ---------------------------------------#
-    def getFileDict(self, url: str, path: str='.', fileName: str=None) -> Dict[str, str]:
+    def getFileDict(self, url: str, path: str = '.', fileName: str = None) -> Dict[str, str]:
         """
         ### This function generates the dictionary for a downloadable file.
         

@@ -10,7 +10,7 @@ from .funcs import Environment
 from pwem import Domain
 from pyworkflow.utils import redStr, yellowStr
 from pyworkflow.utils.path import cleanPath
-from pyworkflow import LAST_VERSION, CORE_VERSION, OLD_VERSIONS, Config
+from pyworkflow import LAST_VERSION, CORE_VERSION, Config
 from importlib import reload
 
 NULL_VERSION = "0.0.0"
@@ -29,8 +29,6 @@ PIP_CMD = '{0} -m pip install %(installSrc)s'.format(
 
 PIP_UNINSTALL_CMD = '{0} -m pip uninstall -y %s'.format(
     Environment.getPython())
-
-versions = list(OLD_VERSIONS) + [LAST_VERSION]
 
 
 class PluginInfo(object):

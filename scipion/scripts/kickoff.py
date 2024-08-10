@@ -45,16 +45,15 @@ import pyworkflow as pw
 from pyworkflow.config import VarTypes
 import pyworkflow.utils as pwutils
 from pyworkflow.gui import Message, dialog, askPath
-from pyworkflow.project import Project
-import pyworkflow.gui as pwgui
+from pyworkflow.gui.tree import ListTreeProviderTemplate
 from pyworkflow.gui.project.base import ProjectBaseWindow
 from pyworkflow.gui.widgets import HotButton, Button
+from pyworkflow.project import Project
 from pyworkflow.template import TemplateList, LocalTemplate, Template
-from scipion.constants import SCIPION_EP, MODE_PROJECT
 
-# Custom labels
+from scipion.constants import SCIPION_EP, MODE_PROJECT
 from scipion.utils import getExternalJsonTemplates
-from pyworkflow.utils import Icon
+
 
 ENTRY = 'entry'
 LABEL = 'label'
@@ -65,7 +64,6 @@ NO = "No"
 FLAG_PARAM = "--"
 NOGUI_FLAG = FLAG_PARAM + "nogui"
 NOSCHEDULE_FLAG = FLAG_PARAM + "noschedule"
-
 
 ACCEPT_BUTTON = "Accept"
 LEN_LABEL_IN_CHARS = 30
@@ -82,7 +80,7 @@ DO_NOT_SCHEDULE = "Cancel schedule"
 DO_NOT_SHOW_GUI = "Don't show the project"
 
 # Project regex to validate the session id name
-PROJECT_PATTERN = "^\w{2}\d{4,6}-\d+$"
+PROJECT_PATTERN = r"^\w{2}\d{4,6}-\d+$"
 PROJECT_REGEX = re.compile(PROJECT_PATTERN)
 
 
@@ -145,7 +143,7 @@ class KickoffWindow(ProjectBaseWindow):
 
 
 class KickoffView(tk.Frame):
-    def __init__(self, parent, window, template:Template=None, argsList=[],
+    def __init__(self, parent, window, template: Template = None, argsList=[],
                  showScheduleOption=True, schedule=True, showProjectOption=True,
                  showProject=True, showProjectName=True, **kwargs):
 
@@ -250,13 +248,15 @@ class KickoffView(tk.Frame):
 
             if varType in (VarTypes.FOLDER.value, VarTypes.PATH.value):
                 def searchPath(onlyFolders):
-                    result= askPath(path=var.get(), onlyFolders=onlyFolders, master=self.window)
+                    result = askPath(path=var.get(), onlyFolders=onlyFolders, master=self.window)
                     var.set(result)
 
-                btn = tk.Label(lf, text="", font=self.bigFont, image=self.window.getImage(Icon.FOLDER), bg=pw.Config.SCIPION_BG_COLOR)
+                btn = tk.Label(lf, text="", font=self.bigFont, image=self.window.getImage(pwutils.Icon.FOLDER),
+                               bg=pw.Config.SCIPION_BG_COLOR)
                 btn.bind('<Button-1>', lambda e: searchPath(varType == VarTypes.FOLDER.value))
 
-                btn.grid(row=r,column=2)
+                btn.grid(row=r, column=2)
+
     def _addTemplateFieldsToForm(self, labelFrame):
         row = 5
         for field in self.template.params.values():
@@ -348,7 +348,7 @@ def chooseTemplate(templates, parentWindow=None):
     if len(templates) == 1:
         chosenTemplate = templates[0]
     else:
-        provider = pwgui.tree.ListTreeProviderTemplate(templates)
+        provider = ListTreeProviderTemplate(templates)
         dlg = dialog.ListDialog(parentWindow, "Workflow templates", provider,
                                 "Select one of the templates.",
                                 selectOnDoubleClick=True)
@@ -466,7 +466,6 @@ def createProjectFromWorkflow(workflow, projectName, argsList):
     time.sleep(2)
 
     if scheduleProject(argsList):
-
         # Schedule the project
         scheduleProjectScript = os.path.join(scriptsPath, 'schedule.py')
         print("Scheduling project %s" % projectName)
@@ -475,7 +474,6 @@ def createProjectFromWorkflow(workflow, projectName, argsList):
         time.sleep(5)
 
     if launchGUI(argsList):
-
         print("Showing project %s" % projectName)
         # Launch scipion
         subprocess.Popen(["python", "-m", scipion, MODE_PROJECT, projectName])

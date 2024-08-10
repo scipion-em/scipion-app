@@ -28,7 +28,7 @@
 import sys
 from os.path import join, dirname, exists, isdir
 from os import environ
-import importlib
+import importlib.util
 
 
 def getScipionHome():
@@ -38,10 +38,10 @@ def getScipionHome():
         sys.exit("SCIPION_HOME environment variable must be set")
 
     if not exists(home):
-        sys.exit("SCIPION_HOME value (%s) does not exists." % home)
+        sys.exit("SCIPION_HOME value (%s) does not exist" % home)
 
     if not isdir(home):
-        sys.exit("SCIPION_HOME value (%s) is not a folder." % home)
+        sys.exit("SCIPION_HOME value (%s) is not a folder" % home)
 
     return home
 

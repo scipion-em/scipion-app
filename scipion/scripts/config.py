@@ -185,9 +185,6 @@ def createConf(fpath, ftemplate, unattended=False):
     print(yellow("* Creating configuration file: %s" % fpath))
     print("Please edit it to reflect the configuration of your system.\n")
 
-    if not exists(ftemplate):
-        raise FileNotFoundError('Missing file: %s' % ftemplate)
-
     # Special case for scipion config
     if getTemplateName(SCIPION_CONF) in ftemplate:
         cf = ConfigParser()
@@ -201,6 +198,9 @@ def createConf(fpath, ftemplate, unattended=False):
         # Create the actual configuration file.
         cf.write(open(fpath, 'w'))
     else:
+        if not os.path.exists(ftemplate):
+            raise FileNotFoundError('Missing file: %s' % ftemplate)
+
         # For host.conf and protocols.conf, just copy files
         copyfile(ftemplate, fpath)
 

@@ -1,3 +1,5 @@
+V3.6.1
+ - Fix config --overwrite: scipion.template (deleted) not needed.
 V3.6.0
  - Template window shows browser icons
  - Template window adapted to use workflow hub templates

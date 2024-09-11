@@ -45,18 +45,28 @@ ERROR_PREFIX = " error -> %s"
 
 def usage(error=""):
 
+    exitCode =0
     if error:
         error = "ERROR: %s\n" % error
+        exitCode = 1
 
     print("""%s
-    Usage: scipion python scripts/inspect_plugins.py [PLUGIN-NAME] [info] [--showBase]
-        This script loads all Scipion plugins found.
+    Usage: scipion3 python -m scipion.install.inspect_plugins [h]|[all]|[PLUGIN-NAME] [info] [--showBase]
+        
+        Without parameters this will show the list of avaialble plugins.
+        
+        With 'all' will print all objects discovered (protocols, viewers, wizards, objects)
+        
+        With 'h' will print this help maessage.
+        
         If a PLUGIN-NAME is passed, it will inspect that plugin
-        in more detail.
-        'info' argument will print plugin summary,
-        '-showBase' will print Base class protocols (hidden by default).
+        in more detail. Useful to discover loading time errors of the plugin.
+        
+          - 'info' argument will print plugin summary of the plugin,
+          - '-showBase' will print Base class protocols (hidden by default).
+        
     """ % error)
-    sys.exit(1)
+    sys.exit(exitCode)
 
 
 def getSubmodule(plugin, name, subname):
@@ -99,11 +109,15 @@ def inspectPlugin(args):
         usage("Incorrect number of input parameters")
 
     if n == 1:  # List all plugins
-        listAllPlugins()
+        printPlugins()
 
     elif n == 2:
-        if args[1] in ['-h', '--help', 'help']:
+        firstArg = args[1]
+        if firstArg in ['-h', 'h', '--help', 'help']:
             usage()
+
+        elif firstArg in ['all', '-all', '--all']:
+            listAllPlugins()
 
         pluginName = args[1]
         exitWithErrors = showPluginInfo(exitWithErrors, pluginName)
@@ -203,18 +217,28 @@ def showReferences(anyError, plugin, pluginName):
             print(text)
     return anyError
 
-
-def listAllPlugins():
+def printPlugins():
+    """ Print all plugins found found """
     plugins = Domain.getPlugins()
     print("Plugins:")
+    print("scipion3 inspect <plugin-name-bellow> for a more detailed information about the plugin")
     for k, v in plugins.items():
         print("-", k)
+
+def listAllPlugins():
+
+    printPlugins()
+
     print("Objects")
     pwutils.prettyDict(Domain.getObjects())
+
     print("Protocols")
     pwutils.prettyDict(Domain.getProtocols())
+
     print("Viewers")
     pwutils.prettyDict(Domain.getViewers())
+
+    sys.exit(0)
 
 
 if __name__ == '__main__':

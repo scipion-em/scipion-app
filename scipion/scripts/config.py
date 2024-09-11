@@ -89,10 +89,9 @@ def main(args=None):
     unattended = options.notify or options.unattended
 
     if options.p:
-        import pyworkflow.utils as pwutils
+        from pyworkflow import Config
         pluginName = options.p
-        plugin = (pwutils.Config.getDomain().
-                  importFromPlugin(pluginName, 'Plugin'))
+        plugin = (Config.getDomain().importFromPlugin(pluginName, 'Plugin'))
 
         if plugin is not None:
             plugin._defineVariables()
@@ -109,9 +108,15 @@ def main(args=None):
                   % url)
 
         else:
-            print("No plugin found with name '%s'. Module name is expected,\n"
-                  "i.e. 'scipion3 config -p xmipp3' shows the config variables "
-                  "defined in 'scipion-em-xmipp' plugin." % pluginName)
+            print("No plugin found with name '%s'. Module name is expected.\n" % pluginName)
+
+            plugins = Config.getDomain().getPlugins()
+            print("\nPlugins available:\n")
+            for k in sorted(plugins.keys()):
+                print(k)
+
+            print("\nExample: 'scipion3 config -p xmipp3' shows the config variables "
+              "defined in 'scipion-em-xmipp' plugin.")
 
         sys.exit(0)
     elif options.show:

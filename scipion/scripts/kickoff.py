@@ -426,14 +426,14 @@ def createTemplateFile(template):
     return workflow
 
 
-def launchTemplate(argsList, template):
+def launchTemplate(argsList, template:Template):
     """ Launches a resolved template"""
     workflow = createTemplateFile(template)
     if workflow is not None:
         # Create the project
         if not template.projectName:
             template.genProjectName()
-        createProjectFromWorkflow(workflow, template.projectName, argsList)
+        createProjectFromWorkflow(workflow, template.projectName, argsList, template.description)
 
 
 def importTemplate(template, window):
@@ -451,7 +451,7 @@ def importTemplate(template, window):
             window.showError(str(ex), exception=ex)
 
 
-def createProjectFromWorkflow(workflow, projectName, argsList):
+def createProjectFromWorkflow(workflow, projectName, argsList, comment):
     scipion = SCIPION_EP
     scriptsPath = pw.join('project', 'scripts')
 
@@ -461,7 +461,10 @@ def createProjectFromWorkflow(workflow, projectName, argsList):
     # Create the project
     print("Creating project %s" % projectName)
     createProjectScript = os.path.join(scriptsPath, 'create.py')
-    os.system("python -m %s  python %s %s %s" % (scipion, createProjectScript, projectName, workflow))
+
+    # Escape ' in bash --> '"'"' (gluing)
+    comment = comment.replace("'", "'\"'\"'")
+    os.system("python -m %s  python %s %s %s - '%s'" % (scipion, createProjectScript, projectName, workflow, comment))
     # Wait 2 seconds to avoid activity
     time.sleep(2)
 

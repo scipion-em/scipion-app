@@ -1,6 +1,7 @@
 V3.7.0
  - scipion3 config -p xxx shows list of available modules if xxx is not found
  - scipion3 inspect: shows a list of available modules. all argument list all discovered elements.
+ - Default viewers for some tomo sets: Masks, Meshes and Coordinates3D
 
 V3.6.1
  - Fix config --overwrite: scipion.template (deleted) not needed.

@@ -129,6 +129,8 @@ class PluginInfo(object):
                 # install from dir in editable mode
                 installSrc = '-e %s' % self.pluginSourceUrl
                 target = "%s*" % self.pipName
+                if os.path.exists(os.path.join(self.pluginSourceUrl, 'pyproject.toml')):
+                    target = target.replace('-', '_')
             else:
                 # path doesn't exist, we assume is git and force install
                 installSrc = '--upgrade git+%s' % self.pluginSourceUrl

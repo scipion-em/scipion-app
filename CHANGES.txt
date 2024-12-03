@@ -1,5 +1,5 @@
 V3.7.2:
- -
+ - Sets value for the attributes that need to be obtained from pypi
 
 V3.7.1
  - Allowing to install plugins via .toml file

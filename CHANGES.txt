@@ -1,12 +1,9 @@
-V3.7.2:
- - Sets value for the attributes that need to be obtained from pypi
-
-V3.7.1
- - Allowing to install plugins via .toml file
 
 V3.7.0
  - scipion3 config -p xxx shows list of available modules if xxx is not found
  - scipion3 inspect: shows a list of available modules. all argument list all discovered elements.
+ - Allowing to install plugins via .toml file
+ - Sets value for the attributes that need to be obtained from pypi
  - Default viewers for some tomo sets: Masks, Meshes and Coordinates3D
 
 V3.6.1

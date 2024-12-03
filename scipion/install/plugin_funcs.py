@@ -244,17 +244,16 @@ class PluginInfo(object):
 
     def setRemotePluginInfo(self):
         """Sets value for the attributes that need to be obtained from pypi"""
-        reg = r'scipion-([\d.]*\d)'
         pipData = self.getPipJsonData()
         if not pipData:
             return
         info = pipData['info']
         releases = self.getCompatiblePipReleases(pipJsonData=pipData)
 
-        self.homePage = self.getPidData(info, 'home_page', backupKeys=['project_urls.Homepage'])
-        self.summary = self.getPidData(info, 'summary')
-        self.author = self.getPidData(info, 'author', backupKeys=['author_email'])
-        self.email = self.getPidData(info, 'author_email')
+        self.homePage = self.getPipData(info, ['home_page', 'project_urls.Homepage'])
+        self.summary = self.getPipData(info, ['summary'])
+        self.author = self.getPipData(info, ['author', 'author_email'])
+        self.email = self.getPipData(info, ['author_email'])
         self.compatibleReleases = releases
         self.latestRelease = releases['latest']
 
@@ -265,37 +264,30 @@ class PluginInfo(object):
         self.latestRelease = DEVEL_VERSION
         self.author = ' Developer mode'
 
-    def getPidData(self, info, key, backupKeys=None):
+    def getPipData(self, info, keys):
         """
         Extracts a value from a dictionary (info) based on the primary key.
         Supports nested keys using dot notation (e.g., "project_urls.Homepage").
 
         :param info: Dictionary containing data (e.g., pip info).
-        :param key: Primary key to extract the value (dot notation for nested keys).
-        :param backupKeys: Optional list of backup keys to try if the primary key is absent.
+        :param keys: List of keys to extract the value (dot notation for nested keys).
         :return: The extracted value or '' if no keys match.
         """
 
-        def getNestedValue(data, nestedKey):
-            keys = nestedKey.split(".")
-            for k in keys:
+        def getNestedValue(data, key):
+            keysList = key.split(".")
+            for k in keysList:
                 if isinstance(data, dict) and k in data:
                     data = data[k]
                 else:
                     return None
             return data
 
-        # Try the main key
-        value = getNestedValue(info, key)
-        if value:
-            return value
-
         # Try backup keys if the main key doesn't yield a value
-        if backupKeys:
-            for backupKey in backupKeys:
-                value = getNestedValue(info, backupKey)
-                if value:
-                    return value
+        for key in keys:
+            value = getNestedValue(info, key)
+            if value:
+                return value
         return ' '
 
     # ###################### Local data funcs ############################

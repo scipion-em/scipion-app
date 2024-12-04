@@ -248,9 +248,12 @@ def main():
         defaultViewers.append('"SetOfTiltSeries":["tomo.viewers.TomoDataViewer"]')
         defaultViewers.append('"SetOfLandmarkModels":["imod.viewers.ImodViewer"]')
         defaultViewers.append('"SetOfTomograms":["imod.viewers.ImodViewer"]')
+        defaultViewers.append('"SetOfTomoMasks":["imod.viewers.ImodViewer"]')
         defaultViewers.append('"SetOfSubTomograms":["pwem.viewers.DataViewer"]')
         defaultViewers.append('"SetOfVolumes":["pwem.viewers.DataViewer"]')
         defaultViewers.append('"SetOfParticles":["pwem.viewers.DataViewer"]')
+        defaultViewers.append('"SetOfCoordinates3D":["emantomo.viewers.EmanDataViewer", "dynamo.viewers.DynamoDataViewer"]')
+        defaultViewers.append('"SetOfMeshes":["dynamo.viewers.DynamoDataViewer"]')
 
         os.environ["VIEWERS"] = '{%s}' % ','.join(defaultViewers)
 

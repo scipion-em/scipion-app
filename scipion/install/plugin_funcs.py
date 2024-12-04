@@ -129,6 +129,8 @@ class PluginInfo(object):
                 # install from dir in editable mode
                 installSrc = '-e %s' % self.pluginSourceUrl
                 target = "%s*" % self.pipName
+                if os.path.exists(os.path.join(self.pluginSourceUrl, 'pyproject.toml')):
+                    target = target.replace('-', '_')
             else:
                 # path doesn't exist, we assume is git and force install
                 installSrc = '--upgrade git+%s' % self.pluginSourceUrl
@@ -242,17 +244,16 @@ class PluginInfo(object):
 
     def setRemotePluginInfo(self):
         """Sets value for the attributes that need to be obtained from pypi"""
-        reg = r'scipion-([\d.]*\d)'
         pipData = self.getPipJsonData()
         if not pipData:
             return
         info = pipData['info']
         releases = self.getCompatiblePipReleases(pipJsonData=pipData)
 
-        self.homePage = info['home_page']
-        self.summary = info['summary']
-        self.author = info['author']
-        self.email = info['author_email']
+        self.homePage = self.getPipData(info, ['home_page', 'project_urls.Homepage'])
+        self.summary = self.getPipData(info, ['summary'])
+        self.author = self.getPipData(info, ['author', 'author_email'])
+        self.email = self.getPipData(info, ['author_email'])
         self.compatibleReleases = releases
         self.latestRelease = releases['latest']
 
@@ -262,6 +263,32 @@ class PluginInfo(object):
         self.compatibleReleases = {DEVEL_VERSION: {'upload_time': '   devel_mode'}}
         self.latestRelease = DEVEL_VERSION
         self.author = ' Developer mode'
+
+    def getPipData(self, info, keys):
+        """
+        Extracts a value from a dictionary (info) based on the primary key.
+        Supports nested keys using dot notation (e.g., "project_urls.Homepage").
+
+        :param info: Dictionary containing data (e.g., pip info).
+        :param keys: List of keys to extract the value (dot notation for nested keys).
+        :return: The extracted value or '' if no keys match.
+        """
+
+        def getNestedValue(data, key):
+            keysList = key.split(".")
+            for k in keysList:
+                if isinstance(data, dict) and k in data:
+                    data = data[k]
+                else:
+                    return None
+            return data
+
+        # Try backup keys if the main key doesn't yield a value
+        for key in keys:
+            value = getNestedValue(info, key)
+            if value:
+                return value
+        return ' '
 
     # ###################### Local data funcs ############################
 

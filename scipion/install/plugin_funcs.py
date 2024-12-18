@@ -142,7 +142,7 @@ class PluginInfo(object):
 
         cmd = PIP_CMD % {'installSrc': installSrc}
 
-        pipModule = environment.addPipModule(self.pipName,
+        environment.addPipModule(self.pipName,
                                              target=target,
                                              pipCmd=cmd)
 
@@ -157,6 +157,7 @@ class PluginInfo(object):
             reload(pkg_resources)
             self.dirName = self.getDirName()
             Domain.refreshPlugin(self.dirName)
+            self._plugin = None
         return True
 
     def installBin(self, args=None):

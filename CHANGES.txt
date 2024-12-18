@@ -1,4 +1,6 @@
 
+V3.7.1
+ - Plugin refreshes completely after a plugin update avoiding mixing definition of old and new binaries
 V3.7.0
  - scipion3 config -p xxx shows list of available modules if xxx is not found
  - scipion3 inspect: shows a list of available modules. all argument list all discovered elements.

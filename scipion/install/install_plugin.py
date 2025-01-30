@@ -24,6 +24,8 @@
 # *
 # **************************************************************************
 
+import logging
+logger = logging.getLogger(__name__)
 import sys
 import argparse
 import os
@@ -214,6 +216,7 @@ def installPluginMethods():
                     plugin = PluginInfo(pipName=pluginName, pluginSourceUrl=pluginSrc, remote=False)
                     numberProcessor = parsedArgs.j
                     installed = plugin.installPipModule()
+
                     if installed and installBinsDefault() and not parsedArgs.noBin:
                         plugin.getPluginClass()._defineVariables()
                         plugin.installBin({'args': ['-j', numberProcessor]})

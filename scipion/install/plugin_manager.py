@@ -23,6 +23,9 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
+import logging
+logger = logging.getLogger(__name__)
+logger.debug("Plugin manager running in devel mode")
 from logging.handlers import RotatingFileHandler
 from tkinter import *
 import threading
@@ -955,14 +958,13 @@ class PluginBrowser(tk.Frame):
         """
         global pluginDict
         pluginDict = pluginRepo.getPlugins(getPipData=True)
-        pluginList = sorted(pluginDict.keys(), reverse=True)
         countPlugin = self.progressbar['value']
         self.tree.delete(*self.tree.get_children())
-        self.progressbar["maximum"] = countPlugin + len(pluginList)
-        for pluginName in pluginList:
+        self.progressbar["maximum"] = countPlugin + len(pluginDict)
+        for pluginName in sorted(pluginDict.keys(), reverse=True):
             countPlugin = countPlugin + 1
             self.progressbar['value'] = countPlugin
-            plugin = PluginInfo(pluginName, pluginName, remote=False)
+            plugin = pluginDict[pluginName]## Already done inside pluginRepo.getPlugins?? PluginInfo(pluginName, pluginName, remote=False)
             if plugin is not None:
                 tag = PluginStates.UNCHECKED
                 if plugin._getPlugin():
@@ -995,7 +997,7 @@ class PluginBrowser(tk.Frame):
                                                  text=binaryName, tags=tag,
                                                  values=PluginStates.BINARY)
                 else:
-                    latestRelease = pluginDict.get(pluginName).getLatestRelease()
+                    latestRelease = plugin.getLatestRelease()
                     if latestRelease != NULL_VERSION:
                         self.tree.insert("", 0, pluginName, text=pluginName,
                                          tags=tag, values=PluginStates.PLUGIN)

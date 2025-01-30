@@ -11,19 +11,18 @@ all steps are tracked and can be reproduced later on.
 
 Want to learn more? [Go to our web site.](https://scipion.i2pc.es)
 
+.. image:: https://img.shields.io/pypi/v/scipion-app.svg
+        :target: https://pypi.python.org/pypi/scipion-app
+        :alt: PyPI release
 
-.. figure:: https://travis-ci.org/I2PC/scipion.svg?branch=devel
-   :align: left
-   :alt: Build Status
+.. image:: https://sonarcloud.io/api/project_badges/measure?project=scipion-em_scipion-app&metric=alert_status
+        :alt: Quality Gate Status
+        :target: https://sonarcloud.io/summary/new_code?id=scipion-em_scipion-app
 
-.. figure:: https://sonarcloud.io/api/project_badges/measure?project=Scipion&metric=alert_status
-   :align: left
-   :alt: Quality Gate
+.. image:: https://img.shields.io/pypi/dm/scipion-app
+        :target: https://pypi.python.org/pypi/scipion-app
+        :alt: Downloads
 
-.. figure:: https://sonarcloud.io/api/project_badges/measure?project=Scipion&metric=sqale_index
-   :align: left
-   :alt: Technical debt
-
-.. figure:: https://sonarcloud.io/api/project_badges/measure?project=Scipion&metric=bugs
-   :align: left
-   :alt: Bugs
+.. image:: https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
+        :alt: Contributor Covenant
+        :target: https://www.contributor-covenant.org/version/2/0/code_of_conduct/

@@ -315,6 +315,9 @@ def main():
 
     elif mode == MODE_PLUGINS:
         os.environ.update(VARS)
+        # TODO 30-01-2025: pass console level param when released
+        from pyworkflow.utils import LoggingConfigurator
+        LoggingConfigurator.setupLogging()  # consoleLevel=pyworkflow.Config.SCIPION_LOG_LEVEL)
         from scipion.install.plugin_manager import PluginManager
         PluginManager("Plugin manager", None).show()
 

@@ -80,7 +80,7 @@ class PluginInfo(object):
             try:
                 self._dist = importlib_metadata.distribution(self.pipName)
             except Exception as e:
-                logger.debug("Distribution not found: %s" % e)
+                logger.debug("Distribution not found for %s: %s" % (self.pipName, e))
                 pass
         return self._dist
 

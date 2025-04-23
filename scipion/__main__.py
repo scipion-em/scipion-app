@@ -240,25 +240,31 @@ def main():
     # Prepare the environment
     os.environ.update(VARS)
 
-    # Set default VIEWERS value for scipion if not defined:
-    if not os.environ.get("VIEWERS", None):
-        defaultViewers = []
-        defaultViewers.append('"Volume":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"VolumeMask":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfTiltSeries":["tomo.viewers.TomoDataViewer"]')
-        defaultViewers.append('"SetOfLandmarkModels":["imod.viewers.ImodViewer"]')
-        defaultViewers.append('"SetOfTomograms":["imod.viewers.ImodViewer"]')
-        defaultViewers.append('"SetOfTomoMasks":["imod.viewers.ImodViewer"]')
-        defaultViewers.append('"SetOfSubTomograms":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfVolumes":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfParticles":["pwem.viewers.DataViewer"]')
-        defaultViewers.append('"SetOfCoordinates3D":["emantomo.viewers.EmanDataViewer", "dynamo.viewers.DynamoDataViewer"]')
-        defaultViewers.append('"SetOfMeshes":["dynamo.viewers.DynamoDataViewer"]')
-
-        os.environ["VIEWERS"] = '{%s}' % ','.join(defaultViewers)
-
     # Trigger Config initialization once environment is ready
     import pyworkflow
+
+    # Set default VIEWERS value for scipion if not defined:
+    viewers = pyworkflow.Config.VIEWERS
+
+    if len(viewers) == 0:
+        xmippViewer = "pwem.viewers.DataViewer"
+        sciViewer = "pwem.viewers.mdviewer.MDViewer"
+        viewers["Volume"] = [xmippViewer]
+        viewers["VolumeMask"] = [xmippViewer]
+        viewers["SetOfTiltSeries"] = ["tomo.viewers.TomoDataViewer"]
+        viewers["SetOfLandmarkModels"] = ["imod.viewers.ImodViewer"]
+        viewers["SetOfTomograms"] = ["imod.viewers.ImodViewer"]
+        viewers["SetOfTomoMasks"] = ["imod.viewers.ImodViewer"]
+        viewers["SetOfSubTomograms"] = [sciViewer, xmippViewer]
+        viewers["SetOfVolumes"] = [sciViewer, xmippViewer]
+        viewers["SetOfParticles"] = [sciViewer, xmippViewer]
+        viewers["SetOfCoordinates3D"] = ["emantomo.viewers.EmanDataViewer", "dynamo.viewers.DynamoDataViewer"]
+        viewers["SetOfCoordinates"] = [xmippViewer]
+        viewers["SetOfMeshes"] = ["dynamo.viewers.DynamoDataViewer"]
+        viewers["SetOfFSCs"] = ["pwem.viewers.FscViewer"]
+        var = pyworkflow.VariablesRegistry._variables["VIEWERS"]
+        var.default = viewers
+        var.value =viewers
     pwVARS = pyworkflow.Config.getVars()
     VARS.update(pwVARS)
 
@@ -305,11 +311,11 @@ def main():
     elif mode in MODE_VIEWER:
         runApp('pw_viewer.py', args=sys.argv[2:], chdir=False)
 
-    # elif mode == MODE_INSTALL_BINS:
-    #     runScript('scipion install %s' % ' '.join(sys.argv[2:]))
-
     elif mode in PLUGIN_MODES:
         os.environ.update(VARS)
+        from pyworkflow.utils import LoggingConfigurator
+        LoggingConfigurator.setupLogging() # consoleLevel=pyworkflow.Config.SCIPION_LOG_LEVEL)
+
         from scipion.install.install_plugin import installPluginMethods
         installPluginMethods()
 

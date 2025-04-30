@@ -1,6 +1,7 @@
 V3.8.0
  - Plugin installation refactored (pkg_resources removed,using importlib instead)
  - Logging used instead of prints
+ - using toml
 V3.7.1
  - Plugin refreshes completely after a plugin update avoiding mixing definition of old and new binaries
 V3.7.0

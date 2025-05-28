@@ -249,12 +249,15 @@ def main():
     if len(viewers) == 0:
         xmippViewer = "pwem.viewers.DataViewer"
         sciViewer = "pwem.viewers.mdviewer.MDViewer"
+        imodViewer = "imod.viewers.ImodViewer"
+
+
         viewers["Volume"] = [xmippViewer]
         viewers["VolumeMask"] = [xmippViewer]
-        viewers["SetOfTiltSeries"] = ["tomo.viewers.TomoDataViewer"]
-        viewers["SetOfLandmarkModels"] = ["imod.viewers.ImodViewer"]
-        viewers["SetOfTomograms"] = ["imod.viewers.ImodViewer"]
-        viewers["SetOfTomoMasks"] = ["imod.viewers.ImodViewer"]
+        viewers["SetOfTiltSeries"] = ["tomo.viewers.AATomoDataViewer"]
+        viewers["SetOfLandmarkModels"] = [imodViewer]
+        viewers["SetOfTomograms"] = [imodViewer]
+        viewers["SetOfTomoMasks"] = [imodViewer]
         viewers["SetOfSubTomograms"] = [sciViewer, xmippViewer]
         viewers["SetOfVolumes"] = [sciViewer, xmippViewer]
         viewers["SetOfParticles"] = [sciViewer, xmippViewer]
@@ -321,9 +324,8 @@ def main():
 
     elif mode == MODE_PLUGINS:
         os.environ.update(VARS)
-        # TODO 30-01-2025: pass console level param when released
         from pyworkflow.utils import LoggingConfigurator
-        LoggingConfigurator.setupLogging()  # consoleLevel=pyworkflow.Config.SCIPION_LOG_LEVEL)
+        LoggingConfigurator.setupLogging(consoleLevel=pyworkflow.Config.SCIPION_LOG_LEVEL)
         from scipion.install.plugin_manager import PluginManager
         PluginManager("Plugin manager", None).show()
 

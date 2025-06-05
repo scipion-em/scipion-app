@@ -318,7 +318,7 @@ class PluginInfo(object):
                     :param prodKey: key in the metadata to get the value
                     :param altKey: alternative key in case prodKey does not exist"""
                     if prodKey in jsonMetadata:
-                        return jsonMetadata(prodKey)
+                        return jsonMetadata[prodKey]
                     else:
                         try:
                             value = jsonMetadata[altKey]

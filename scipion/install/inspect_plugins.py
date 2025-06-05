@@ -35,6 +35,7 @@ from collections import OrderedDict
 
 from pwem.protocols import (Prot3D, Prot2D, ProtParticles,
                             ProtMicrographs, ProtImport)
+from pyworkflow.viewer import Viewer
 from pwem import Domain
 from pyworkflow.protocol import Protocol
 import pyworkflow.utils as pwutils
@@ -168,7 +169,36 @@ def showInfo(args, anyError, n):
 
     anyError = showProtocols(anyError, plugin, pluginName, showBase)
 
+    anyError = showViewers(anyError, plugin, pluginName)
+
     return anyError
+
+def showViewers(anyError, plugin, pluginName):
+
+    subclasses=dict()
+
+    sub, error = getSubmodule(plugin, pluginName, 'viewers')
+    if sub is None:
+        anyError = error is not None
+
+    else:
+        for name in dir(sub):
+            attr = getattr(sub, name)
+            if inspect.isclass(attr) and issubclass(attr, Viewer):
+                # Set this special property used by Scipion
+                subclasses[name] = attr
+    print("Plugin viewers:\n")
+    print("%-35s %-35s %-s" % (
+        'NAME', 'LABEL', 'DESCRIPTION'))
+    viewers = OrderedDict(sorted(subclasses.items()))
+    for viewerClass in viewers:
+        viewer = viewers[viewerClass]
+        label = viewer.getName()
+        desc = "Targets %s" % ", ".join([str(target.__name__) for target in viewer._targets])
+
+        print("%-35s %-35s %-s" % (viewerClass, label, desc))
+    return anyError
+
 
 
 def showProtocols(anyError, plugin, pluginName, showBase):

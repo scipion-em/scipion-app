@@ -80,7 +80,7 @@ class PluginInfo(object):
             try:
                 self._dist = importlib_metadata.distribution(self.pipName)
             except Exception as e:
-                logger.debug("Distribution not found: %s" % e)
+                logger.debug("Distribution not found for %s: %s" % (self.pipName, e))
                 pass
         return self._dist
 
@@ -207,12 +207,16 @@ class PluginInfo(object):
 
     def getPipJsonData(self):
         """"Request json data from pypi, return json content"""
-        pipData = requests.get("%s/%s/json" % (PIP_BASE_URL, self.pipName))
+
+        url = f"{PIP_BASE_URL}/{self.pipName}/json"
+        logger.info(f"Getting plugin info at {url} ")
+
+        pipData = requests.get(url)
         if pipData.ok:
             pipData = pipData.json()
             return pipData
         else:
-            print("Warning: Couldn't get remote plugin data for %s" % self.pipName)
+            logger.info("Warning: Couldn't get remote plugin data for %s" % self.pipName)
             return {}
 
     def getCompatiblePipReleases(self, pipJsonData=None):

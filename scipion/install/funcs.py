@@ -928,7 +928,7 @@ class CommandDef:
         """
         return self.append("cd %s" % folder)
 
-    def touch(self, fileName, isTarget=True):
+    def touch(self, fileName, isTarget=True, target=None):
         """ Appends a touch command and its target based on the fileName
 
         :param fileName: file to touch. Should be created in the binary home folder. Use ../ in case of a previous cd command
@@ -937,7 +937,7 @@ class CommandDef:
         """
         if isTarget:
             # Add the touched file as target
-            self.addTarget(fileName)
+            self.addTarget(target or fileName)
 
         return self.append("touch %s" % fileName, os.path.basename(fileName))
 
@@ -954,7 +954,7 @@ class CondaCommandDef(CommandDef):
 
         self._envName=envName
 
-    def create(self, extraCmds='', yml=None):
+    def create(self, extraCmds='', yml=None, touch=ENV_CREATED, target=None):
         """ Creates a conda environment with extra commands if passed
 
         :param extraCmds: additional commands (string) after the conda create -n envName
@@ -967,7 +967,7 @@ class CondaCommandDef(CommandDef):
             self.append("conda create -y -n %s %s" % (self._envName, extraCmds))
         else:
             self.append("conda env create -y -n %s -f %s %s" % (self._envName, yml, extraCmds))
-        return self.touch("env_created.txt")
+        return self.touch(touch, target)
 
     def pipInstall(self, packages):
         """ Appends pip install to the existing command adding packages"""

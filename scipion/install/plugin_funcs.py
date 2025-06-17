@@ -1,17 +1,19 @@
+import logging
+logger = logging.getLogger(__name__)
 import requests
 import os
 import re
 import sys
 import json
-import pkg_resources
-from pkg_resources import parse_version
-
+from packaging.version import Version
+from urllib.request import url2pathname
+from urllib.parse import urlparse
 from .funcs import Environment
 from pwem import Domain
 from pyworkflow.utils import redStr, yellowStr
 from pyworkflow.utils.path import cleanPath
 from pyworkflow import LAST_VERSION, CORE_VERSION, Config
-from importlib import reload
+import importlib_metadata
 
 NULL_VERSION = "0.0.0"
 # This constant is used in order to install all plugins taking into account a
@@ -73,11 +75,12 @@ class PluginInfo(object):
         self.installBin()
         self.setLocalPluginInfo()
 
-    def _getDistribution(self):
+    def getDistribution(self):
         if self._dist is None:
             try:
-                self._dist = pkg_resources.get_distribution(self.pipName)
-            except:
+                self._dist = importlib_metadata.distribution(self.pipName)
+            except Exception as e:
+                logger.debug("Distribution not found for %s: %s" % (self.pipName, e))
                 pass
         return self._dist
 
@@ -86,19 +89,21 @@ class PluginInfo(object):
 
             try:
                 dirname = self.getDirName()
-                self._plugin = Config.getDomain().getPluginModule(dirname)
-            except:
+                if dirname:  ## For non installed plugins getDirName does return "". Avoid asking for the plugin
+                    self._plugin = Config.getDomain().getPluginModule(dirname)
+            except Exception as e:
+                logger.debug("Can't get the plugin for %s( dir name:%s )." % (self.pipName, dirname))
                 pass
         return self._plugin
 
     def hasPipPackage(self):
         """Checks if the current plugin is installed via pip"""
-        return self._getDistribution() is not None
+        return self.getDistribution() is not None
 
     def isInstalled(self):
         """Checks if the current plugin is installed (i.e. has pip package).
         NOTE: we might want to change definition of isInstalled, hence the extra function."""
-        reload(pkg_resources)
+        # This is too expensive: reload(pkg_resources)
         return self.hasPipPackage()
 
     def installPipModule(self, version=""):
@@ -146,18 +151,16 @@ class PluginInfo(object):
                                              target=target,
                                              pipCmd=cmd)
 
-        # check if we're doing a version change of an already installed plugin
-        reloadPkgRes = self.isInstalled()
-
+        # Install the package/plugin
         environment.execute()
-        # we already have a dir for the plugin:
-        if reloadPkgRes:
-            # if plugin was already installed, pkg_resources has the old one
-            # so it needs a reload
-            reload(pkg_resources)
-            self.dirName = self.getDirName()
-            Domain.refreshPlugin(self.dirName)
-            self._plugin = None
+
+        # if plugin was already installed, we need to clean cached elements
+        self._dist = None  # Trigger reloading the distribution
+
+        # Not needed? reload(pkg_resources)
+        self.dirName = self.getDirName()
+        Domain.refreshPlugin(self.dirName)
+
         return True
 
     def installBin(self, args=None):
@@ -204,12 +207,16 @@ class PluginInfo(object):
 
     def getPipJsonData(self):
         """"Request json data from pypi, return json content"""
-        pipData = requests.get("%s/%s/json" % (PIP_BASE_URL, self.pipName))
+
+        url = f"{PIP_BASE_URL}/{self.pipName}/json"
+        logger.info(f"Getting plugin info at {url} ")
+
+        pipData = requests.get(url)
         if pipData.ok:
             pipData = pipData.json()
             return pipData
         else:
-            print("Warning: Couldn't get remote plugin data for %s" % self.pipName)
+            logger.info("Warning: Couldn't get remote plugin data for %s" % self.pipName)
             return {}
 
     def getCompatiblePipReleases(self, pipJsonData=None):
@@ -226,14 +233,14 @@ class PluginInfo(object):
 
         for release, releaseData in pipJsonData['releases'].items():
             releaseData = releaseData[0]
-            scipionVersions = [parse_version(v)
+            scipionVersions = [Version(v)
                                for v in re.findall(reg,
                                                    releaseData['comment_text'])]
             if len(scipionVersions) != 0:
                 releases[release] = releaseData
-                if any([v == parse_version(CORE_VERSION)
+                if any([v == Version(CORE_VERSION)
                         for v in scipionVersions]):
-                    if parse_version(latestCompRelease) < parse_version(release):
+                    if Version(latestCompRelease) < Version(release):
                         latestCompRelease = release
             else:
                 print(yellowStr("WARNING: %s's release %s did not specify a "
@@ -303,22 +310,36 @@ class PluginInfo(object):
             # A.: plugin is a proper pipmodule and is installed as such
             # B.: Plugin is not yet a pipmodule but a local folder.
             try:
-                package = pkg_resources.get_distribution(self.pipName)
-                keys = ['Name', 'Version', 'Summary', 'Home-page', 'Author',
-                        'Author-email']
-                pattern = r'(.*): (.*)'
 
-                for line in package._get_metadata(package.PKG_INFO):
-                    match = re.match(pattern, line)
-                    if match:
-                        key = match.group(1)
-                        if key in keys:
-                            metadata[key] = match.group(2)
-                            keys.remove(key)
-                            if not len(keys):
-                                break
+                def getValueFromMetadata(prodKey, altKey):
+                    """Gets the value from the metadata dictionary using the prodKey (package in production)
+                    if key does not exist uses the altKey
 
-                self.pipVersion = metadata.get('Version', "")
+                    :param prodKey: key in the metadata to get the value
+                    :param altKey: alternative key in case prodKey does not exist"""
+                    if prodKey in jsonMetadata:
+                        return jsonMetadata[prodKey]
+                    else:
+                        try:
+                            value = jsonMetadata[altKey]
+                            if isinstance(value, str):
+                                # author_email
+                                return value
+                            else:
+                                # Project_url: ['Homepage, https://github.com/scipion-em/scipion-em-warp', 'Issues, https://github.com/scipion-em/scipion-em-warp/issues']
+                                return value[0].split()[1]
+
+                        except Exception as e:
+                            logger.debug("Can't get %s value for %s package." % (altKey, self.pipName))
+                            return altKey
+
+                jsonMetadata = self.getDistribution().metadata.json
+
+                self.summary = jsonMetadata.get("summary", "")
+                self.author = getValueFromMetadata("author", "author_email")
+                self.homePage = getValueFromMetadata("home_page", "project_url")
+                self.email = jsonMetadata.get("author_email", "")
+                self.pipVersion = self._dist.version
                 self.dirName = self.getDirName()
                 self.binVersions = self.getBinVersions()
 
@@ -384,12 +405,44 @@ class PluginInfo(object):
     def getDirName(self):
         """Get the name of the folder that contains the plugin code
            itself (e.g. to import the _plugin object.)"""
-        # top level file is a file included in all pip packages that contains
-        # the name of the package's top level directory
-        try:
-            return pkg_resources.get_distribution(self.pipName).get_metadata('top_level.txt').strip()
-        except Exception as e:
-            return None
+        if not self.dirName:
+            try:
+                dist = self.getDistribution()
+
+                # Here, at least there are 2 cases: normal mode or editable mode.
+                # Normal mode have __init__.py files. We will look for the first one to get the dirname
+                # editable mode is more indirect. We need the top_level.txt to get the dirname but also
+                # since code is somewhere else, we need to find the folder where the code is using "direct_url.json"
+                for path in dist.files:
+                    if path.name == "__init__.py":
+                        self.dirName = path.parts[0]
+                        break
+                    elif path.name == "top_level.txt":
+                        logger.debug("Package %s in editable mode." % self.pipName)
+                        self.dirName = self._getDirNameFromTopLevel(path)
+                    elif path.name == "direct_url.json":
+                        self._addPluginPathToModules(path)
+
+            except Exception as e:
+                logger.debug("getDirName does not work for %s: %s" % (self.pipName, e))
+
+        return self.dirName
+    def _getDirNameFromTopLevel(self, path):
+        topLevel = str(path.locate())
+        with open(topLevel) as fh:
+            line = fh.readline().strip()
+            return line
+
+    def _addPluginPathToModules(self, path):
+        logger.warning("Getting actual path for %s" % self.pipName)
+        urlJson = str(path.locate())
+        with open(urlJson) as fh:
+            jsonObj = json.load(fh)
+            url= jsonObj["url"]
+            url = urlparse(url)
+            file_path = url2pathname(url.path)
+            logger.warning("Path found: %s" % file_path)
+            sys.path.append(file_path)
 
     def printBinInfoStr(self):
         """Returns string with info of binaries installed to print in console

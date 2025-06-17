@@ -1,4 +1,10 @@
-
+V3.8.1
+ - CondaCommandDef.create accepts "target" for a different path to the env-created.txt: Used in emready plugin.
+V3.8.0
+ - Plugin installation refactored (pkg_resources removed,using importlib instead)
+ - Logging used instead of prints
+ - using toml
+ - Scipion metadata viewer is the default one in most cases.
 V3.7.1
  - Plugin refreshes completely after a plugin update avoiding mixing definition of old and new binaries
 V3.7.0
@@ -14,7 +20,7 @@ V3.6.0
  - Template window shows browser icons
  - Template window adapted to use workflow hub templates
 developers:
- - Inspect is debugeable
+ - Inspect is debuggable
 
 V3.5.0
   - Extending the CondaCommanDef class to allow environment creation using .yml files

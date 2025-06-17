@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scipion-app"
+dynamic = ["version", "dependencies"]
+
+authors = [
+    {name = "Yunior Fonseca", email = "cfonseca@cnb.csic.es"},
+    {name = "Pablo Conesa", email = "pconesa@cnb.csic.es"},
+]
+description = "Scipion application. Plugin manager"
+readme = "README.rst"
+requires-python = ">=3.8"
+keywords = ["scipion", "electron-microscopy", "cryo-em", "structural-biology", "image-processing", "scipion-3.0"]
+license = {text = "GNU General Public License v3 (GPLv3)"}
+
+[project.urls]
+Homepage = "https://github.com/scipion-em/scipion-app"
+Repository = "https://github.com/scipion-em/scipion-app"
+Issues = "https://github.com/scipion-em/scipion-app/issues"
+
+[tool.setuptools.package-data]
+"scipion" = ['templates/*.template', 'templates/*.json']
+
+[project.entry-points."pyworkflow.guiplugin"]
+guiplugin = "scipion.guiplugin"
+
+[project.scripts]
+scipion = "scipion.__main__:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "scipion.__version__"}
+dependencies = {file = ["requirements.txt"]}

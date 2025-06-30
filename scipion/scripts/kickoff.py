@@ -205,9 +205,12 @@ class KickoffView(tk.Frame):
 
     def _fillContent(self, frame):
         # Add project name
-        self.template.genProjectName()
+        if self.template.projectName is None:
+            self.template.genProjectName()
+
         self._addPair(PROJECT_NAME, PROJECT_NAME, 1, frame,
                       value=self.template.projectName,
+                      varType=VarTypes.STRING.value,
                       visible=self.showProjectName)
 
         self._addPair(DO_NOT_SCHEDULE, DO_NOT_SCHEDULE, 2, frame,
@@ -334,11 +337,14 @@ def getTemplates(templateName=None):
             tempList.addPluginTemplates(tempId)
 
     if not len(tempList.templates):
-        raise Exception("No valid file found (*.json.template).\n"
+
+        msg=("No valid file found (*.json.template).\n"
                         "Please, add (at least one) at %s "
                         "or pass it as argument(s).\n"
                         "\n -> Usage: scipion template [PATH.json.template]\n"
                         "\n see 'scipion help'\n" % getExternalJsonTemplates())
+
+        sys.exit(msg)
 
     return tempList.sortListByPluginName().templates
 
@@ -407,7 +413,10 @@ def assignAllParams(argsList, template):
 
             aliasAttr, valAttr = attr.split('=')
             try:
-                paramsSetted += template.setParamValue(aliasAttr, valAttr)
+                if aliasAttr=="project_name":
+                    template.projectName=valAttr
+                else:
+                    paramsSetted += template.setParamValue(aliasAttr, valAttr)
             except Exception as e:
                 print(pwutils.redStr(e))
                 sys.exit(os.EX_DATAERR)
@@ -459,12 +468,17 @@ def createProjectFromWorkflow(workflow, projectName, argsList, comment):
     projectName = Project.cleanProjectName(projectName)
 
     # Create the project
-    print("Creating project %s" % projectName)
+    print("Creating project %s and waiting 2 secs before continuing." % projectName)
     createProjectScript = os.path.join(scriptsPath, 'create.py')
 
     # Escape ' in bash --> '"'"' (gluing)
     comment = comment.replace("'", "'\"'\"'")
-    os.system("python -m %s  python %s %s %s - '%s'" % (scipion, createProjectScript, projectName, workflow, comment))
+    result = os.system("python -m %s  python %s %s %s - '%s'" % (scipion, createProjectScript, projectName, workflow, comment))
+
+    #error creating the project... exit
+    if result != 0:
+        return
+
     # Wait 2 seconds to avoid activity
     time.sleep(2)
 
@@ -472,7 +486,7 @@ def createProjectFromWorkflow(workflow, projectName, argsList, comment):
 
         # Schedule the project
         scheduleProjectScript = os.path.join(scriptsPath, 'schedule.py')
-        print("Scheduling project %s" % projectName)
+        print("Scheduling project %s and waiting 5 secs to settle things up." % projectName)
         subprocess.Popen(["python", "-m", scipion, "python", scheduleProjectScript, projectName])
         # Wait 5 seconds to avoid activity
         time.sleep(5)
@@ -520,14 +534,47 @@ def main():
     # Remove "template"
     argsList = sys.argv[1:]
 
+
+    if len(argsList)>0 and argsList[0] == "-h":
+
+        print("""
+    Arguments: [TEMPLATE] [--noschedule] [--nogui] [project_name=NAME][cmdId1=VALUE1,...]
+                    
+    Shows all the templates available:
+           1.- *.json.template files found in the config folder
+           2.- templates provided by plugins.
+           3.- templates at workflowhub
+    If TEMPLATE (a path to a template or a template name) is provided, 
+           then that template is used.
+           
+    If the template is dynamic 
+    (see https://scipion-em.github.io/docs/release-3.0.0/docs/facilities/facilities-workflows.html#id2)
+    then it will pop up a window to ask for the dynamic fields.
+    
+    It will create a project based on the template
+    
+    It will schedule the project unless --noschedule is passed or cancelled in the GUI
+    
+    It will show the project unless --nogui is passed or cancelled in the GUI
+    
+    Dynamic templates may have defined "cmdId" (a parameter name to refer to it from the command line)
+    If so, dynamic template parameters are filled with the corresponding arguments. If all parameters are populated
+    no window is shown and project is created straight away.""")
+        return
+
     # Now, there 2 cases:
     # 1.- it comes with a template name (full path) or id (name)
     # 2.- is empty
     templateName = argsList[0] if argsList else None
-    templates = getTemplates(templateName)
 
-    # Remove the name from the args, in case it is passed
-    argsList = argsList[1:]
+    if templateName is not None:
+        if "=" in templateName or FLAG_PARAM in templateName:
+            templateName=None
+        else:
+            # Remove the name from the args, in case it is passed
+            argsList = argsList[1:]
+
+    templates = getTemplates(templateName)
 
     chosenTemplate = chooseTemplate(templates)
 

@@ -478,17 +478,12 @@ MODE can be:
                              
     %s                Prints main packages version.
     
-    %s | %s        Displays a GUI which allows to run the available Scipion workflow demos. 
-    
     %s [NAME]        Creates a new protocol with a tutorial workflow loaded.
                            If NAME is empty, the list of available tutorials are shown.
 
     %s | %s FILE       Opens a file with Scipion's showj, or a directory with Browser.
     
-    %s [TEMPLATE]    Shows all the *.json.template files found in the config folder
-                           and all templates provided by plugins. If TEMPLATE 
-                           (a path to a template or a template name) is provided, 
-                           then that template is used.
+    %s -h            Shows help for launching templates               
 
     %s [ARGS]          Check for updates of scipion-em, scipion-pyworkflow 
                            and scipion-app and updates them. OPTIONS can be:
@@ -503,7 +498,7 @@ MODE can be:
        MODE_INSTALL_BINS, MODE_UNINSTALL_BINS, MODE_MANAGER, MODE_INSPECT,
        MODE_ENV, MODE_PROTOCOLS, MODE_RUNPROTOCOL, MODE_PROJECT, MODE_LAST,
        MODE_RUN, MODE_PIP, MODE_PYTHON, MODE_TEST, MODE_TEST_DATA, MODE_VERSION,
-       MODE_DEMO[0], MODE_DEMO[1], MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
+       MODE_TUTORIAL, MODE_VIEWER[1], MODE_VIEWER[2],
        MODE_DEMO[1], MODE_UPDATE))
 
         if mode == MODE_HELP:

@@ -345,7 +345,8 @@ def main():
         sys.exit(0)
 
     elif mode == MODE_RUNPROTOCOL:
-        assert (n == 6 or n == 7), 'runprotocol takes exactly 5 arguments, not %d' % (n - 1)
+        if not (n == 6 or n == 7):
+            raise AssertionError('runprotocol takes exactly 5 or 6 arguments, not %d' % (n - 1))
         # this could be pw_protocol_run.py or pw_protocol_mpirun.py
         protocolApp = sys.argv[2]
         # This should be (projectPath, protocolDb and protocolId)

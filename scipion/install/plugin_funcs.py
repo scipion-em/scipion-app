@@ -36,7 +36,7 @@ PIP_UNINSTALL_CMD = '{0} -m pip uninstall -y %s'.format(
 class PluginInfo(object):
 
     def __init__(self, pipName="", name="", pluginSourceUrl="", remote=True,
-                 plugin=None, **kwargs):
+                 plugin=None, logo="",  **kwargs):
         self.pipName = pipName
         self.name = name
         self.pluginSourceUrl = pluginSourceUrl
@@ -49,6 +49,7 @@ class PluginInfo(object):
         self.email = ""
         self.compatibleReleases = {}
         self.latestRelease = ""
+        self.logo = logo
 
         # things we have when installed
         self.dirName = ""

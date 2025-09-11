@@ -468,7 +468,8 @@ class Environment:
         if default or name in sys.argv[2:]:
             # Check that we have the necessary programs and libraries in place.
             for prog in neededProgs:
-                assert progInPath(prog), ("Cannot find necessary program: %s\n"
+                if not progInPath(prog):
+                    raise AssertionError("Cannot find necessary program: %s\n"
                                           "Please install and try again" % prog)
             for lib in libChecks:
                 checkLib(lib)
@@ -509,8 +510,8 @@ class Environment:
                          out=self.getLogFolder('%s_configure.log' % name),
                          always=configAlways, environ=environ)
         else:
-            assert progInPath('cmake') or 'cmake' in sys.argv[2:], \
-                "Cannot run 'cmake'. Please install it in your system first."
+            if not (progInPath('cmake') or 'cmake' in sys.argv[2:]):
+                raise AssertionError("Cannot run 'cmake'. Please install it in your system first.")
 
             flags.append('-DCMAKE_INSTALL_PREFIX:PATH=%s .' % prefix)
             t.addCommand('cmake %s' % ' '.join(flags),
@@ -582,7 +583,8 @@ class Environment:
         if name in sys.argv[2:]:
             # Check that we have the necessary programs in place.
             for prog in neededProgs:
-                assert progInPath(prog), ("Cannot find necessary program: %s\n"
+                if not progInPath(prog):
+                    raise AssertionError("Cannot find necessary program: %s\n"
                                           "Please install and try again" % prog)
 
         if name not in self._packages:

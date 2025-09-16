@@ -311,7 +311,7 @@ def checkPaths(conf):
     print("Checking paths in %s ..." % conf)
     cf = ConfigParser()
     cf.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
-    if cf.read(conf):
+    if not cf.read(conf):
         raise AssertionError('Missing file: %s' % conf)
 
     def get(var):

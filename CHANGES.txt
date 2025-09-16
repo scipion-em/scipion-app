@@ -1,3 +1,5 @@
+V3.8.3
+ - fix --overwrite
 V3.8.2
  - scipion3 template command refactored:
      - Accepts project_name=MYNAME to customize project names when using templates

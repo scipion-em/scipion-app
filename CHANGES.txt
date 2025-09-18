@@ -1,8 +1,11 @@
+V3.8.3
+ - fix --overwrite
 V3.8.2
  - scipion3 template command refactored:
      - Accepts project_name=MYNAME to customize project names when using templates
      - Project name in Template form is editable
      - Help message detailed.
+     - __debug__ compliant: asserts replaced
 V3.8.1
  - CondaCommandDef.create accepts "target" for a different path to the env-created.txt: Used in emready plugin.
 V3.8.0

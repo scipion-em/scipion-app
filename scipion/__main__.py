@@ -200,6 +200,7 @@ def configureDefaultViewers():
     """ Initialize default viewers if none are set """
     import pyworkflow
     viewers = pyworkflow.Config.VIEWERS
+
     if len(viewers) == 0:
         xmippViewer = "pwem.viewers.DataViewer"
         sciViewer = "pwem.viewers.mdviewer.MDViewer"

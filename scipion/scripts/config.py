@@ -311,7 +311,8 @@ def checkPaths(conf):
     print("Checking paths in %s ..." % conf)
     cf = ConfigParser()
     cf.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
-    assert cf.read(conf) != [], 'Missing file: %s' % conf
+    if not cf.read(conf):
+        raise AssertionError('Missing file: %s' % conf)
 
     def get(var):
         try:
@@ -353,7 +354,8 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
     # Read the config file fpath and the template ftemplate
     cf = ConfigParser(interpolation=None)
     cf.optionxform = str  # keep case (stackoverflow.com/questions/1611799)
-    assert cf.read(fpath) != [], 'Missing file %s' % fpath
+    if not cf.read(fpath):
+        raise AssertionError('Missing file %s' % fpath)
 
     ct = ConfigParser(interpolation=None)
     ct.optionxform = str
@@ -370,7 +372,8 @@ def checkConf(fpath, ftemplate, update=False, unattended=False, compare=False):
         # Cancel update for others than SCIPION_CONF
         update = False
         suggestUpdate = False
-        assert ct.read(ftemplate) != [], 'Missing file %s' % ftemplate
+        if not ct.read(ftemplate):
+            raise AssertionError('Missing file %s' % ftemplate)
 
     df = dict([(s, set(cf.options(s))) for s in cf.sections()])
     dt = dict([(s, set(ct.options(s))) for s in ct.sections()])

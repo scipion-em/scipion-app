@@ -29,6 +29,7 @@ import sys
 from os.path import join, dirname, exists, isdir
 from os import environ
 import importlib
+import importlib.util
 
 
 def getScipionHome():
@@ -68,6 +69,23 @@ def getExternalJsonTemplates():
 
 
 def getModuleFolder(moduleName):
-    """ Returns the path of a module without importing it"""
     spec = importlib.util.find_spec(moduleName)
-    return dirname(spec.origin)
+    if spec is None:
+        raise ModuleNotFoundError(f"Module not found: {moduleName}")
+
+    origin = getattr(spec, "origin", None)
+    if origin:
+        return dirname(origin)
+
+    searchLocations = getattr(spec, "submodule_search_locations", NonSe)
+    if searchLocations:
+        for path in searchLocations:
+            if path:
+                return path
+
+    module = importlib.import_module(moduleName)
+    moduleFile = getattr(module, "__file__", None)
+    if moduleFile:
+        return dirname(moduleFile)
+
+    raise RuntimeError(f"Cannot resolve folder for module: {moduleName}")

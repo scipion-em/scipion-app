@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -21,8 +21,13 @@ Homepage = "https://github.com/scipion-em/scipion-app"
 Repository = "https://github.com/scipion-em/scipion-app"
 Issues = "https://github.com/scipion-em/scipion-app/issues"
 
+[tool.setuptools.packages.find]
+include = ["scipion", "scipion.*"]
+exclude = ["scipion_home*", "tests*"]
+namespaces = false
+
 [tool.setuptools.package-data]
-"scipion" = ['templates/*.template', 'templates/*.json']
+"scipion" = ["templates/*.template", "templates/*.json"]
 
 [project.entry-points."pyworkflow.guiplugin"]
 guiplugin = "scipion.guiplugin"

@@ -77,7 +77,7 @@ def getModuleFolder(moduleName):
     if origin:
         return dirname(origin)
 
-    searchLocations = getattr(spec, "submodule_search_locations", NonSe)
+    searchLocations = getattr(spec, "submodule_search_locations", None)
     if searchLocations:
         for path in searchLocations:
             if path:

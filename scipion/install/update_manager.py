@@ -37,6 +37,7 @@ from scipion.constants import MODE_UPDATE
 
 DRY_COMMAND = '-dry'
 SCIPION_NAME = 'Scipion'
+PYPI_URL = 'https://pypi.org/pypi/%s/json'
 
 
 def updateManagerParser(args):
@@ -112,25 +113,22 @@ class UpdateManager:
                 (False, version)
 
         """
-        # Ignore auto-check of outdated package that happens at import time
-        os.environ["OUTDATED_IGNORE"] = "1"
-        from outdated import check_outdated
-        from requests.exceptions import ConnectionError
+        import requests
+        from packaging.version import Version
         try:
-            checkOutdated = check_outdated(packageName, version)
-        except ConnectionError:
+            response = requests.get(PYPI_URL % packageName, timeout=10)
+            response.raise_for_status()
+            latest = response.json()['info']['version']
+        except requests.exceptions.ConnectionError:
             print("Cannot check update status of %s (%s)" % (packageName, version))
-            return False, version
-        except ValueError:
-            # We intentionally skip this error
-            # When working in devel mode with an increased version not yet release this Value error
-            # happens: --> example: Version 3.0.2 is greater than the latest version on PyPI: 3.0.1
             return False, version
         except Exception as ex:
             print(redStr('%s :%s' % (packageName, ex)))
             return False, version
 
-        return checkOutdated
+        # When working in devel mode the local version may be greater than the
+        # latest released one: that is not an update
+        return Version(version) < Version(latest), latest
 
     @classmethod
     def updateScipion(cls, outdatedPackages):

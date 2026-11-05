@@ -8,7 +8,7 @@ on:
 
 jobs:
   call-publish-workflow:
-    uses: scipion-em/.github/.github/workflows/publish_and_tag_toml.yml@master
+    uses: scipion-em/.github/.github/workflows/publish_and_tag.yml@master
     with:
       folder: scipion
     secrets:

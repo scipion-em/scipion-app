@@ -1,4 +1,5 @@
 scipion-em
-outdated==0.2.2
+packaging
+requests
 typing_extensions
 scipion-pyworkflow>=3.11.2  # debug mode.

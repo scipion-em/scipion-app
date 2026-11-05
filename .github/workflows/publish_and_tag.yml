@@ -11,4 +11,6 @@ jobs:
     uses: scipion-em/.github/.github/workflows/publish_and_tag_toml.yml@master
     with:
       folder: scipion
-    secrets: inherit
+    secrets:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      PYPI_COMMENT: ${{ secrets.PYPI_COMMENT }}
